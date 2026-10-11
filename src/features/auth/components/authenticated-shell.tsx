@@ -29,7 +29,10 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
         setRenderedPath(pathname);
         setValidatedPath(null);
     }
-    const detailId = /^\/spaces\/([^/]+)(?:\/settings)?$/.exec(pathname)?.[1];
+    const detailId =
+        /^\/spaces\/([^/]+)(?:\/settings|\/expenses\/(?:new|[^/]+))?$/.exec(
+            pathname,
+        )?.[1];
     const routeSpaceId = detailId && detailId !== 'new' ? detailId : null;
     useEffect(() => {
         if (space.phase !== 'ready') return;
@@ -116,7 +119,19 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
                     (space.activeSpaceId === routeSpaceId &&
                         validatedPath === pathname))));
     return (
-        <div className={styles.shell}>
+        <div
+            className={styles.shell}
+            onClickCapture={(event) => {
+                if (
+                    event.target instanceof Element &&
+                    event.target.closest('a') &&
+                    !context.canLeave()
+                ) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            }}
+        >
             <header className={styles.header}>
                 <div className={styles.headerContent}>
                     <span className={styles.brand}>Prospera Mais</span>

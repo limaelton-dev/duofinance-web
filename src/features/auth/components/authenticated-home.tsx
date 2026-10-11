@@ -68,6 +68,15 @@ export function AuthenticatedHome() {
             )}
 
             <nav aria-label="Espaços">
+                {details.data.space.type === 'SHARED' && (
+                    <p>
+                        <Link
+                            href={`/spaces/${details.data.space.id}/expenses/new`}
+                        >
+                            Adicionar despesa
+                        </Link>
+                    </p>
+                )}
                 <p>
                     <Link href="/spaces">Ver espaços</Link>
                 </p>

@@ -1,11 +1,12 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { ApiError } from '@/lib/api/api-error';
 import { logout } from '@/lib/api/logout';
 import { useInvitationFlowContext } from '@/features/spaces/context/invitation-flow-provider';
+import { useOptionalSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
 
 import { authenticatedContextQueryOptions } from '../hooks/use-authenticated-context';
 import { useCsrf } from '../hooks/use-csrf';
@@ -17,6 +18,12 @@ export function LogoutButton() {
     const queryClient = useQueryClient();
     const csrf = useCsrf();
     const invitationFlow = useInvitationFlowContext();
+    const spaceContext = useOptionalSpaceContextInstance();
+    const switchBlocked = useSyncExternalStore(
+        spaceContext?.subscribe ?? (() => () => {}),
+        () => spaceContext?.getSnapshot().switchBlocked ?? false,
+        () => false,
+    );
     const submittingRef = useRef(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -82,6 +89,7 @@ export function LogoutButton() {
         if (submittingRef.current || signOut.isSuccess) {
             return;
         }
+        if (spaceContext && !spaceContext.canLeave()) return;
 
         setErrorMessage(null);
         invitationFlow.clear();
@@ -111,7 +119,7 @@ export function LogoutButton() {
                 type="button"
                 className={formStyles.button}
                 onClick={handleLogout}
-                disabled={isBusy || csrf.isFetching}
+                disabled={isBusy || csrf.isFetching || switchBlocked}
             >
                 {signOut.isSuccess
                     ? 'Saída confirmada...'

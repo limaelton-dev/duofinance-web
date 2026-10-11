@@ -185,6 +185,10 @@ export function useSpaceContextInstance(): SpaceContext {
     return context;
 }
 
+export function useOptionalSpaceContextInstance(): SpaceContext | null {
+    return useContext(Context);
+}
+
 export function useSpaceContext() {
     const context = useSpaceContextInstance();
     const snapshot = useSyncExternalStore(

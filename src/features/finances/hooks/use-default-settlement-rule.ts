@@ -20,10 +20,22 @@ export function useDefaultSettlementRule(
             if (!captured || captured.spaceId !== spaceId)
                 throw new Error('O espaço foi alterado.');
             return queryInSpacesSession(client, personId, async () => {
-                const result = await getDefaultSettlementRule(spaceId, signal);
-                if (!context.isCurrent(captured) || result.spaceId !== spaceId)
-                    throw new Error('O espaço foi alterado.');
-                return result;
+                try {
+                    const result = await getDefaultSettlementRule(
+                        spaceId,
+                        signal,
+                    );
+                    if (
+                        !context.isCurrent(captured) ||
+                        result.spaceId !== spaceId
+                    )
+                        throw new Error('O espaço foi alterado.');
+                    return result;
+                } catch (error) {
+                    if (!context.isCurrent(captured))
+                        throw new Error('O espaço foi alterado.');
+                    throw error;
+                }
             });
         },
         staleTime: 0,

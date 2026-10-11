@@ -80,6 +80,18 @@ export class SpaceContext {
     private retryRoute = false;
     private lastSpace: SpaceSummary | null = null;
     private discardedDraft = false;
+    private leaveGuard: (() => boolean) | null = null;
+
+    registerLeaveGuard(guard: () => boolean): () => void {
+        this.leaveGuard = guard;
+        return () => {
+            if (this.leaveGuard === guard) this.leaveGuard = null;
+        };
+    }
+
+    canLeave(): boolean {
+        return this.locks.size === 0 && (this.leaveGuard?.() ?? true);
+    }
 
     notifyDraftDiscarded(): void {
         this.discardedDraft = true;
@@ -165,6 +177,7 @@ export class SpaceContext {
             this.snapshot.activeSpaceId === spaceId
         )
             return Promise.resolve(true);
+        if (!this.canLeave()) return Promise.resolve(false);
         return this.transition(spaceId, false);
     }
 

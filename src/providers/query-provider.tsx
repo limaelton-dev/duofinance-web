@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 import { watchSpacesSession } from '@/features/spaces/cache/spaces-session';
+import { trackNavigationHistory } from '@/features/spaces/state/navigation-history';
 
 function createQueryClient() {
     const client = new QueryClient({
@@ -21,6 +22,7 @@ function createQueryClient() {
     });
 
     if (!environmentManager.isServer()) {
+        trackNavigationHistory();
         watchSpacesSession(client);
     }
 
