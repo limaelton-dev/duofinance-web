@@ -88,6 +88,14 @@ export function useExpenseCommand(
                     'Não foi possível confirmar o destino do registro.',
                 );
             finish();
+            void client.invalidateQueries({
+                queryKey: [
+                    'finances',
+                    value.capture.personId,
+                    value.capture.spaceId,
+                    'inter-member-position',
+                ],
+            });
             onSuccess(result);
             void client.invalidateQueries({
                 queryKey: [

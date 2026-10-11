@@ -985,36 +985,49 @@ test('A22: erro HTTP de parte específica foca membro correto e mantém entrada'
         'Mercado',
     );
 });
-test('A23: capturas sintéticas desktop/mobile e detalhe sem segredos', async ({
+test('A23: checagens responsivas desktop/mobile e detalhe sem segredos', async ({
     page,
     context,
 }) => {
     await open(page, context);
     await fill(page);
-    await page.screenshot({
-        path: 'C:/Projs/ProsperaMais/artifacts/card006/desktop-form.png',
-        fullPage: true,
-    });
+    await expect(
+        page.getByRole('complementary', { name: 'Resumo vivo' }),
+    ).toBeVisible();
+    expect(
+        await page.evaluate(
+            () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+    ).toBe(true);
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.screenshot({
-        path: 'C:/Projs/ProsperaMais/artifacts/card006/mobile-form.png',
-        fullPage: true,
-    });
+    await expect(page.getByLabel('Descrição', { exact: true })).toHaveValue(
+        'Mercado',
+    );
+    expect(
+        await page.evaluate(
+            () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+    ).toBe(true);
     await save(page);
     await recorded(page);
     await page.getByRole('link', { name: 'Ver despesa', exact: true }).click();
     await expect(
         page.getByText('Mercado · R$ 500,00', { exact: true }),
     ).toBeVisible();
-    await page.screenshot({
-        path: 'C:/Projs/ProsperaMais/artifacts/card006/mobile-detail.png',
-        fullPage: true,
-    });
+    expect(
+        await page.evaluate(
+            () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+    ).toBe(true);
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.screenshot({
-        path: 'C:/Projs/ProsperaMais/artifacts/card006/desktop-detail.png',
-        fullPage: true,
-    });
+    await expect(
+        page.getByText('Mercado · R$ 500,00', { exact: true }),
+    ).toBeVisible();
+    expect(
+        await page.evaluate(
+            () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+    ).toBe(true);
 });
 test('A20/A21: sucesso POST tardio após logout externo não reaparece na sessão nova', async ({
     page,
@@ -1057,8 +1070,6 @@ test('A20/A21: sucesso POST tardio após logout externo não reaparece na sessã
                 exact: true,
             }),
         ).toHaveCount(0);
-        // External logout rotates CSRF. Refresh only after the late response
-        // has finished without resurrecting the mounted session.
         await page.reload();
         await page.getByLabel('E-mail', { exact: true }).fill(a.email);
         await page.getByLabel('Senha', { exact: true }).fill(password);

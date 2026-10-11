@@ -71,6 +71,15 @@ export function AuthenticatedHome() {
                 {details.data.space.type === 'SHARED' && (
                     <p>
                         <Link
+                            href={`/spaces/${details.data.space.id}/finances`}
+                        >
+                            Finanças
+                        </Link>
+                    </p>
+                )}
+                {details.data.space.type === 'SHARED' && (
+                    <p>
+                        <Link
                             href={`/spaces/${details.data.space.id}/expenses/new`}
                         >
                             Adicionar despesa

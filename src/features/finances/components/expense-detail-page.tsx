@@ -131,6 +131,11 @@ function Detail({
                 </>
             )}
             <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
+            <p>
+                <Link href={`/spaces/${spaceId}/finances`}>
+                    Voltar às Finanças
+                </Link>
+            </p>
         </section>
     );
 }

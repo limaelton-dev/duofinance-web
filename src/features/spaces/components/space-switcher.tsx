@@ -39,7 +39,7 @@ export function SpaceSwitcher() {
             return;
         const selected = context.getSnapshot().activeSpaceId;
         if (
-            /^\/spaces\/(?!new$)[^/]+(?:\/settings|\/expenses\/[^/]+)?$/.test(
+            /^\/spaces\/(?!new$)[^/]+(?:\/settings|\/finances|\/expenses\/[^/]+)?$/.test(
                 currentPath.current,
             ) &&
             selected
@@ -50,8 +50,11 @@ export function SpaceSwitcher() {
             const composer =
                 currentPath.current.endsWith('/expenses/new') &&
                 context.getSnapshot().currentSpace?.type === 'SHARED';
+            const finances =
+                currentPath.current.endsWith('/finances') &&
+                context.getSnapshot().currentSpace?.type === 'SHARED';
             router.replace(
-                `/spaces/${selected}${settings ? '/settings' : composer ? '/expenses/new' : ''}`,
+                `/spaces/${selected}${settings ? '/settings' : composer ? '/expenses/new' : finances ? '/finances' : ''}`,
             );
         }
     }

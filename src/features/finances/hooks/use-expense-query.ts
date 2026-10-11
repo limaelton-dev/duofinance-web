@@ -8,6 +8,7 @@ export function useExpenseQuery<T extends { spaceId: string }>(
     key: readonly unknown[],
     enabled: boolean,
     request: (signal: AbortSignal) => Promise<T>,
+    isRequestCurrent: () => boolean = () => true,
 ) {
     const client = useQueryClient(),
         context = useSpaceContextInstance();
@@ -23,13 +24,13 @@ export function useExpenseQuery<T extends { spaceId: string }>(
                     const result = await request(signal);
                     if (
                         !context.isCurrent(capture) ||
+                        !isRequestCurrent() ||
                         result.spaceId !== spaceId
                     )
                         throw new Error('O espaço foi alterado.');
                     return result;
                 } catch (error) {
-                    // A stale 401 must not expire the current space generation.
-                    if (!context.isCurrent(capture))
+                    if (!context.isCurrent(capture) || !isRequestCurrent())
                         throw new Error('O espaço foi alterado.');
                     throw error;
                 }
