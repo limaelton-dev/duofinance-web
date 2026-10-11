@@ -64,3 +64,18 @@
         position: static;
     }
 }
+
+.planning {
+    display: grid;
+    gap: 0.75rem;
+}
+.stack .planningToggle {
+    justify-self: start;
+    background: transparent;
+    color: #205d49;
+    border-color: #8ba49b;
+    font-weight: normal;
+}
+.stack fieldset[hidden] {
+    display: none;
+}

@@ -33,10 +33,12 @@ export function ExpenseSummary({
                     {label(s.memberId)}: {formatMoney(s.amountInCents)}
                 </p>
             ))}
-            <p>
-                Responsável previsto:{' '}
-                {label(value.commitment.expectedPayerMemberId)}
-            </p>
+            {value.commitment.expectedPayerMemberId && (
+                <p>
+                    Responsável previsto:{' '}
+                    {label(value.commitment.expectedPayerMemberId)}
+                </p>
+            )}
             <p>
                 Pago por: {label(value.disbursement.payerMemberId)} ·{' '}
                 {formatMoney(value.disbursement.amountInCents)}

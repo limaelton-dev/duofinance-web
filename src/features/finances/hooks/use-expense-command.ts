@@ -21,6 +21,7 @@ export function useExpenseCommand(
     onSuccess: (result: ExpenseResult) => void,
     onConflict: () => Promise<unknown>,
     onAccessLost: () => void,
+    onFieldError: (fields: string[]) => void,
 ) {
     const client = useQueryClient(),
         context = useSpaceContextInstance(),
@@ -140,7 +141,9 @@ export function useExpenseCommand(
                     const details = failure.details as {
                         fields?: { field: string }[];
                     };
-                    setFields(details.fields?.map((f) => f.field) ?? []);
+                    const fields = details.fields?.map((f) => f.field) ?? [];
+                    onFieldError(fields);
+                    setFields(fields);
                     if (failure.code === 'SPACE_NOT_FOUND') onAccessLost();
                     else if (
                         [

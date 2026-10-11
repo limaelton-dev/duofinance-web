@@ -29,7 +29,7 @@ export type ExpenseInput = {
     amountInCents: number;
     factDate: string;
     responsibilitySplit: Split;
-    expectedPayerMemberId: string;
+    expectedPayerMemberId: string | null;
     disbursement: { payerMemberId: string; method: 'PIX' | 'DEBIT' | 'CASH' };
     settlement: Settlement;
 };
@@ -52,7 +52,7 @@ export type ExpenseView = {
         factDate: string;
         registeredAt: string;
         createdByPersonId: string;
-        expectedPayerMemberId: string;
+        expectedPayerMemberId: string | null;
         responsibilitySplit: Split & {
             calculatedShares: { memberId: string; amountInCents: number }[];
         };

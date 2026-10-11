@@ -141,6 +141,13 @@ async function fill(page: Page, amount = '500,00') {
     await page.getByLabel('Descrição', { exact: true }).fill('Mercado');
     await page.getByLabel('Valor (R$)', { exact: true }).fill(amount);
 }
+const planningToggle = (page: Page) =>
+    page.getByRole('button', {
+        name: 'Previsão de pagamento (opcional)',
+        exact: true,
+    });
+const plannedPayer = (page: Page) =>
+    page.getByLabel('Quem era previsto pagar?', { exact: true });
 const save = (page: Page) =>
     page.getByRole('button', { name: 'Salvar despesa', exact: true }).click();
 async function freshAccount(api: APIRequestContext) {
@@ -199,12 +206,18 @@ test.beforeEach(async () => {
         [`{${s1.id},${s2.id},${s3.id}}`],
     );
 });
-test('A01/A02/A23: Mercado 40/60, previsto separado, servidor confirma e refresh preserva origem', async ({
+test('A01/A02/A23: Mercado 40/60 sem previsão, servidor confirma null e refresh preserva origem', async ({
     page,
     context,
 }) => {
     await open(page, context);
     await fill(page);
+    await expect(planningToggle(page)).toHaveAttribute(
+        'aria-expanded',
+        'false',
+    );
+    await expect(plannedPayer(page)).toBeHidden();
+    await expect(page.getByText(/^Responsável previsto:/)).toHaveCount(0);
     await page.getByLabel('Despesa A (%)', { exact: true }).fill('40');
     await page.getByLabel('Despesa B (%)', { exact: true }).fill('60');
     const ctx = await contextMembers(page);
@@ -212,8 +225,13 @@ test('A01/A02/A23: Mercado 40/60, previsto separado, servidor confirma e refresh
         (m: { personId: string }) => m.personId === b.id,
     ).memberId;
     await page.getByLabel('Quem pagou?', { exact: true }).selectOption(memberB);
+    const response = page.waitForResponse(expenseUrl(s1.id));
     await save(page);
+    const created = await response;
+    expect(created.request().postDataJSON().expectedPayerMemberId).toBeNull();
+    expect((await created.json()).commitment.expectedPayerMemberId).toBeNull();
     await recorded(page);
+    await expect(page.getByText(/^Responsável previsto:/)).toHaveCount(0);
     await expect(
         page.getByText('Sua parte: R$ 200,00', { exact: true }),
     ).toBeVisible();
@@ -229,6 +247,14 @@ test('A01/A02/A23: Mercado 40/60, previsto separado, servidor confirma e refresh
     const url = page.url();
     await page.reload();
     await expect(page).toHaveURL(url);
+    await expect(page.getByText(/^Responsável previsto:/)).toHaveCount(0);
+    const detail = await page.request.get(
+        url
+            .replace(origin, apiUrl)
+            .replace('/expenses/', '/financial-commitments/'),
+    );
+    expect(detail.status()).toBe(200);
+    expect((await detail.json()).commitment.expectedPayerMemberId).toBeNull();
     await expect(
         page.getByText('Sua parte: R$ 200,00', { exact: true }),
     ).toBeVisible();
@@ -253,6 +279,14 @@ test('A04/A05/A06: centavo residual visível e criador sozinho sem pendência', 
     await fill(page);
     await save(page);
     await recorded(page);
+    await expect(page.getByText(/^Responsável previsto:/)).toHaveCount(0);
+    expect(
+        (
+            await dbQuery(
+                'SELECT expected_payer_member_id AS planned FROM financial_commitment_versions',
+            )
+        ).rows.every((row) => row.planned === null),
+    ).toBe(true);
     await expect(
         page.getByText('Não há valor a acertar', { exact: true }),
     ).toBeVisible();
@@ -261,6 +295,120 @@ test('A04/A05/A06: centavo residual visível e criador sozinho sem pendência', 
             .rows[0].n,
     ).toBe(0);
 });
+test('Previsão opcional: escolha diferente ou igual ao pagador persiste recolhida e no detalhe', async ({
+    page,
+    context,
+}) => {
+    await open(page, context);
+    const ctx = await contextMembers(page);
+    const memberA = ctx.members.find(
+        (m: { personId: string }) => m.personId === a.id,
+    ).memberId;
+    const memberB = ctx.members.find(
+        (m: { personId: string }) => m.personId === b.id,
+    ).memberId;
+    for (const expected of [memberB, memberA]) {
+        await fill(page);
+        await expect(planningToggle(page)).toHaveAttribute(
+            'aria-expanded',
+            'false',
+        );
+        await planningToggle(page).click();
+        await expect(plannedPayer(page)).toHaveValue('');
+        await plannedPayer(page).selectOption(expected);
+        await planningToggle(page).click();
+        await expect(plannedPayer(page)).toBeHidden();
+        await expect(
+            page
+                .getByRole('complementary', { name: 'Resumo vivo' })
+                .getByText(
+                    'Responsável previsto: ' +
+                        (expected === memberA ? 'Despesa A' : 'Despesa B'),
+                    { exact: true },
+                ),
+        ).toBeVisible();
+        await planningToggle(page).click();
+        await expect(plannedPayer(page)).toHaveValue(expected);
+        await planningToggle(page).click();
+        const response = page.waitForResponse(expenseUrl(s1.id));
+        await save(page);
+        const created = await response;
+        expect(created.request().postDataJSON().expectedPayerMemberId).toBe(
+            expected,
+        );
+        const result = await created.json();
+        expect(result.commitment.expectedPayerMemberId).toBe(expected);
+        expect(result.disbursement.payerMemberId).toBe(memberA);
+        await recorded(page);
+        const detail = await page.request.get(
+            apiUrl +
+                '/spaces/' +
+                s1.id +
+                '/financial-commitments/' +
+                result.commitment.id,
+        );
+        expect((await detail.json()).commitment.expectedPayerMemberId).toBe(
+            expected,
+        );
+        await page
+            .getByRole('button', { name: 'Adicionar outra', exact: true })
+            .click();
+        await expect(planningToggle(page)).toHaveAttribute(
+            'aria-expanded',
+            'false',
+        );
+        await expect(plannedPayer(page)).toHaveValue('');
+        await expect(page.getByText(/^Responsável previsto:/)).toHaveCount(0);
+    }
+});
+
+test('Previsão opcional: Não informado limpa escolha e erro recolhido abre e foca o campo', async ({
+    page,
+    context,
+}) => {
+    await open(page, context);
+    await fill(page);
+    const ctx = await contextMembers(page);
+    await planningToggle(page).click();
+    await plannedPayer(page).selectOption(ctx.actorMemberId);
+    await plannedPayer(page).selectOption('');
+    await expect(page.getByText(/^Responsável previsto:/)).toHaveCount(0);
+    await planningToggle(page).click();
+    let rejected = false;
+    await page.route(expenseUrl(s1.id), async (route) => {
+        expect(route.request().postDataJSON().expectedPayerMemberId).toBeNull();
+        if (!rejected) {
+            rejected = true;
+            await route.fulfill({
+                status: 422,
+                json: {
+                    code: 'VALIDATION_ERROR',
+                    message: 'Confira a previsão.',
+                    details: { fields: [{ field: 'expectedPayerMemberId' }] },
+                },
+            });
+        } else await route.continue();
+    });
+    await save(page);
+    await expect(planningToggle(page)).toHaveAttribute('aria-expanded', 'true');
+    await expect(plannedPayer(page)).toBeFocused();
+    await planningToggle(page).click();
+    await expect(planningToggle(page)).toHaveAttribute(
+        'aria-expanded',
+        'false',
+    );
+    await expect(plannedPayer(page)).toBeHidden();
+    await planningToggle(page).click();
+    await expect(plannedPayer(page)).toHaveValue('');
+    const response = page.waitForResponse(expenseUrl(s1.id));
+    await save(page);
+    expect(
+        (await (await response).json()).commitment.expectedPayerMemberId,
+    ).toBeNull();
+    await recorded(page);
+    await expect(page.getByText(/^Responsável previsto:/)).toHaveCount(0);
+});
+
 test('A03/A22: valores/percentuais inválidos focam campo e mantêm rascunho', async ({
     page,
     context,
@@ -482,6 +630,9 @@ test('A21: resposta perdida após commit mantém tentativa e bloqueia navegaçã
         }),
     ).toBeVisible();
     await expect(trigger(page)).toBeDisabled();
+    await expect(planningToggle(page)).toBeDisabled();
+    await expect(plannedPayer(page)).toBeDisabled();
+    expect(JSON.parse(attempts[0].body).expectedPayerMemberId).toBeNull();
     await expect(
         page.getByRole('button', { name: 'Sair', exact: true }),
     ).toBeDisabled();
@@ -491,6 +642,7 @@ test('A21: resposta perdida após commit mantém tentativa e bloqueia navegaçã
         .getByRole('button', { name: 'Tentar novamente o envio', exact: true })
         .click();
     await recorded(page);
+    await expect(page.getByText(/^Responsável previsto:/)).toHaveCount(0);
     expect(attempts).toHaveLength(2);
     expect(attempts[0]).toEqual(attempts[1]);
     expect(

@@ -87,6 +87,7 @@ function Composer({
         [mode, setMode] = useState<'AMOUNTS' | 'PERCENTAGES'>('PERCENTAGES'),
         [parts, setParts] = useState<Record<string, string>>({}),
         [planned, setPlanned] = useState(''),
+        [planningOpen, setPlanningOpen] = useState(false),
         [payer, setPayer] = useState(''),
         [method, setMethod] = useState<'PIX' | 'DEBIT' | 'CASH'>('DEBIT'),
         [settlementMode, setSettlementMode] = useState<
@@ -155,6 +156,9 @@ function Composer({
             await refresh();
         },
         accessLost,
+        (fields) => {
+            if (fields[0] === 'expectedPayerMemberId') setPlanningOpen(true);
+        },
     );
     const busy = command.isPending || command.canRetry;
     useExpenseLeaveGuard(dirty, busy, () => setDirty(false));
@@ -187,7 +191,7 @@ function Composer({
         }
     }, [command.fields]);
     const actualPayer = payer || financial?.actorMemberId || '',
-        expected = planned || financial?.actorMemberId || '';
+        expected = planned || null;
     const total = decimalUnits(amount);
     let split: Split | null = null,
         calculated: { memberId: string; amountInCents: number }[] = [],
@@ -386,6 +390,7 @@ function Composer({
                             setAmount('');
                             setParts({});
                             setPlanned('');
+                            setPlanningOpen(false);
                             setPayer('');
                             setSettlementMode(null);
                             setTargetDate('');
@@ -578,30 +583,6 @@ function Composer({
                                 {splitError && <p>{splitError}</p>}
                             </fieldset>
                             <fieldset disabled={busy}>
-                                <legend>Responsável previsto</legend>
-                                <label>
-                                    Quem era previsto pagar?
-                                    <select
-                                        aria-label="Quem era previsto pagar?"
-                                        name="expectedPayerMemberId"
-                                        value={expected}
-                                        onChange={(e) => {
-                                            mark();
-                                            setPlanned(e.target.value);
-                                        }}
-                                    >
-                                        {members.map((m) => (
-                                            <option
-                                                key={m.memberId}
-                                                value={m.memberId}
-                                            >
-                                                {m.displayName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </label>
-                            </fieldset>
-                            <fieldset disabled={busy}>
                                 <legend>Como foi pago?</legend>
                                 <label>
                                     Quem pagou?
@@ -643,6 +624,57 @@ function Composer({
                                     </select>
                                 </label>
                             </fieldset>
+                            <div className={styles.planning}>
+                                <button
+                                    type="button"
+                                    className={styles.planningToggle}
+                                    disabled={busy}
+                                    aria-expanded={planningOpen}
+                                    aria-controls="payment-planning"
+                                    onClick={() =>
+                                        setPlanningOpen(!planningOpen)
+                                    }
+                                >
+                                    Previsão de pagamento (opcional)
+                                </button>
+                                <fieldset
+                                    id="payment-planning"
+                                    hidden={!planningOpen}
+                                    disabled={busy}
+                                >
+                                    <legend>Previsão de pagamento</legend>
+                                    <p id="payment-planning-help">
+                                        Informe apenas se havia uma pessoa
+                                        combinada para pagar. Isso não altera a
+                                        divisão nem o acerto.
+                                    </p>
+                                    <label>
+                                        Quem era previsto pagar?
+                                        <select
+                                            aria-label="Quem era previsto pagar?"
+                                            aria-describedby="payment-planning-help"
+                                            name="expectedPayerMemberId"
+                                            value={planned}
+                                            onChange={(e) => {
+                                                mark();
+                                                setPlanned(e.target.value);
+                                            }}
+                                        >
+                                            <option value="">
+                                                Não informado
+                                            </option>
+                                            {members.map((m) => (
+                                                <option
+                                                    key={m.memberId}
+                                                    value={m.memberId}
+                                                >
+                                                    {m.displayName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                </fieldset>
+                            </div>
                         </>
                     )}
                     {debt > 0 && (
@@ -809,11 +841,13 @@ function Composer({
                             e está incluído na parte acima.
                         </p>
                     )}
-                    <p>
-                        Responsável previsto:{' '}
-                        {members.find((m) => m.memberId === expected)
-                            ?.displayName ?? 'Carregando'}
-                    </p>
+                    {expected && (
+                        <p>
+                            Responsável previsto:{' '}
+                            {members.find((m) => m.memberId === expected)
+                                ?.displayName ?? 'Membro do registro'}
+                        </p>
+                    )}
                     <p>
                         Pago por:{' '}
                         {members.find((m) => m.memberId === actualPayer)
