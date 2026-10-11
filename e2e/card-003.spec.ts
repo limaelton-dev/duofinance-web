@@ -558,3 +558,52 @@ test('sessão revogada durante prévia descarta resposta e troca de pessoa exige
         page.getByText('Reabra o link original', { exact: false }),
     ).toBeVisible();
 });
+
+test('convite público autenticado permite logout sem contexto de espaço', async ({
+    page,
+    context,
+    playwright,
+}) => {
+    const creator = await playwright.request.newContext({
+        storageState: owner.state,
+    });
+    const guest = await playwright.request.newContext();
+    try {
+        const invitation = await createInvitation(creator);
+        const login = await guest.post(`${apiUrl}/auth/login`, {
+            headers: { Origin: webOrigin, 'X-CSRF-Token': await csrf(guest) },
+            data: { email: recipient.email, password },
+        });
+        expect(login.status()).toBe(200);
+        const state = await guest.storageState();
+        await context.addCookies(
+            state.cookies.map((cookie) => ({ ...cookie, domain: 'localhost' })),
+        );
+        await page.goto(invitation.inviteUrl);
+        await expect(
+            page.getByRole('button', { name: 'Sair', exact: true }),
+        ).toBeVisible();
+        const [signedOut] = await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response.url().endsWith('/auth/logout') &&
+                    response.request().method() === 'POST',
+            ),
+            page.getByRole('button', { name: 'Sair', exact: true }).click(),
+        ]);
+        expect(signedOut.status()).toBe(204);
+        await expect(
+            page.getByText(/Reabra o link original do convite/),
+        ).toBeVisible();
+        await expect(
+            page.getByRole('button', { name: 'Sair', exact: true }),
+        ).toHaveCount(0);
+        expect(
+            (
+                await page.request.get('http://localhost:3101/v2/auth/me')
+            ).status(),
+        ).toBe(401);
+    } finally {
+        await Promise.all([creator.dispose(), guest.dispose()]);
+    }
+});

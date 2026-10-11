@@ -1,0 +1,81 @@
+.stack {
+    display: grid;
+    gap: 1rem;
+}
+.columns {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+    gap: 2rem;
+    align-items: start;
+}
+.stack fieldset {
+    border: 1px solid #d6e2dc;
+    border-radius: 0.8rem;
+    padding: 1rem;
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+}
+.stack label {
+    display: grid;
+    gap: 0.4rem;
+}
+.stack input,
+.stack select {
+    width: 100%;
+    min-height: 2.8rem;
+    border: 1px solid #8ba49b;
+    border-radius: 0.4rem;
+    padding: 0.5rem;
+    background: white;
+    color: #102a23;
+}
+.stack button {
+    padding: 0.7rem 1rem;
+    border-radius: 0.4rem;
+    border: 1px solid #205d49;
+    background: #205d49;
+    color: white;
+    cursor: pointer;
+}
+.stack button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+}
+.summary {
+    background: #edf5ef;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    position: sticky;
+    top: 1rem;
+    overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+    .columns {
+        grid-template-columns: 1fr;
+    }
+    .summary {
+        position: static;
+    }
+}
+
+.planning {
+    display: grid;
+    gap: 0.75rem;
+}
+.stack .planningToggle {
+    justify-self: start;
+    background: transparent;
+    color: #205d49;
+    border-color: #8ba49b;
+    font-weight: normal;
+}
+.stack fieldset[hidden] {
+    display: none;
+}
