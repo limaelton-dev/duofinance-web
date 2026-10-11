@@ -1,0 +1,61 @@
+.stack {
+    display: grid;
+    gap: 1rem;
+    overflow-wrap: anywhere;
+}
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+.stack button,
+.stack select {
+    min-height: 2.8rem;
+    max-width: 100%;
+    border: 1px solid #205d49;
+    border-radius: 0.4rem;
+    padding: 0.6rem 0.9rem;
+    background: white;
+    color: #205d49;
+}
+.stack button {
+    cursor: pointer;
+    justify-self: start;
+}
+.stack button:disabled,
+.stack button[aria-disabled='true'] {
+    opacity: 0.5;
+    cursor: default;
+}
+.totals {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 0;
+}
+.totals div,
+.list li {
+    padding: 1.25rem;
+    border-radius: 0.8rem;
+    background: #edf5ef;
+}
+.totals dd {
+    margin: 0.7rem 0 0;
+    font-weight: 700;
+}
+.list {
+    display: grid;
+    gap: 1rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+.list h3 {
+    margin-top: 0;
+}
+@media (max-width: 700px) {
+    .totals {
+        grid-template-columns: 1fr;
+    }
+}

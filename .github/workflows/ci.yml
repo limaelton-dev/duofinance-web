@@ -9,6 +9,12 @@ on:
     pull_request:
         branches:
             - main
+    workflow_dispatch:
+        inputs:
+            api_sha:
+                description: Commit completo da API para os testes integrados
+                required: false
+                type: string
 
 permissions:
     contents: read
@@ -52,3 +58,87 @@ jobs:
 
             - name: Build
               run: npm run build
+
+    e2e:
+        name: Playwright (${{ matrix.suite }})
+        needs: checks
+        runs-on: ubuntu-24.04
+        timeout-minutes: 25
+
+        strategy:
+            fail-fast: false
+            max-parallel: 3
+            matrix:
+                suite:
+                    - card-001.spec.ts
+                    - card-002.spec.ts
+                    - card-003.spec.ts
+                    - card-004.spec.ts
+                    - card-005.spec.ts
+                    - card-006.spec.ts
+                    - card-007.spec.ts
+                    - '.*-data.spec.ts'
+
+        env:
+            API_SHA: ${{ inputs.api_sha || '99071046c8e6153a0c792f085c28d3a68a8aa87c' }}
+
+        defaults:
+            run:
+                working-directory: prospera-mais-web
+
+        steps:
+            - name: Obter Web
+              uses: actions/checkout@v7
+              with:
+                  path: prospera-mais-web
+                  persist-credentials: false
+
+            - name: Validar referência imutável da API
+              run: test "${#API_SHA}" -eq 40 && [[ "$API_SHA" =~ ^[0-9a-f]{40}$ ]]
+
+            - name: Obter API no commit definido
+              uses: actions/checkout@v7
+              with:
+                  repository: limaelton-dev/prospera_mais_api
+                  ref: ${{ env.API_SHA }}
+                  path: prospera-mais-api
+                  persist-credentials: false
+
+            - name: Conferir par API e Web
+              run: |
+                  test "$(git -C ../prospera-mais-api rev-parse HEAD)" = "$API_SHA"
+                  git -C ../prospera-mais-api rev-parse HEAD
+                  git rev-parse HEAD
+
+            - name: Preparar Node
+              uses: actions/setup-node@v7
+              with:
+                  node-version-file: prospera-mais-web/.nvmrc
+                  cache: npm
+                  cache-dependency-path: |
+                      prospera-mais-web/package-lock.json
+                      prospera-mais-api/package-lock.json
+
+            - name: Instalar dependências Web
+              run: npm ci
+
+            - name: Instalar dependências API
+              working-directory: prospera-mais-api
+              run: npm ci
+
+            - name: Preparar Chromium
+              run: npx playwright install --with-deps chromium
+
+            - name: Iniciar PostgreSQL descartável
+              working-directory: prospera-mais-api
+              run: docker compose -f compose.test.yaml up -d --wait
+
+            - name: Jornada automatizada
+              env:
+                  E2E_SUITE: ${{ matrix.suite }}
+              run: npm run test:e2e -- "$E2E_SUITE"
+
+            - name: Encerrar PostgreSQL descartável
+              if: always()
+              working-directory: prospera-mais-api
+              run: docker compose -f compose.test.yaml down

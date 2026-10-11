@@ -260,6 +260,7 @@ function SpaceDetails({
                     <Link href={`/spaces/${spaceId}/settings`}>
                         Configurações do espaço
                     </Link>
+                    <Link href={`/spaces/${spaceId}/finances`}>Finanças</Link>
                     <Link href={`/spaces/${spaceId}/expenses/new`}>
                         Adicionar despesa
                     </Link>
