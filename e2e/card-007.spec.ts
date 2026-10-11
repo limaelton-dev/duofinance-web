@@ -773,14 +773,26 @@ for (const width of [390, 1280])
         await expect(list(page).getByRole('listitem')).toHaveCount(2);
         await page.getByLabel('Mostrar pendências', { exact: true }).focus();
         await page.keyboard.press('Tab');
-        await expect(
-            page.getByRole('button', {
-                name: 'Atualizar / Voltar ao início',
-                exact: true,
-            }),
-        ).toBeFocused();
+        const refreshButton = page.getByRole('button', {
+            name: 'Atualizar / Voltar ao início',
+            exact: true,
+        });
+        await expect(refreshButton).toBeFocused();
+        const refreshResponse = page.waitForResponse(
+            (response) =>
+                response.request().method() === 'GET' &&
+                response.url() ===
+                    `${apiUrl}/spaces/${shared}/inter-member-position?direction=ALL` &&
+                response.status() === 200,
+        );
         await page.keyboard.press('Enter');
+        expect(await (await refreshResponse).finished()).toBeNull();
+        await expect(refreshButton).toHaveAttribute('aria-disabled', 'false');
+        await expect(
+            page.getByText('Carregando posição entre vocês…', { exact: true }),
+        ).toHaveCount(0);
         await expect(list(page).getByRole('listitem')).toHaveCount(2);
+        await expect(refreshButton).toBeFocused();
         expect(
             await page.evaluate(
                 () => document.documentElement.scrollWidth <= window.innerWidth,
