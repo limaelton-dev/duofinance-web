@@ -121,9 +121,15 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
             <h1>Finanças</h1>
             <nav aria-label="Navegação financeira" className={styles.actions}>
                 <span aria-current="page">Resumo</span>
+                <Link href={`/spaces/${spaceId}/finances/settlements`}>
+                    Acertos
+                </Link>
                 <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
             </nav>
             <h2>Entre vocês</h2>
+            <Link href={`/spaces/${spaceId}/finances/settlements`}>
+                Ver acertos
+            </Link>
             <p>
                 Todas as pendências abertas deste espaço, de qualquer data, com
                 ou sem acerto associado.
@@ -273,9 +279,19 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                                         </time>
                                     </p>
                                     <p>
-                                        {item.settlementCycle
-                                            ? `Data-alvo do acerto: ${formatDate(item.settlementCycle.targetDate)}`
-                                            : 'Sem acerto associado'}
+                                        {item.settlementCycle ? (
+                                            <Link
+                                                href={`/spaces/${spaceId}/finances/settlements/${item.settlementCycle.id}`}
+                                            >
+                                                Data-alvo do acerto:{' '}
+                                                {formatDate(
+                                                    item.settlementCycle
+                                                        .targetDate,
+                                                )}
+                                            </Link>
+                                        ) : (
+                                            'Sem acerto associado'
+                                        )}
                                     </p>
                                     <Link
                                         href={`/spaces/${spaceId}/expenses/${item.origin.commitmentId}`}

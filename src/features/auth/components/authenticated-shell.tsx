@@ -30,7 +30,7 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
         setValidatedPath(null);
     }
     const detailId =
-        /^\/spaces\/([^/]+)(?:\/settings|\/finances|\/expenses\/(?:new|[^/]+))?$/.exec(
+        /^\/spaces\/([^/]+)(?:\/settings|\/finances(?:\/settlements(?:\/[^/]+)?)?|\/expenses\/(?:new|[^/]+))?$/.exec(
             pathname,
         )?.[1];
     const routeSpaceId = detailId && detailId !== 'new' ? detailId : null;

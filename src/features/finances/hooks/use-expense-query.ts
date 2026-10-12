@@ -1,6 +1,7 @@
 'use client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryInSpacesSession } from '@/features/spaces/cache/spaces-session';
+import { useLayoutEffect, useRef } from 'react';
+import { queryInFinancialContext } from '../cache/financial-context-query';
 import { useSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
 export function useExpenseQuery<T extends { spaceId: string }>(
     personId: string,
@@ -12,6 +13,13 @@ export function useExpenseQuery<T extends { spaceId: string }>(
 ) {
     const client = useQueryClient(),
         context = useSpaceContextInstance();
+    const mounted = useRef(false);
+    useLayoutEffect(() => {
+        mounted.current = true;
+        return () => {
+            mounted.current = false;
+        };
+    }, []);
     return useQuery({
         queryKey: key,
         enabled,
@@ -19,22 +27,16 @@ export function useExpenseQuery<T extends { spaceId: string }>(
             const capture = context.capture();
             if (!capture || capture.spaceId !== spaceId)
                 throw new Error('O espaço foi alterado.');
-            return queryInSpacesSession(client, personId, async () => {
-                try {
-                    const result = await request(signal);
-                    if (
-                        !context.isCurrent(capture) ||
-                        !isRequestCurrent() ||
-                        result.spaceId !== spaceId
-                    )
-                        throw new Error('O espaço foi alterado.');
-                    return result;
-                } catch (error) {
-                    if (!context.isCurrent(capture) || !isRequestCurrent())
-                        throw new Error('O espaço foi alterado.');
-                    throw error;
-                }
-            });
+            return queryInFinancialContext(
+                client,
+                personId,
+                spaceId,
+                () =>
+                    mounted.current &&
+                    context.isCurrent(capture) &&
+                    isRequestCurrent(),
+                () => request(signal),
+            );
         },
         staleTime: 0,
         retry: false,

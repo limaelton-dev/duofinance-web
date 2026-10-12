@@ -39,7 +39,7 @@ export function SpaceSwitcher() {
             return;
         const selected = context.getSnapshot().activeSpaceId;
         if (
-            /^\/spaces\/(?!new$)[^/]+(?:\/settings|\/finances|\/expenses\/[^/]+)?$/.test(
+            /^\/spaces\/(?!new$)[^/]+(?:\/settings|\/finances(?:\/settlements(?:\/[^/]+)?)?|\/expenses\/[^/]+)?$/.test(
                 currentPath.current,
             ) &&
             selected
@@ -53,8 +53,12 @@ export function SpaceSwitcher() {
             const finances =
                 currentPath.current.endsWith('/finances') &&
                 context.getSnapshot().currentSpace?.type === 'SHARED';
+            const settlements =
+                /\/finances\/settlements(?:\/[^/]+)?$/.test(
+                    currentPath.current,
+                ) && context.getSnapshot().currentSpace?.type === 'SHARED';
             router.replace(
-                `/spaces/${selected}${settings ? '/settings' : composer ? '/expenses/new' : finances ? '/finances' : ''}`,
+                `/spaces/${selected}${settings ? '/settings' : composer ? '/expenses/new' : settlements ? '/finances/settlements' : finances ? '/finances' : ''}`,
             );
         }
     }
