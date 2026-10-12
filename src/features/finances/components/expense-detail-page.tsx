@@ -10,12 +10,15 @@ import { useExpenseQuery } from '../hooks/use-expense-query';
 import { getExpenseDetail } from '@/lib/api/shared-expense';
 import { ExpenseSummary } from './expense-summary';
 import { formatDate } from '../utils/expense-money';
+import { settlementReturnPath } from '../utils/settlement-return';
 export function ExpenseDetailPage({
     spaceId,
     commitmentId,
+    returnCycle,
 }: {
     spaceId: string;
     commitmentId: string;
+    returnCycle?: string;
 }) {
     const auth = useAuthenticatedContext({ enabled: false }),
         space = useSpaceContext();
@@ -31,6 +34,7 @@ export function ExpenseDetailPage({
             personId={auth.data.person.id}
             spaceId={spaceId}
             commitmentId={commitmentId}
+            returnCycle={returnCycle}
         />
     );
 }
@@ -38,10 +42,12 @@ function Detail({
     personId,
     spaceId,
     commitmentId,
+    returnCycle,
 }: {
     personId: string;
     spaceId: string;
     commitmentId: string;
+    returnCycle?: string;
 }) {
     const context = useSpaceContextInstance(),
         router = useRouter();
@@ -131,6 +137,19 @@ function Detail({
                 </>
             )}
             <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
+            <p>
+                {query.data &&
+                    !query.isFetching &&
+                    !query.isError &&
+                    returnCycle === query.data.settlementCycle?.id &&
+                    settlementReturnPath(spaceId, returnCycle) && (
+                        <Link
+                            href={settlementReturnPath(spaceId, returnCycle)!}
+                        >
+                            Voltar ao acerto
+                        </Link>
+                    )}
+            </p>
             <p>
                 <Link href={`/spaces/${spaceId}/finances`}>
                     Voltar às Finanças

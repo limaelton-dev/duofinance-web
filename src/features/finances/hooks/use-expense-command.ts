@@ -93,6 +93,24 @@ export function useExpenseCommand(
                     'finances',
                     value.capture.personId,
                     value.capture.spaceId,
+                    'settlement-cycles',
+                ],
+            });
+            if (result.settlementCycle)
+                void client.invalidateQueries({
+                    queryKey: [
+                        'finances',
+                        value.capture.personId,
+                        value.capture.spaceId,
+                        'settlement-cycle',
+                        result.settlementCycle.id,
+                    ],
+                });
+            void client.invalidateQueries({
+                queryKey: [
+                    'finances',
+                    value.capture.personId,
+                    value.capture.spaceId,
                     'inter-member-position',
                 ],
             });
