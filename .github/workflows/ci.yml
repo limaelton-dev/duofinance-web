@@ -81,7 +81,7 @@ jobs:
                     - '.*-data.spec.ts'
 
         env:
-            API_SHA: ${{ inputs.api_sha || 'd0e22bf004634ce77d1a4795d1d9207128eee198' }}
+            API_SHA: ${{ inputs.api_sha || '4be93b54e071e8df707893e00ecadd551f56a398' }}
 
         defaults:
             run:
