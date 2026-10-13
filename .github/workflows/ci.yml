@@ -78,10 +78,11 @@ jobs:
                     - card-006.spec.ts
                     - card-007.spec.ts
                     - card-008.spec.ts
+                    - card-009.spec.ts
                     - '.*-data.spec.ts'
 
         env:
-            API_SHA: ${{ inputs.api_sha || '4be93b54e071e8df707893e00ecadd551f56a398' }}
+            API_SHA: ${{ inputs.api_sha || '640cb0a6928ab6122a602c0ad8bc3d9988638ef8' }}
 
         defaults:
             run:

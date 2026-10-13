@@ -275,6 +275,7 @@ function fakeCycle(overrides: Partial<SettlementCycle> = {}): SettlementCycle {
         totals: {
             originalAmountInCents: '0',
             resolvedAmountInCents: '0',
+            transferredAmountInCents: '0',
             remainingAmountInCents: '0',
         },
         position: {
@@ -321,6 +322,7 @@ test('A01/A02/A22: real expenses preserve cycle totals, origin and authorized re
     await expect(totals(page)).toHaveText([
         'R$ 430,00',
         'R$ 0,00',
+        'R$ 0,00',
         'R$ 430,00',
         'R$ 350,00',
         'R$ 80,00',
@@ -333,6 +335,7 @@ test('A01/A02/A22: real expenses preserve cycle totals, origin and authorized re
     await expect(detailList(page).getByRole('listitem')).toHaveCount(2);
     await expect(totals(page)).toHaveText([
         'R$ 430,00',
+        'R$ 0,00',
         'R$ 0,00',
         'R$ 430,00',
         'R$ 350,00',
@@ -359,6 +362,7 @@ test('A01/A02/A22: real expenses preserve cycle totals, origin and authorized re
     await expect(totals(page)).toHaveText([
         'R$ 430,00',
         'R$ 0,00',
+        'R$ 0,00',
         'R$ 430,00',
         'R$ 350,00',
         'R$ 80,00',
@@ -369,6 +373,7 @@ test('A01/A02/A22: real expenses preserve cycle totals, origin and authorized re
     await page.goto(`${path()}/${cycleId}`);
     await expect(totals(page)).toHaveText([
         'R$ 430,00',
+        'R$ 0,00',
         'R$ 0,00',
         'R$ 430,00',
         'R$ 80,00',
@@ -393,6 +398,7 @@ test('A03: explicit financial fixture preserves balanced obligations in an overd
     await expect(totals(page)).toHaveText([
         'R$ 160,00',
         'R$ 0,00',
+        'R$ 0,00',
         'R$ 160,00',
         'R$ 80,00',
         'R$ 80,00',
@@ -415,13 +421,14 @@ test('A04/A05: partial and zero reduction fixtures preserve original amounts and
 }) => {
     const result = await record(request, 'Redução fixture', 50000, 'B', 50000);
     await dbQuery(
-        'UPDATE inter_member_obligations SET remaining_amount_in_cents=25000',
+        "UPDATE inter_member_obligations SET remaining_amount_in_cents=25000,status='PARTIALLY_SETTLED'",
     );
     await open(page, context);
     await list(page).getByRole('link').click();
     await expect(totals(page)).toHaveText([
         'R$ 500,00',
         'R$ 250,00',
+        'R$ 0,00',
         'R$ 250,00',
         'R$ 250,00',
         'R$ 0,00',
@@ -429,7 +436,7 @@ test('A04/A05: partial and zero reduction fixtures preserve original amounts and
     ]);
     await expect(detailList(page)).toContainText('Valor resolvido: R$ 250,00');
     await dbQuery(
-        'UPDATE inter_member_obligations SET remaining_amount_in_cents=0',
+        "UPDATE inter_member_obligations SET remaining_amount_in_cents=0,status='SETTLED'",
     );
     await page
         .getByRole('button', {
@@ -440,6 +447,7 @@ test('A04/A05: partial and zero reduction fixtures preserve original amounts and
     await expect(totals(page)).toHaveText([
         'R$ 500,00',
         'R$ 500,00',
+        'R$ 0,00',
         'R$ 0,00',
         'R$ 0,00',
         'R$ 0,00',
@@ -616,6 +624,7 @@ test('A09: 21 real origins preserve timestamp ties, replacement pages and full t
     await expect(totals(page)).toHaveText([
         'R$ 21,00',
         'R$ 0,00',
+        'R$ 0,00',
         'R$ 21,00',
         'R$ 21,00',
         'R$ 0,00',
@@ -633,6 +642,7 @@ test('A09: 21 real origins preserve timestamp ties, replacement pages and full t
     await expect(totals(page)).toHaveText([
         'R$ 21,00',
         'R$ 0,00',
+        'R$ 0,00',
         'R$ 21,00',
         'R$ 21,00',
         'R$ 0,00',
@@ -648,6 +658,7 @@ test('A10: HTTP fake totals above the safe integer retain exact cents', async ({
     value.cycle.totals = {
         originalAmountInCents: '18014398509481983',
         resolvedAmountInCents: '9007199254740992',
+        transferredAmountInCents: '0',
         remainingAmountInCents: '9007199254740991',
     };
     value.cycle.position = {
@@ -661,6 +672,7 @@ test('A10: HTTP fake totals above the safe integer retain exact cents', async ({
     await expect(totals(page)).toHaveText([
         'R$ 180.143.985.094.819,83',
         'R$ 90.071.992.547.409,92',
+        'R$ 0,00',
         'R$ 90.071.992.547.409,91',
         'R$ 90.071.992.547.409,91',
         'R$ 0,00',
@@ -1015,7 +1027,7 @@ for (const status of [200, 401])
                 await page
                     .getByLabel('Mostrar composição', { exact: true })
                     .selectOption('PAYABLE');
-                await expect(totals(page)).toHaveCount(6);
+                await expect(totals(page)).toHaveCount(7);
                 await page
                     .getByLabel('Mostrar composição', { exact: true })
                     .selectOption('ALL');
@@ -1044,7 +1056,7 @@ for (const status of [200, 401])
                 })
                 .click();
             await expect(totals(page)).toHaveCount(
-                change === 'cycle' || change === 'direction' ? 6 : 12,
+                change === 'cycle' || change === 'direction' ? 7 : 14,
             );
             await expect(page.getByText(/999,00/)).toHaveCount(0);
             await expect(trigger(page)).toHaveValue(shared);
@@ -1182,6 +1194,7 @@ for (const status of [200, 401])
         await (await late).finished();
         await expect(totals(page)).toHaveText([
             'R$ 430,00',
+            'R$ 0,00',
             'R$ 0,00',
             'R$ 430,00',
             'R$ 350,00',

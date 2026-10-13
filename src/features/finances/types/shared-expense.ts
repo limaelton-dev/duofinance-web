@@ -76,7 +76,7 @@ export type ExpenseView = {
         creditorMemberId: string;
         originalAmountInCents: number;
         remainingAmountInCents: number;
-        status: string;
+        status: 'OPEN' | 'PARTIALLY_SETTLED' | 'SETTLED';
         cycleId: string | null;
     };
     settlementCycle: null | {
