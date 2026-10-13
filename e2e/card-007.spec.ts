@@ -805,6 +805,10 @@ for (const width of [390, 1280])
             }),
         ).toBeVisible();
         await page.keyboard.press('Tab');
+        await expect(
+            page.getByRole('link', { name: 'Registrar transferência' }),
+        ).toBeFocused();
+        await page.keyboard.press('Tab');
         await expect(list(page).getByRole('link').first()).toBeFocused();
         await page.keyboard.press('Enter');
         await expect(
