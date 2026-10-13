@@ -18,7 +18,7 @@ export type InterMemberPosition = {
     items: {
         id: string;
         version: number;
-        status: 'OPEN';
+        status: 'OPEN' | 'PARTIALLY_SETTLED';
         debtorMemberId: string;
         creditorMemberId: string;
         originalAmountInCents: number;

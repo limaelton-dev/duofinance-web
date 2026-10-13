@@ -275,6 +275,7 @@ function fakeCycle(overrides: Partial<SettlementCycle> = {}): SettlementCycle {
         totals: {
             originalAmountInCents: '0',
             resolvedAmountInCents: '0',
+            transferredAmountInCents: '0',
             remainingAmountInCents: '0',
         },
         position: {
@@ -648,6 +649,7 @@ test('A10: HTTP fake totals above the safe integer retain exact cents', async ({
     value.cycle.totals = {
         originalAmountInCents: '18014398509481983',
         resolvedAmountInCents: '9007199254740992',
+        transferredAmountInCents: '0',
         remainingAmountInCents: '9007199254740991',
     };
     value.cycle.position = {

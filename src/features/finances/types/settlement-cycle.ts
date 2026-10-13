@@ -16,6 +16,7 @@ export type SettlementCycle = {
     totals: {
         originalAmountInCents: string;
         resolvedAmountInCents: string;
+        transferredAmountInCents: string;
         remainingAmountInCents: string;
     };
     position: InterMemberPosition['summary'];
@@ -36,7 +37,7 @@ export type SettlementCycleDetail = SettlementContext & {
     items: {
         id: string;
         version: number;
-        status: string;
+        status: 'OPEN' | 'PARTIALLY_SETTLED' | 'SETTLED';
         debtorMemberId: string;
         creditorMemberId: string;
         originalAmountInCents: number;

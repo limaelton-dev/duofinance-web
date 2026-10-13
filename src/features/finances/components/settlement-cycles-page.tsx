@@ -84,6 +84,14 @@ function CycleTotals({ cycle }: { cycle: SettlementCycle }) {
                     </dd>
                 </div>
                 <div>
+                    <dt>Dinheiro transferido</dt>
+                    <dd>
+                        {formatPositionMoney(
+                            cycle.totals.transferredAmountInCents,
+                        )}
+                    </dd>
+                </div>
+                <div>
                     <dt>Valor em aberto bruto</dt>
                     <dd>
                         {formatPositionMoney(
@@ -251,6 +259,11 @@ function SettlementRead({
             <h1>{cycleId ? 'Detalhe do acerto' : 'Acertos'}</h1>
             <nav aria-label="Navegação financeira" className={styles.actions}>
                 <Link href={`/spaces/${spaceId}/finances`}>Resumo</Link>
+                <Link
+                    href={`/spaces/${spaceId}/finances/settlements/transfers${cycleId ? `?cycleId=${cycleId}` : ''}`}
+                >
+                    Histórico de transferências
+                </Link>
                 {cycleId ? (
                     <Link href={`/spaces/${spaceId}/finances/settlements`}>
                         Voltar aos Acertos
@@ -404,6 +417,16 @@ function SettlementRead({
                         </time>
                     </h2>
                     <CycleTotals cycle={detailValue.cycle} />
+                    {detailValue.cycle.status === 'OPEN' &&
+                        detailValue.spaceStatus !== 'CLOSED' &&
+                        detailValue.cycle.totals.remainingAmountInCents !==
+                            '0' && (
+                            <Link
+                                href={`/spaces/${spaceId}/finances/settlements/transfers/new?cycleId=${cycleId}`}
+                            >
+                                Registrar transferência
+                            </Link>
+                        )}
                     {detailValue.cycle.finalizedAt && (
                         <p>
                             Finalizado em:{' '}

@@ -123,16 +123,24 @@ function Detail({
                     <p>Registro: {query.data.commitment.id}</p>
                     <p>Desembolso: {query.data.disbursement.id}</p>
                     {query.data.obligation && (
-                        <p>
-                            Pendência: {query.data.obligation.id} ·{' '}
-                            {{
-                                OPEN: 'Aberta',
-                                PARTIALLY_SETTLED: 'Parcialmente acertada',
-                                SETTLED: 'Acertada',
-                                WAIVED: 'Dispensada',
-                            }[query.data.obligation.status] ??
-                                'Estado atualizado'}
-                        </p>
+                        <>
+                            <p>
+                                Pendência: {query.data.obligation.id} ·{' '}
+                                {
+                                    {
+                                        OPEN: 'Aberta',
+                                        PARTIALLY_SETTLED:
+                                            'Parcialmente acertada',
+                                        SETTLED: 'Acertada',
+                                    }[query.data.obligation.status]
+                                }
+                            </p>
+                            <Link
+                                href={`/spaces/${spaceId}/finances/settlements/transfers?obligationId=${query.data.obligation.id}`}
+                            >
+                                Ver transferências desta pendência
+                            </Link>
+                        </>
                     )}
                 </>
             )}

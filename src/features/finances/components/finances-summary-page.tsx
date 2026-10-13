@@ -130,6 +130,9 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
             <Link href={`/spaces/${spaceId}/finances/settlements`}>
                 Ver acertos
             </Link>
+            <Link href={`/spaces/${spaceId}/finances/settlements/transfers`}>
+                Histórico de transferências
+            </Link>
             <p>
                 Todas as pendências abertas deste espaço, de qualquer data, com
                 ou sem acerto associado.
@@ -222,6 +225,13 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                             Os valores se equilibram, mas ainda existem
                             pendências abertas.
                         </p>
+                    )}
+                    {!empty && value.spaceStatus !== 'CLOSED' && (
+                        <Link
+                            href={`/spaces/${spaceId}/finances/settlements/transfers/new`}
+                        >
+                            Registrar transferência
+                        </Link>
                     )}
                     <p>
                         Os totais consideram todas as pendências abertas,
