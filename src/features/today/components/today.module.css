@@ -1,0 +1,80 @@
+.page {
+    display: grid;
+    gap: 1.5rem;
+    overflow-wrap: anywhere;
+}
+.page h1 {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    margin: 0 0 1rem;
+}
+.page h2 {
+    margin-top: 0;
+}
+.spaceLabel {
+    display: inline-block;
+    margin: 0 0 1rem;
+    padding: 0.5rem 0.875rem;
+    border-radius: 2rem;
+    background: #dbeafe;
+    color: #1e40af;
+    font-weight: 600;
+}
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.page a,
+.page button {
+    display: inline-block;
+    min-height: 2.8rem;
+    padding-block: 0.65rem;
+}
+.page a:focus-visible,
+.page button:focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 3px;
+}
+.page button {
+    padding-inline: 1rem;
+    border: 1px solid #205d49;
+    border-radius: 0.4rem;
+    background: white;
+    color: #205d49;
+    cursor: pointer;
+}
+.card {
+    padding: 1.25rem;
+    border-radius: 0.8rem;
+    background: #edf5ef;
+}
+.card h3 {
+    margin-top: 0;
+}
+.list {
+    display: grid;
+    gap: 1rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+.totals {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+.totals dd {
+    margin: 0.5rem 0 0;
+    font-weight: 700;
+}
+.skeleton div {
+    min-height: 4rem;
+    margin-block: 1rem;
+    border-radius: 0.8rem;
+    background: #e2e8f0;
+}
+@media (max-width: 700px) {
+    .totals {
+        grid-template-columns: 1fr;
+    }
+}
