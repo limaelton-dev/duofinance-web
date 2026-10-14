@@ -168,10 +168,10 @@ function TodayRead({
             ? details.data
             : null;
     const canAddExpense =
-        confirmed?.space.type === 'SHARED' &&
-        confirmed.space.status === 'ACTIVE' &&
+        confirmed?.space.status === 'ACTIVE' &&
         status === 'ACTIVE' &&
-        confirmed.activeMemberCount === 2;
+        (confirmed.space.type === 'PERSONAL' ||
+            confirmed.activeMemberCount === 2);
     return (
         <section className={styles.page} aria-labelledby="today-title">
             <header>
@@ -200,9 +200,7 @@ function TodayRead({
                 )}
             </header>
             <nav className={styles.actions} aria-label="Ações do espaço">
-                {shared && (
-                    <Link href={`/spaces/${spaceId}/finances`}>Finanças</Link>
-                )}
+                <Link href={`/spaces/${spaceId}/finances`}>Finanças</Link>
                 {canAddExpense && (
                     <Link href={`/spaces/${spaceId}/expenses/new`}>
                         Adicionar despesa
@@ -325,11 +323,9 @@ function TodayRead({
                             Próximos compromissos
                         </h2>
                         <p>Nenhum compromisso próximo para exibir.</p>
-                        {shared && (
-                            <Link href={`/spaces/${spaceId}/finances`}>
-                                Ver finanças
-                            </Link>
-                        )}
+                        <Link href={`/spaces/${spaceId}/finances`}>
+                            Ver finanças
+                        </Link>
                     </section>
                 </>
             ) : null}

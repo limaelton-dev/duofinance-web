@@ -11,6 +11,7 @@ import { getExpenseDetail } from '@/lib/api/shared-expense';
 import { ExpenseSummary } from './expense-summary';
 import { formatDate } from '../utils/expense-money';
 import { settlementReturnPath } from '../utils/settlement-return';
+import { PersonalExpenseDetailPage } from './personal-expense-detail-page';
 export function ExpenseDetailPage({
     spaceId,
     commitmentId,
@@ -28,6 +29,15 @@ export function ExpenseDetailPage({
         space.activeSpaceId !== spaceId
     )
         return null;
+    if (space.currentSpace?.type === 'PERSONAL')
+        return (
+            <PersonalExpenseDetailPage
+                key={`${auth.data.person.id}:${spaceId}:${space.generation}:${commitmentId}`}
+                personId={auth.data.person.id}
+                spaceId={spaceId}
+                commitmentId={commitmentId}
+            />
+        );
     return (
         <Detail
             key={`${auth.data.person.id}:${spaceId}:${space.generation}:${commitmentId}`}

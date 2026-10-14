@@ -14,6 +14,7 @@ import type { PositionDirection } from '../types/inter-member-position';
 import { formatPositionMoney } from '../utils/position-money';
 import { formatDate, formatMoney } from '../utils/expense-money';
 import styles from './finances-summary.module.css';
+import { PersonalExpenseHistoryPage } from './personal-expense-history-page';
 
 export function FinancesSummaryPage({ spaceId }: { spaceId: string }) {
     const auth = useAuthenticatedContext({ enabled: false });
@@ -26,14 +27,11 @@ export function FinancesSummaryPage({ spaceId }: { spaceId: string }) {
         return null;
     if (space.currentSpace?.type !== 'SHARED')
         return (
-            <section>
-                <h1>Finanças</h1>
-                <p>
-                    O resumo entre membros se aplica somente a espaços
-                    compartilhados.
-                </p>
-                <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
-            </section>
+            <PersonalExpenseHistoryPage
+                key={`${auth.data.person.id}:${spaceId}:${space.generation}`}
+                personId={auth.data.person.id}
+                spaceId={spaceId}
+            />
         );
     return (
         <Summary

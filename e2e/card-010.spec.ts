@@ -480,7 +480,7 @@ for (const width of [1280, 390])
                     name: 'Adicionar despesa',
                     exact: true,
                 }),
-            ).toHaveCount(0);
+            ).toBeVisible();
             await expect(
                 page
                     .getByRole('navigation', { name: 'Ações do espaço' })
