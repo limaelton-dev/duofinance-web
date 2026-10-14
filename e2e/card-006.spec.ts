@@ -759,15 +759,16 @@ test('A23: mobile e teclado mostram resumo e dados exatos', async ({
     await save(page);
     await recorded(page);
 });
-test('A07/A08: pessoal inaplicável e CLOSED lê opções mas bloqueia nova despesa', async ({
+test('A07/A08: pessoal usa formulário próprio e CLOSED lê opções mas bloqueia nova despesa', async ({
     page,
     context,
 }) => {
     await context.addCookies(a.state.cookies);
     await page.goto(composer(a.personalId));
-    await expect(
-        page.getByText(/O registro de despesa compartilhada se aplica/),
-    ).toBeVisible();
+    await expect(page.getByLabel('Meio do desembolso')).toBeVisible();
+    await expect(page.getByLabel('Quem pagou?', { exact: true })).toHaveCount(
+        0,
+    );
     await dbQuery("UPDATE spaces SET status='CLOSED' WHERE id=$1", [s1.id]);
     await page.goto(composer(s1.id));
     await expect(

@@ -47,12 +47,8 @@ export function SpaceSwitcher() {
             const settings =
                 currentPath.current.endsWith('/settings') &&
                 context.getSnapshot().currentSpace?.type === 'SHARED';
-            const composer =
-                currentPath.current.endsWith('/expenses/new') &&
-                context.getSnapshot().currentSpace?.type === 'SHARED';
-            const finances =
-                currentPath.current.endsWith('/finances') &&
-                context.getSnapshot().currentSpace?.type === 'SHARED';
+            const composer = currentPath.current.endsWith('/expenses/new');
+            const finances = currentPath.current.endsWith('/finances');
             const settlements =
                 /\/finances\/settlements(?:\/[^/]+)?$/.test(
                     currentPath.current,

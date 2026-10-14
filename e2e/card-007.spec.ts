@@ -402,16 +402,16 @@ test('A04/A11/A17: vazio real, criador sozinho e pessoal sem seção entre membr
         page.getByText('Não há valores a acertar.', { exact: true }),
     ).toBeVisible();
     await trigger(page).selectOption(a.personalId);
-    await expect(page).toHaveURL(`/spaces/${a.personalId}`);
-    await expect(
-        page.getByRole('link', { name: 'Finanças', exact: true }),
-    ).toHaveCount(0);
+    await expect(page).toHaveURL(path(a.personalId));
     await page.goto(path(a.personalId));
     await expect(
         page.getByRole('heading', { name: 'Entre vocês', exact: true }),
     ).toHaveCount(0);
     await expect(
-        page.getByText(/somente a espaços compartilhados/),
+        page.getByRole('heading', {
+            name: 'Histórico de despesas',
+            exact: true,
+        }),
     ).toBeVisible();
 });
 

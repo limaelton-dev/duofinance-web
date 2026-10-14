@@ -31,6 +31,7 @@ import {
 } from '../utils/expense-money';
 import { ExpenseSummary } from './expense-summary';
 import styles from './expenses.module.css';
+import { PersonalExpenseComposer } from './personal-expense-composer';
 export function ExpenseComposer({ spaceId }: { spaceId: string }) {
     const auth = useAuthenticatedContext({ enabled: false }),
         space = useSpaceContext();
@@ -40,6 +41,14 @@ export function ExpenseComposer({ spaceId }: { spaceId: string }) {
         space.activeSpaceId !== spaceId
     )
         return null;
+    if (space.currentSpace?.type === 'PERSONAL')
+        return (
+            <PersonalExpenseComposer
+                key={`${auth.data.person.id}:${spaceId}:${space.generation}`}
+                personId={auth.data.person.id}
+                spaceId={spaceId}
+            />
+        );
     return (
         <Composer
             key={`${auth.data.person.id}:${spaceId}:${space.generation}`}
