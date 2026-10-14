@@ -11,6 +11,7 @@ import type { SpaceContextCapture } from '@/features/spaces/state/space-context'
 import { ApiError } from '@/lib/api/api-error';
 import { recordExpense } from '@/lib/api/shared-expense';
 import type { ExpenseInput, ExpenseResult } from '../types/shared-expense';
+import { todayQueryKeys } from '@/features/today/cache/today-query-keys';
 type Attempt = {
     input: ExpenseInput;
     key: string;
@@ -88,6 +89,12 @@ export function useExpenseCommand(
                     'Não foi possível confirmar o destino do registro.',
                 );
             finish();
+            void client.invalidateQueries({
+                queryKey: todayQueryKeys.space(
+                    value.capture.personId,
+                    value.capture.spaceId,
+                ),
+            });
             void client.invalidateQueries({
                 queryKey: [
                     'finances',

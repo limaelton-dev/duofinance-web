@@ -10,6 +10,7 @@ import { useSpaceContextInstance } from '@/features/spaces/context/space-context
 import type { SpaceContextCapture } from '@/features/spaces/state/space-context';
 import { ApiError } from '@/lib/api/api-error';
 import { recordTransfer } from '@/lib/api/settlement-transfers';
+import { todayQueryKeys } from '@/features/today/cache/today-query-keys';
 import type {
     TransferInput,
     TransferResult,
@@ -97,6 +98,12 @@ export function useTransferCommand(
                     'Não foi possível confirmar o destino do registro.',
                 );
             finish();
+            void client.invalidateQueries({
+                queryKey: todayQueryKeys.space(
+                    value.capture.personId,
+                    value.capture.spaceId,
+                ),
+            });
             const prefix = [
                 'finances',
                 value.capture.personId,

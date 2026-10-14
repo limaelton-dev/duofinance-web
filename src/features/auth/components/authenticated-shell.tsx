@@ -8,6 +8,7 @@ import {
     type ReactNode,
 } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
 import { useSpaceContext } from '@/features/spaces/hooks/use-space-context';
 import { SpaceSwitcher } from '@/features/spaces/components/space-switcher';
@@ -136,6 +137,9 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
                 <div className={styles.headerContent}>
                     <span className={styles.brand}>Prospera Mais</span>
                     <SpaceSwitcher />
+                    <nav aria-label="Navegação principal">
+                        <Link href="/">Hoje</Link>
+                    </nav>
                 </div>
             </header>
             <main
