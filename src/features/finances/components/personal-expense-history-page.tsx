@@ -124,6 +124,15 @@ export function PersonalExpenseHistoryPage({
                                             {item.description}
                                         </Link>
                                     </h3>
+                                    {item.status === 'PARTIALLY_PAID' && (
+                                        <p>
+                                            Parcialmente paga. Falta pagar:{' '}
+                                            {formatMoney(
+                                                item.remainingAmountInCents,
+                                            )}
+                                            .
+                                        </p>
+                                    )}
                                     <p>
                                         Data do fato:{' '}
                                         <time dateTime={item.factDate}>
@@ -138,10 +147,12 @@ export function PersonalExpenseHistoryPage({
                                         <dt>Valor desembolsado</dt>
                                         <dd>
                                             {formatMoney(
-                                                item.disbursement.amountInCents,
+                                                item.paidAmountInCents ??
+                                                    item.disbursement
+                                                        .amountInCents,
                                             )}
                                         </dd>
-                                        <dt>Meio do desembolso</dt>
+                                        <dt>Meio do primeiro pagamento</dt>
                                         <dd>
                                             {
                                                 disbursementMethodLabels[

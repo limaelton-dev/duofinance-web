@@ -274,6 +274,7 @@ function fakeCycle(overrides: Partial<SettlementCycle> = {}): SettlementCycle {
         openObligationCount: 0,
         totals: {
             originalAmountInCents: '0',
+            recognizedAmountInCents: '0',
             resolvedAmountInCents: '0',
             transferredAmountInCents: '0',
             remainingAmountInCents: '0',
@@ -434,7 +435,9 @@ test('A04/A05: partial and zero reduction fixtures preserve original amounts and
         'R$ 0,00',
         'Você paga R$ 250,00',
     ]);
-    await expect(detailList(page)).toContainText('Valor resolvido: R$ 250,00');
+    await expect(detailList(page)).toContainText(
+        'Valor reconhecido já acertado: R$ 250,00',
+    );
     await dbQuery(
         "UPDATE inter_member_obligations SET remaining_amount_in_cents=0,status='SETTLED'",
     );
@@ -657,6 +660,7 @@ test('A10: HTTP fake totals above the safe integer retain exact cents', async ({
     const value = fakeDetail();
     value.cycle.totals = {
         originalAmountInCents: '18014398509481983',
+        recognizedAmountInCents: '18014398509481983',
         resolvedAmountInCents: '9007199254740992',
         transferredAmountInCents: '0',
         remainingAmountInCents: '9007199254740991',

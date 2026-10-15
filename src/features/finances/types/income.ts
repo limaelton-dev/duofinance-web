@@ -6,19 +6,21 @@ export type IncomeInput = {
     amountInCents: number;
     expectedReceiptDate: string;
 } & (
-    | { receipt: null | { factDate: string } }
+    | { receipt: null | { factDate: string; amountInCents?: number } }
     | {
           expectedSpaceVersion: number;
           participationSplit: Split;
           expectedRecipientMemberId: string | null;
           receipt: null | {
               factDate: string;
+              amountInCents?: number;
               recipientMemberId: string;
               settlement: Settlement;
           };
       }
 );
 export type IncomeReceiptInput = {
+    amountInCents?: number;
     expectedCommitmentVersion: number;
     factDate: string;
 } & (
@@ -53,6 +55,8 @@ export type IncomeReceiptOptions = {
     amountInCents: number;
     referenceDate: string;
     canReceive: boolean;
+    receivedAmountInCents: number;
+    remainingAmountInCents: number;
     expectedSpaceVersion?: number;
     members?: Member[];
     participationSplit?: Split & {
@@ -93,8 +97,11 @@ export type IncomeDetail = {
         recipientPersonId: string | null;
         recipientMemberId: string | null;
     };
-    status: 'PENDING' | 'RECEIVED';
+    status: 'PENDING' | 'PARTIALLY_RECEIVED' | 'RECEIVED';
     receivedAmountInCents: number;
+    remainingAmountInCents: number;
+    receipts: NonNullable<IncomeDetail['receipt']>[];
+    obligations: NonNullable<IncomeDetail['obligation']>[];
     obligation: null | {
         id: string;
         originCommitmentId: string;
@@ -103,7 +110,22 @@ export type IncomeDetail = {
         creditorMemberId: string;
         originalAmountInCents: number;
         remainingAmountInCents: number;
-        status: 'OPEN' | 'PARTIALLY_SETTLED' | 'SETTLED';
+        status: 'OPEN' | 'PARTIALLY_SETTLED' | 'SETTLED' | 'RECONCILED';
+        recognizedAmountInCents: number;
+        transferredAmountInCents: number;
+        history?: {
+            version: number;
+            type: string;
+            actorId: string;
+            registeredAt: string;
+            snapshot: {
+                previousRecognizedAmountInCents?: number;
+                recognizedAmountInCents?: number;
+                previousRemainingAmountInCents?: number;
+                remainingAmountInCents?: number;
+                causeFulfillmentId?: string;
+            };
+        }[];
         cycleId: string | null;
     };
     settlementCycle: null | {
@@ -122,8 +144,9 @@ export type IncomeHistory = {
         amountInCents: number;
         expectedReceiptDate: string;
         registeredAt: string;
-        status: 'PENDING' | 'RECEIVED';
+        status: 'PENDING' | 'PARTIALLY_RECEIVED' | 'RECEIVED';
         receivedAmountInCents: number;
+        remainingAmountInCents: number;
     }[];
     nextCursor: string | null;
 };

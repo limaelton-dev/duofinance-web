@@ -12,6 +12,7 @@ export function ExpenseSummary({
     const label = (id: string) =>
         members.find((m) => m.memberId === id)?.displayName ??
         'Membro do registro';
+    const first = value.disbursements[0];
     const own = members.find((m) => m.personId === personId)?.memberId;
     return (
         <section aria-label="Resumo da despesa">
@@ -19,6 +20,13 @@ export function ExpenseSummary({
             <p>
                 {value.commitment.description} ·{' '}
                 {formatMoney(value.commitment.amountInCents)}
+            </p>
+            <p>Pago acumulado: {formatMoney(value.paidAmountInCents)}</p>
+            <p>Falta pagar: {formatMoney(value.remainingAmountInCents)}</p>
+            <p>
+                {value.status === 'PARTIALLY_PAID'
+                    ? 'Parcialmente paga'
+                    : 'Paga integralmente'}
             </p>
             <p>
                 Sua parte:{' '}
@@ -40,14 +48,14 @@ export function ExpenseSummary({
                 </p>
             )}
             <p>
-                Pago por: {label(value.disbursement.payerMemberId)} ·{' '}
-                {formatMoney(value.disbursement.amountInCents)}
+                Primeiro pagamento por: {label(first.payerMemberId)} ·{' '}
+                {formatMoney(first.amountInCents)}
             </p>
             <p>
                 Forma:{' '}
                 {
                     { PIX: 'PIX', DEBIT: 'Débito', CASH: 'Dinheiro' }[
-                        value.disbursement.method
+                        first.method
                     ]
                 }
             </p>

@@ -104,7 +104,8 @@ export function useIncomeCommand(
             if (!current(value)) return;
             if (
                 result.spaceId !== value.capture.spaceId ||
-                result.commitment.kind !== 'INCOME'
+                result.commitment.kind !== 'INCOME' ||
+                (work.kind === 'RECEIVE' && result.commitment.id !== work.id)
             )
                 throw new Error(
                     'Não foi possível confirmar o destino do registro.',

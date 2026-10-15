@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
 import { ApiError } from '@/lib/api/api-error';
@@ -12,6 +12,9 @@ import { ExpenseSummary } from './expense-summary';
 import { formatDate } from '../utils/expense-money';
 import { settlementReturnPath } from '../utils/settlement-return';
 import { PersonalExpenseDetailPage } from './personal-expense-detail-page';
+import { ExpenseDisbursementForm } from './expense-disbursement-form';
+import { ExpensePaymentHistory } from './expense-payment-history';
+import { ObligationHistory } from './obligation-history';
 export function ExpenseDetailPage({
     spaceId,
     commitmentId,
@@ -61,6 +64,13 @@ function Detail({
 }) {
     const context = useSpaceContextInstance(),
         router = useRouter();
+    const mounted = useRef(false);
+    useEffect(() => {
+        mounted.current = true;
+        return () => {
+            mounted.current = false;
+        };
+    }, []);
     const query = useExpenseQuery(
         personId,
         spaceId,
@@ -68,19 +78,15 @@ function Detail({
         true,
         (signal) => getExpenseDetail(spaceId, commitmentId, signal),
     );
-    useEffect(() => {
-        if (
-            !(query.error instanceof ApiError) ||
-            query.error.code !== 'SPACE_NOT_FOUND'
-        )
-            return;
-        let active = true;
+    function accessLost() {
+        const capture = context.capture();
+        if (!capture || capture.spaceId !== spaceId) return;
         const request = context.accessLost(spaceId),
             generation = context.getSnapshot().generation;
         void request.then((success) => {
             if (
                 success &&
-                active &&
+                mounted.current &&
                 context.getSnapshot().generation === generation &&
                 window.location.pathname ===
                     `/spaces/${spaceId}/expenses/${commitmentId}`
@@ -89,10 +95,14 @@ function Detail({
                     `/spaces/${context.getSnapshot().activeSpaceId}`,
                 );
         });
-        return () => {
-            active = false;
-        };
-    }, [query.error, context, router, spaceId, commitmentId]);
+    }
+    useEffect(() => {
+        if (
+            query.error instanceof ApiError &&
+            query.error.code === 'SPACE_NOT_FOUND'
+        )
+            accessLost();
+    });
     return (
         <section>
             <h1>Despesa</h1>
@@ -131,7 +141,25 @@ function Detail({
                             : 'Sem regra padrão'}
                     </p>
                     <p>Registro: {query.data.commitment.id}</p>
-                    <p>Desembolso: {query.data.disbursement.id}</p>
+                    <p>Desembolso: {query.data.disbursements[0].id}</p>
+                    <ExpensePaymentHistory
+                        value={query.data}
+                        personId={personId}
+                        members={query.data.members}
+                    />
+                    <ObligationHistory
+                        spaceId={spaceId}
+                        obligations={query.data.obligations}
+                        members={query.data.members}
+                    />
+                    {query.data.remainingAmountInCents > 0 && (
+                        <ExpenseDisbursementForm
+                            personId={personId}
+                            spaceId={spaceId}
+                            commitmentId={commitmentId}
+                            onAccessLost={accessLost}
+                        />
+                    )}
                     {query.data.obligation && (
                         <>
                             <p>
@@ -142,6 +170,8 @@ function Detail({
                                         PARTIALLY_SETTLED:
                                             'Parcialmente acertada',
                                         SETTLED: 'Acertada',
+                                        RECONCILED:
+                                            'Encerrada por reconciliação',
                                     }[query.data.obligation.status]
                                 }
                             </p>

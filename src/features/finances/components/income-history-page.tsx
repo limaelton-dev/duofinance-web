@@ -163,6 +163,16 @@ function History({ personId, spaceId }: { personId: string; spaceId: string }) {
                                             ? 'Recebimento pendente'
                                             : `Recebido: ${formatMoney(item.receivedAmountInCents)}`}
                                     </p>
+                                    {item.status === 'PARTIALLY_RECEIVED' && (
+                                        <p>
+                                            Parcialmente recebida. Falta
+                                            receber:{' '}
+                                            {formatMoney(
+                                                item.remainingAmountInCents,
+                                            )}
+                                            .
+                                        </p>
+                                    )}
                                     <Link
                                         href={`/spaces/${spaceId}/incomes/${item.id}`}
                                     >

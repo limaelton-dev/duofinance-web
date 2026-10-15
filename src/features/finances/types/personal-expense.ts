@@ -3,7 +3,7 @@ export type PersonalExpenseInput = {
     description: string;
     amountInCents: number;
     factDate: string;
-    disbursement: { method: DisbursementMethod };
+    disbursement: { method: DisbursementMethod; amountInCents?: number };
 };
 export type PersonalExpenseOptions = {
     spaceId: string;
@@ -13,6 +13,10 @@ export type PersonalExpenseOptions = {
 export type PersonalExpenseDetail = {
     spaceId: string;
     spaceType: 'PERSONAL';
+    status: 'PARTIALLY_PAID' | 'PAID';
+    paidAmountInCents: number;
+    remainingAmountInCents: number;
+    disbursements: PersonalExpenseDetail['disbursement'][];
     commitment: {
         id: string;
         version: number;
@@ -28,6 +32,7 @@ export type PersonalExpenseDetail = {
     disbursement: {
         id: string;
         payerPersonId: string;
+        recordedByPersonId: string;
         method: DisbursementMethod;
         amountInCents: number;
         factDate: string;
@@ -45,6 +50,9 @@ export type PersonalExpenseHistory = {
         amountInCents: number;
         factDate: string;
         disbursement: { amountInCents: number; method: DisbursementMethod };
+        status: 'PARTIALLY_PAID' | 'PAID';
+        paidAmountInCents: number;
+        remainingAmountInCents: number;
     }[];
     nextCursor: string | null;
 };

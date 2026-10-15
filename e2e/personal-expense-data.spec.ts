@@ -172,9 +172,20 @@ test('A06/A09: personal REST uses strict reduced inputs, authenticated no-store 
     process.env.NEXT_PUBLIC_API_URL = 'http://api.example.test/v2';
     globalThis.fetch = async (url, init = {}) => {
         calls.push({ url: String(url), init });
-        return new Response('{}', {
-            headers: { 'Content-Type': 'application/json' },
-        });
+        return new Response(
+            JSON.stringify({
+                spaceId: 'space-a',
+                commitment: {
+                    id: 'id-a',
+                    kind: 'EXPENSE',
+                    amountInCents: 12000,
+                },
+                disbursement: { id: 'disbursement-a', amountInCents: 12000 },
+            }),
+            {
+                headers: { 'Content-Type': 'application/json' },
+            },
+        );
     };
     try {
         const signal = new AbortController().signal;

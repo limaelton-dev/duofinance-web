@@ -30,7 +30,11 @@ export type ExpenseInput = {
     factDate: string;
     responsibilitySplit: Split;
     expectedPayerMemberId: string | null;
-    disbursement: { payerMemberId: string; method: 'PIX' | 'DEBIT' | 'CASH' };
+    disbursement: {
+        payerMemberId: string;
+        method: 'PIX' | 'DEBIT' | 'CASH';
+        amountInCents?: number;
+    };
     settlement: Settlement;
 };
 export type ExpenseOptions = FinancialContext & {
@@ -42,6 +46,11 @@ export type ExpenseOptions = FinancialContext & {
 };
 export type ExpenseView = {
     spaceId: string;
+    status: 'PARTIALLY_PAID' | 'PAID';
+    paidAmountInCents: number;
+    remainingAmountInCents: number;
+    disbursements: ExpenseView['disbursement'][];
+    obligations: NonNullable<ExpenseView['obligation']>[];
     commitment: {
         id: string;
         version: number;
@@ -63,6 +72,7 @@ export type ExpenseView = {
     disbursement: {
         id: string;
         payerMemberId: string;
+        recordedByPersonId: string;
         method: 'PIX' | 'DEBIT' | 'CASH';
         amountInCents: number;
         factDate: string;
@@ -76,7 +86,22 @@ export type ExpenseView = {
         creditorMemberId: string;
         originalAmountInCents: number;
         remainingAmountInCents: number;
-        status: 'OPEN' | 'PARTIALLY_SETTLED' | 'SETTLED';
+        status: 'OPEN' | 'PARTIALLY_SETTLED' | 'SETTLED' | 'RECONCILED';
+        recognizedAmountInCents: number;
+        transferredAmountInCents: number;
+        history?: {
+            version: number;
+            type: string;
+            actorId: string;
+            registeredAt: string;
+            snapshot: {
+                previousRecognizedAmountInCents?: number;
+                recognizedAmountInCents?: number;
+                previousRemainingAmountInCents?: number;
+                remainingAmountInCents?: number;
+                causeFulfillmentId?: string;
+            };
+        }[];
         cycleId: string | null;
     };
     settlementCycle: null | {
