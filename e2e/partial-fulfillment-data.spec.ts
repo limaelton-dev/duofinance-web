@@ -260,7 +260,7 @@ test('CARD-013: partial personal creation sends the external payment separately 
             );
             expect(JSON.parse(calls[0].init.body as string)).toEqual(input);
             expect(result.commitment.amountInCents).toBe(100000);
-            expect(result.disbursement.amountInCents).toBe(30000);
+            expect(result.disbursement!.amountInCents).toBe(30000);
             expect(result.paidAmountInCents).toBe(30000);
             expect(result.remainingAmountInCents).toBe(70000);
         },

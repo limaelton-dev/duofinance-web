@@ -149,17 +149,52 @@ export function PersonalExpenseHistoryPage({
                                             {formatMoney(
                                                 item.paidAmountInCents ??
                                                     item.disbursement
-                                                        .amountInCents,
+                                                        ?.amountInCents ??
+                                                    0,
                                             )}
                                         </dd>
-                                        <dt>Meio do primeiro pagamento</dt>
-                                        <dd>
-                                            {
-                                                disbursementMethodLabels[
-                                                    item.disbursement.method
-                                                ]
-                                            }
-                                        </dd>
+                                        {item.externalLiabilities?.length ? (
+                                            <>
+                                                <dt>No seu cartão</dt>
+                                                <dd>
+                                                    {formatMoney(
+                                                        item.assumedAmountInCents ??
+                                                            0,
+                                                    )}
+                                                </dd>
+                                                <dt>
+                                                    Obrigação externa aberta
+                                                </dt>
+                                                <dd>
+                                                    {formatMoney(
+                                                        item.externalOutstandingAmountInCents ??
+                                                            0,
+                                                    )}
+                                                </dd>
+                                                <dt>Restante a realizar</dt>
+                                                <dd>
+                                                    {formatMoney(
+                                                        item.remainingAmountInCents,
+                                                    )}
+                                                </dd>
+                                            </>
+                                        ) : null}
+                                        {item.disbursement && (
+                                            <>
+                                                <dt>
+                                                    Meio do primeiro pagamento
+                                                </dt>
+                                                <dd>
+                                                    {
+                                                        disbursementMethodLabels[
+                                                            item.disbursement
+                                                                ?.method ??
+                                                                'PIX'
+                                                        ]
+                                                    }
+                                                </dd>
+                                            </>
+                                        )}
                                     </dl>
                                 </li>
                             ))}

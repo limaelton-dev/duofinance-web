@@ -11,9 +11,10 @@ export const getExpenseOptions = (
     spaceId: string,
     cursor: string | null,
     signal?: AbortSignal,
+    creditCard = false,
 ) =>
     apiRequest<ExpenseOptions>(
-        `/spaces/${spaceId}/shared-cash-expense-options${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`,
+        `/spaces/${spaceId}/${creditCard ? 'credit-card-purchase-options' : 'shared-cash-expense-options'}${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`,
         { signal },
     );
 export const getFinancialContext = (spaceId: string, signal?: AbortSignal) =>
@@ -36,10 +37,13 @@ export const recordExpense = (
     idempotencyKey: string,
     signal?: AbortSignal,
 ) =>
-    apiRequest<ExpenseResult>(`/spaces/${spaceId}/shared-cash-expenses`, {
-        method: 'POST',
-        body,
-        csrfToken,
-        idempotencyKey,
-        signal,
-    }).then(normalizeExpenseFulfillment);
+    apiRequest<ExpenseResult>(
+        `/spaces/${spaceId}/${body.externalLiability ? 'credit-card-purchases' : 'shared-cash-expenses'}`,
+        {
+            method: 'POST',
+            body,
+            csrfToken,
+            idempotencyKey,
+            signal,
+        },
+    ).then(normalizeExpenseFulfillment);

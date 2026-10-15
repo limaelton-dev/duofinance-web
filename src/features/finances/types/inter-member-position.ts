@@ -4,6 +4,12 @@ export type PositionDirection = 'ALL' | 'PAYABLE' | 'RECEIVABLE';
 export type ObligationOrigin =
     | {
           commitmentId: string;
+          externalLiabilityId: string;
+          description: string;
+          kind: 'EXPENSE';
+      }
+    | {
+          commitmentId: string;
           disbursementId: string;
           description: string;
           kind?: 'EXPENSE';

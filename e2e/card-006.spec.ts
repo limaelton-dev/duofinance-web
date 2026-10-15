@@ -765,7 +765,7 @@ test('A07/A08: pessoal usa formulário próprio e CLOSED lê opções mas bloque
 }) => {
     await context.addCookies(a.state.cookies);
     await page.goto(composer(a.personalId));
-    await expect(page.getByLabel('Meio do desembolso')).toBeVisible();
+    await expect(page.getByLabel('Forma de pagamento')).toBeVisible();
     await expect(page.getByLabel('Quem pagou?', { exact: true })).toHaveCount(
         0,
     );

@@ -1,3 +1,4 @@
+import type { ExternalLiability } from './credit-card-purchase';
 import type { SettlementRule } from './settlement-rule';
 export type Member = {
     memberId: string;
@@ -30,13 +31,21 @@ export type ExpenseInput = {
     factDate: string;
     responsibilitySplit: Split;
     expectedPayerMemberId: string | null;
-    disbursement: {
-        payerMemberId: string;
-        method: 'PIX' | 'DEBIT' | 'CASH';
-        amountInCents?: number;
-    };
     settlement: Settlement;
-};
+} & (
+    | {
+          disbursement: {
+              payerMemberId: string;
+              method: 'PIX' | 'DEBIT' | 'CASH';
+              amountInCents?: number;
+          };
+          externalLiability?: never;
+      }
+    | {
+          externalLiability: { holderMemberId: string; amountInCents?: number };
+          disbursement?: never;
+      }
+);
 export type ExpenseOptions = FinancialContext & {
     referenceDate: string;
     defaultSettlementRule: { rule: SettlementRule | null; version: number };
@@ -46,10 +55,16 @@ export type ExpenseOptions = FinancialContext & {
 };
 export type ExpenseView = {
     spaceId: string;
-    status: 'PARTIALLY_PAID' | 'PAID';
+    status: 'PARTIALLY_PAID' | 'PAID' | 'PARTIALLY_FULFILLED' | 'FULFILLED';
+    fulfillmentStatus?: 'PARTIALLY_FULFILLED' | 'FULFILLED';
+    assumedAmountInCents?: number;
+    externalOutstandingAmountInCents?: number;
+    supportedAmountInCents?: number;
+    externalLiabilities?: ExternalLiability[];
+    externalLiability?: ExternalLiability | null;
     paidAmountInCents: number;
     remainingAmountInCents: number;
-    disbursements: ExpenseView['disbursement'][];
+    disbursements: NonNullable<ExpenseView['disbursement']>[];
     obligations: NonNullable<ExpenseView['obligation']>[];
     commitment: {
         id: string;
@@ -69,8 +84,9 @@ export type ExpenseView = {
         settlementRuleSourceVersion: number;
         suggestedTargetDate: string | null;
     };
-    disbursement: {
+    disbursement: null | {
         id: string;
+        sequence?: number;
         payerMemberId: string;
         recordedByPersonId: string;
         method: 'PIX' | 'DEBIT' | 'CASH';
@@ -81,7 +97,8 @@ export type ExpenseView = {
     obligation: null | {
         id: string;
         originCommitmentId: string;
-        originDisbursementId: string;
+        originDisbursementId: string | null;
+        originExternalLiabilityId?: string | null;
         debtorMemberId: string;
         creditorMemberId: string;
         originalAmountInCents: number;

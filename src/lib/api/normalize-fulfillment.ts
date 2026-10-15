@@ -7,9 +7,20 @@ export function normalizeExpenseFulfillment<
 >(value: T): T {
     return {
         ...value,
-        disbursements: value.disbursements ?? [value.disbursement],
+        disbursements:
+            value.disbursements ??
+            (value.disbursement ? [value.disbursement] : []),
         paidAmountInCents:
-            value.paidAmountInCents ?? value.disbursement.amountInCents,
+            value.paidAmountInCents ?? value.disbursement?.amountInCents ?? 0,
+        externalLiabilities: value.externalLiabilities ?? [],
+        assumedAmountInCents: value.assumedAmountInCents ?? 0,
+        externalOutstandingAmountInCents:
+            value.externalOutstandingAmountInCents ?? 0,
+        supportedAmountInCents:
+            value.supportedAmountInCents ??
+            value.paidAmountInCents ??
+            value.disbursement?.amountInCents ??
+            0,
         remainingAmountInCents: value.remainingAmountInCents ?? 0,
         status: value.status ?? 'PAID',
         ...('obligation' in value
