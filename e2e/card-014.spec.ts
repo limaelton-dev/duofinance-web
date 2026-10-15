@@ -672,14 +672,32 @@ test('A25/A26: card support rejects a foreign commitment response and recovers t
                     : result,
         });
     });
-    await addCard(page, '50,00');
     const form = page.getByRole('region', { name: 'Nova compra no cartão' });
+    await form
+        .getByLabel('Valor assumido no cartão (R$)', { exact: true })
+        .fill('50,00');
+    await form
+        .getByRole('button', { name: 'Revisar compra no cartão', exact: true })
+        .click();
+    await form
+        .getByRole('button', {
+            name: 'Confirmar compra no cartão',
+            exact: true,
+        })
+        .evaluate((button: HTMLButtonElement) => {
+            button.click();
+            button.click();
+        });
     await expect(form.getByRole('alert')).toContainText(
         'confirmar o resultado',
     );
     await expect(
         form.getByLabel('Valor assumido no cartão (R$)', { exact: true }),
     ).toBeDisabled();
+    await expect(
+        page.getByRole('combobox', { name: 'Espaço atual', exact: true }),
+    ).toBeDisabled();
+    expect(attempts).toHaveLength(1);
     await form
         .getByRole('button', {
             name: 'Reenviar a mesma tentativa',
