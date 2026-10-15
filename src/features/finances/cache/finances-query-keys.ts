@@ -1,4 +1,24 @@
 export const financesQueryKeys = {
+    review: (
+        personId: string,
+        spaceId: string,
+        view: string,
+        month: string,
+        memberId: string | null,
+        cursor: string | null,
+        referenceDate: string,
+    ) =>
+        [
+            'finances',
+            personId,
+            spaceId,
+            'financial-review',
+            view,
+            month,
+            memberId,
+            cursor,
+            referenceDate,
+        ] as const,
     cycles: (
         personId: string,
         spaceId: string,
