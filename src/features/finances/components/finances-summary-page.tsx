@@ -119,6 +119,9 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
         <section className={styles.stack}>
             <h1>Finanças</h1>
             <nav aria-label="Navegação financeira" className={styles.actions}>
+                <Link href={`/spaces/${spaceId}/finances/external-liabilities`}>
+                    Obrigações externas em meu nome
+                </Link>
                 <span aria-current="page">Resumo</span>
                 <Link href={`/spaces/${spaceId}/finances/settlements`}>
                     Acertos

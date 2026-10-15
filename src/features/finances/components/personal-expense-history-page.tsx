@@ -72,6 +72,9 @@ export function PersonalExpenseHistoryPage({
             <h1>Finanças</h1>
             <h2>Histórico de despesas</h2>
             <nav className={styles.actions} aria-label="Navegação financeira">
+                <Link href={`/spaces/${spaceId}/finances/external-liabilities`}>
+                    Obrigações externas em meu nome
+                </Link>
                 <Link href={`/spaces/${spaceId}/expenses/new`}>
                     Adicionar despesa
                 </Link>

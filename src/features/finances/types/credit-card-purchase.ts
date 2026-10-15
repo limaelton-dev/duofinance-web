@@ -1,5 +1,6 @@
 import type { ExpenseDisbursementOptions } from './expense-disbursement';
 import type { Settlement } from './shared-expense';
+import type { ExternalLiabilitySettlement } from './external-liability-settlement';
 
 export type ExternalLiability = {
     id: string;
@@ -11,6 +12,7 @@ export type ExternalLiability = {
     registeredAt: string;
     recordedByPersonId: string;
     sequence: number;
+    settlements?: ExternalLiabilitySettlement[];
 };
 export type ExternalLiabilityInput = {
     amountInCents: number;
