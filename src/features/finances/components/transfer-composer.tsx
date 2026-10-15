@@ -24,6 +24,7 @@ import {
     formatMoney,
 } from '../utils/expense-money';
 import { formatPositionMoney } from '../utils/position-money';
+import { financialOriginPath } from '../utils/settlement-return';
 import styles from './expenses.module.css';
 
 type Selected = { item: TransferObligation; amount: string };
@@ -633,7 +634,10 @@ function Composer({
                                                     {formatDate(item.factDate)}
                                                 </p>
                                                 <Link
-                                                    href={`/spaces/${spaceId}/expenses/${item.origin.commitmentId}`}
+                                                    href={financialOriginPath(
+                                                        spaceId,
+                                                        item.origin,
+                                                    )}
                                                 >
                                                     Ver origem
                                                 </Link>

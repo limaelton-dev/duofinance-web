@@ -10,7 +10,10 @@ import { useSpaceContextInstance } from '@/features/spaces/context/space-context
 import { isSpaceAccessDenied } from '@/features/spaces/state/space-context';
 import type { SettlementCycle } from '@/features/finances/types/settlement-cycle';
 import { formatPositionMoney } from '@/features/finances/utils/position-money';
-import { formatDate } from '@/features/finances/utils/expense-money';
+import {
+    formatDate,
+    formatMoney,
+} from '@/features/finances/utils/expense-money';
 import { useToday } from '../hooks/use-today';
 import type { TodaySettlements } from '../types/today';
 import styles from './today.module.css';
@@ -172,6 +175,8 @@ function TodayRead({
         status === 'ACTIVE' &&
         (confirmed.space.type === 'PERSONAL' ||
             confirmed.activeMemberCount === 2);
+    const canAddIncome =
+        confirmed?.space.status === 'ACTIVE' && status === 'ACTIVE';
     return (
         <section className={styles.page} aria-labelledby="today-title">
             <header>
@@ -204,6 +209,11 @@ function TodayRead({
                 {canAddExpense && (
                     <Link href={`/spaces/${spaceId}/expenses/new`}>
                         Adicionar despesa
+                    </Link>
+                )}
+                {canAddIncome && (
+                    <Link href={`/spaces/${spaceId}/incomes/new`}>
+                        Adicionar receita
                     </Link>
                 )}
                 {!shared && (
@@ -322,9 +332,39 @@ function TodayRead({
                         <h2 id="upcoming-commitments-title">
                             Próximos compromissos
                         </h2>
-                        <p>Nenhum compromisso próximo para exibir.</p>
-                        <Link href={`/spaces/${spaceId}/finances`}>
-                            Ver finanças
+                        {finance?.upcomingCommitments.items.length ? (
+                            <ul>
+                                {finance.upcomingCommitments.items.map(
+                                    (item) => (
+                                        <li key={item.commitmentId}>
+                                            <Link
+                                                href={`/spaces/${spaceId}/incomes/${item.commitmentId}`}
+                                            >
+                                                {item.description}
+                                            </Link>{' '}
+                                            — {formatMoney(item.amountInCents)}{' '}
+                                            previsto para{' '}
+                                            <time
+                                                dateTime={
+                                                    item.expectedReceiptDate
+                                                }
+                                            >
+                                                {formatDate(
+                                                    item.expectedReceiptDate,
+                                                )}
+                                            </time>
+                                        </li>
+                                    ),
+                                )}
+                            </ul>
+                        ) : (
+                            <p>Nenhum compromisso próximo para exibir.</p>
+                        )}
+                        {(finance?.upcomingCommitments.totalCount ?? 0) > 4 && (
+                            <p>Há mais receitas previstas na lista completa.</p>
+                        )}
+                        <Link href={`/spaces/${spaceId}/incomes`}>
+                            Ver receitas
                         </Link>
                     </section>
                 </>

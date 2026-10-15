@@ -13,6 +13,7 @@ import { useExpenseQuery } from '../hooks/use-expense-query';
 import type { PositionDirection } from '../types/inter-member-position';
 import { formatPositionMoney } from '../utils/position-money';
 import { formatDate, formatMoney } from '../utils/expense-money';
+import { financialOriginPath } from '../utils/settlement-return';
 import styles from './finances-summary.module.css';
 import { PersonalExpenseHistoryPage } from './personal-expense-history-page';
 
@@ -122,6 +123,7 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                 <Link href={`/spaces/${spaceId}/finances/settlements`}>
                     Acertos
                 </Link>
+                <Link href={`/spaces/${spaceId}/incomes`}>Receitas</Link>
                 <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
             </nav>
             <h2>Entre vocês</h2>
@@ -302,10 +304,16 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                                         )}
                                     </p>
                                     <Link
-                                        href={`/spaces/${spaceId}/expenses/${item.origin.commitmentId}`}
-                                        aria-label={`Ver despesa: ${item.origin.description}`}
+                                        href={financialOriginPath(
+                                            spaceId,
+                                            item.origin,
+                                        )}
+                                        aria-label={`Ver ${item.origin.kind === 'INCOME' ? 'receita' : 'despesa'}: ${item.origin.description}`}
                                     >
-                                        Ver despesa
+                                        Ver{' '}
+                                        {item.origin.kind === 'INCOME'
+                                            ? 'receita'
+                                            : 'despesa'}
                                     </Link>
                                 </li>
                             ))}
@@ -334,9 +342,14 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                         podem aparecer ao voltar ao início.
                     </p>
                     {value.spaceStatus === 'ACTIVE' && (
-                        <Link href={`/spaces/${spaceId}/expenses/new`}>
-                            Adicionar despesa
-                        </Link>
+                        <>
+                            <Link href={`/spaces/${spaceId}/expenses/new`}>
+                                Adicionar despesa
+                            </Link>
+                            <Link href={`/spaces/${spaceId}/incomes/new`}>
+                                Adicionar receita
+                            </Link>
+                        </>
                     )}
                 </>
             )}

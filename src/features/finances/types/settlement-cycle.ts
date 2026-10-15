@@ -1,5 +1,6 @@
 import type {
     InterMemberPosition,
+    ObligationOrigin,
     PositionDirection,
 } from './inter-member-position';
 import type { Member } from './shared-expense';
@@ -45,11 +46,7 @@ export type SettlementCycleDetail = SettlementContext & {
         remainingAmountInCents: number;
         factDate: string;
         registeredAt: string;
-        origin: {
-            commitmentId: string;
-            disbursementId: string;
-            description: string;
-        };
+        origin: ObligationOrigin;
     }[];
     page: {
         direction: PositionDirection;

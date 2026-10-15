@@ -1,6 +1,19 @@
 import type { Member } from './shared-expense';
 
 export type PositionDirection = 'ALL' | 'PAYABLE' | 'RECEIVABLE';
+export type ObligationOrigin =
+    | {
+          commitmentId: string;
+          disbursementId: string;
+          description: string;
+          kind?: 'EXPENSE';
+      }
+    | {
+          commitmentId: string;
+          receiptId: string;
+          description: string;
+          kind: 'INCOME';
+      };
 export type InterMemberPosition = {
     spaceId: string;
     spaceStatus: 'ACTIVE' | 'CLOSING' | 'CLOSED';
@@ -25,11 +38,7 @@ export type InterMemberPosition = {
         remainingAmountInCents: number;
         factDate: string;
         registeredAt: string;
-        origin: {
-            commitmentId: string;
-            disbursementId: string;
-            description: string;
-        };
+        origin: ObligationOrigin;
         settlementCycle: null | {
             id: string;
             targetDate: string;

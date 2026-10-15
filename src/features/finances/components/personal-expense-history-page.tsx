@@ -75,6 +75,10 @@ export function PersonalExpenseHistoryPage({
                 <Link href={`/spaces/${spaceId}/expenses/new`}>
                     Adicionar despesa
                 </Link>
+                <Link href={`/spaces/${spaceId}/incomes`}>Ver receitas</Link>
+                <Link href={`/spaces/${spaceId}/incomes/new`}>
+                    Adicionar receita
+                </Link>
                 <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
             </nav>
             <button

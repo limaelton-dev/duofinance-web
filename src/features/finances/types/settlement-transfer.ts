@@ -1,4 +1,5 @@
 import type { Member } from './shared-expense';
+import type { ObligationOrigin } from './inter-member-position';
 
 export type TransferDirection = 'PAYABLE' | 'RECEIVABLE';
 
@@ -27,11 +28,7 @@ export type TransferObligation = {
     remainingAmountInCents: number;
     factDate: string;
     registeredAt: string;
-    origin: {
-        commitmentId: string;
-        disbursementId: string;
-        description: string;
-    };
+    origin: ObligationOrigin;
     settlementCycle: null | {
         id: string;
         targetDate: string;
@@ -69,11 +66,7 @@ export type TransferAllocation = {
     obligationId: string;
     amountInCents: number;
     cycleId: string | null;
-    origin: {
-        commitmentId: string;
-        disbursementId: string;
-        description: string;
-    };
+    origin: ObligationOrigin;
 };
 
 export type SettlementTransfer = {

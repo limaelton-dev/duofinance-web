@@ -20,6 +20,7 @@ import type {
 } from '../types/settlement-cycle';
 import { formatPositionMoney } from '../utils/position-money';
 import { formatDate, formatMoney } from '../utils/expense-money';
+import { financialOriginPath } from '../utils/settlement-return';
 import styles from './finances-summary.module.css';
 
 export function SettlementCyclesPage({
@@ -506,10 +507,17 @@ function SettlementRead({
                                         </time>
                                     </p>
                                     <Link
-                                        href={`/spaces/${spaceId}/expenses/${item.origin.commitmentId}?returnCycle=${cycleId}`}
-                                        aria-label={`Ver despesa: ${item.origin.description}`}
+                                        href={financialOriginPath(
+                                            spaceId,
+                                            item.origin,
+                                            cycleId,
+                                        )}
+                                        aria-label={`Ver ${item.origin.kind === 'INCOME' ? 'receita' : 'despesa'}: ${item.origin.description}`}
                                     >
-                                        Ver despesa
+                                        Ver{' '}
+                                        {item.origin.kind === 'INCOME'
+                                            ? 'receita'
+                                            : 'despesa'}
                                     </Link>
                                 </li>
                             ))}
