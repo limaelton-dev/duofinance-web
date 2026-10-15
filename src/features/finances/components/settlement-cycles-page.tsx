@@ -77,7 +77,14 @@ function CycleTotals({ cycle }: { cycle: SettlementCycle }) {
                     </dd>
                 </div>
                 <div>
-                    <dt>Valor resolvido</dt>
+                    <dt>Valor reconhecido</dt>
+                    <dd>
+                        {formatPositionMoney(
+                            cycle.totals.recognizedAmountInCents ??
+                                cycle.totals.originalAmountInCents,
+                        )}
+                    </dd>
+                    <dt>Valor reconhecido já acertado</dt>
                     <dd>
                         {formatPositionMoney(
                             cycle.totals.resolvedAmountInCents,
@@ -462,10 +469,14 @@ function SettlementRead({
                                 <li key={item.id}>
                                     <h3>{item.origin.description}</h3>
                                     <p>
-                                        {item.debtorMemberId ===
-                                        detailValue.actorMemberId
-                                            ? `Você precisa acertar com ${memberName(item.creditorMemberId)}`
-                                            : `${memberName(item.debtorMemberId)} precisa acertar com você`}
+                                        {item.remainingAmountInCents === 0
+                                            ? item.status === 'RECONCILED'
+                                                ? 'Encerrada por reconciliação dos fatos da origem, sem registrar transferência.'
+                                                : 'Pendência acertada.'
+                                            : item.debtorMemberId ===
+                                                detailValue.actorMemberId
+                                              ? `Você precisa acertar com ${memberName(item.creditorMemberId)}`
+                                              : `${memberName(item.debtorMemberId)} precisa acertar com você`}
                                     </p>
                                     <p>
                                         Valor original:{' '}
@@ -474,7 +485,14 @@ function SettlementRead({
                                         )}
                                     </p>
                                     <p>
-                                        Valor resolvido:{' '}
+                                        Valor reconhecido:{' '}
+                                        {formatMoney(
+                                            item.recognizedAmountInCents ??
+                                                item.originalAmountInCents,
+                                        )}
+                                    </p>
+                                    <p>
+                                        Valor reconhecido já acertado:{' '}
                                         {formatMoney(
                                             item.resolvedAmountInCents,
                                         )}

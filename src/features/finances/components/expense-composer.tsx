@@ -92,6 +92,7 @@ function Composer({
     const members = financial?.members ?? [];
     const [description, setDescription] = useState(''),
         [amount, setAmount] = useState(''),
+        [paidAmount, setPaidAmount] = useState<string | null>(null),
         [factDate, setFactDate] = useState(businessToday),
         [mode, setMode] = useState<'AMOUNTS' | 'PERCENTAGES'>('PERCENTAGES'),
         [parts, setParts] = useState<Record<string, string>>({}),
@@ -201,7 +202,8 @@ function Composer({
     }, [command.fields]);
     const actualPayer = payer || financial?.actorMemberId || '',
         expected = planned || null;
-    const total = decimalUnits(amount);
+    const total = decimalUnits(amount),
+        paid = decimalUnits(paidAmount ?? amount);
     let split: Split | null = null,
         calculated: { memberId: string; amountInCents: number }[] = [],
         splitError: string | null = null;
@@ -259,12 +261,6 @@ function Composer({
                           10000n,
               )
             : null;
-    const debt =
-        total !== null && calculated.length
-            ? total -
-              (calculated.find((s) => s.memberId === actualPayer)
-                  ?.amountInCents ?? total)
-            : 0;
     const suggested =
         (!options.isError && options.data?.suggestedTargetDate) || null;
     const selectedMode = settlementMode ?? (suggested ? 'SUGGESTED' : 'NONE');
@@ -295,6 +291,13 @@ function Composer({
             );
             return;
         }
+        if (paid === null || paid <= 0 || paid > total) {
+            focus(
+                'disbursement.amountInCents',
+                'Informe um pagamento positivo com até duas casas decimais, até o valor total da despesa.',
+            );
+            return;
+        }
         if (
             !factDate ||
             factDate > (options.data?.referenceDate ?? businessToday())
@@ -313,41 +316,37 @@ function Composer({
             return;
         }
         let settlement: Settlement = { mode: 'NONE' };
-        if (debt > 0) {
-            if (selectedMode === 'SUGGESTED') {
-                if (!suggested || !options.data || options.isError) {
-                    focus(
-                        'settlement.mode',
-                        'Reconsulte a sugestão ou escolha outra data.',
-                    );
-                    return;
-                }
-                settlement = {
-                    mode: 'SUGGESTED',
-                    referenceDate: options.data.referenceDate,
-                    expectedRuleVersion:
-                        options.data.defaultSettlementRule.version,
-                };
-            } else if (selectedMode === 'DATE') {
-                if (
-                    !targetDate ||
-                    targetDate <
-                        (options.data?.referenceDate ?? businessToday())
-                ) {
-                    focus(
-                        'settlement.targetDate',
-                        'Escolha uma data de acerto a partir de hoje.',
-                    );
-                    return;
-                }
-                settlement = { mode: 'DATE', targetDate };
-            } else if (selectedMode === 'CYCLE') {
-                if (!cycleId || !openCycles.some((c) => c.id === cycleId)) {
-                    focus('settlement.cycleId', 'Escolha um acerto aberto.');
-                    return;
-                }
-                settlement = { mode: 'CYCLE', cycleId };
+        if (selectedMode === 'SUGGESTED') {
+            if (!suggested || !options.data || options.isError) {
+                focus(
+                    'settlement.mode',
+                    'Reconsulte a sugestão ou escolha outra data.',
+                );
+                return;
             }
+            settlement = {
+                mode: 'SUGGESTED',
+                referenceDate: options.data.referenceDate,
+                expectedRuleVersion: options.data.defaultSettlementRule.version,
+            };
+        } else if (selectedMode === 'DATE') {
+            if (
+                !targetDate ||
+                targetDate < (options.data?.referenceDate ?? businessToday())
+            ) {
+                focus(
+                    'settlement.targetDate',
+                    'Escolha uma data de acerto a partir de hoje.',
+                );
+                return;
+            }
+            settlement = { mode: 'DATE', targetDate };
+        } else if (selectedMode === 'CYCLE') {
+            if (!cycleId || !openCycles.some((c) => c.id === cycleId)) {
+                focus('settlement.cycleId', 'Escolha um acerto aberto.');
+                return;
+            }
+            settlement = { mode: 'CYCLE', cycleId };
         }
         const input: ExpenseInput = {
             expectedSpaceVersion: financial.version,
@@ -356,7 +355,11 @@ function Composer({
             factDate,
             responsibilitySplit: split,
             expectedPayerMemberId: expected,
-            disbursement: { payerMemberId: actualPayer, method },
+            disbursement: {
+                payerMemberId: actualPayer,
+                method,
+                amountInCents: paid,
+            },
             settlement,
         };
         setFieldError(null);
@@ -397,6 +400,7 @@ function Composer({
                             setResult(null);
                             setDescription('');
                             setAmount('');
+                            setPaidAmount(null);
                             setParts({});
                             setPlanned('');
                             setPlanningOpen(false);
@@ -451,6 +455,18 @@ function Composer({
                                 onChange={(e) => {
                                     mark();
                                     setAmount(e.target.value);
+                                }}
+                            />
+                        </label>
+                        <label>
+                            Valor pago agora (R$)
+                            <input
+                                name="disbursement.amountInCents"
+                                inputMode="decimal"
+                                value={paidAmount ?? amount}
+                                onChange={(event) => {
+                                    mark();
+                                    setPaidAmount(event.target.value);
                                 }}
                             />
                         </label>
@@ -686,99 +702,92 @@ function Composer({
                             </div>
                         </>
                     )}
-                    {debt > 0 && (
-                        <fieldset disabled={busy}>
-                            <legend>Quando acertar?</legend>
-                            {!suggested && !options.isError && (
-                                <p>
-                                    Acerto padrão não definido. Escolha outra
-                                    data, um acerto aberto ou sem data de
-                                    acerto.
-                                </p>
-                            )}
+                    <fieldset disabled={busy}>
+                        <legend>Quando acertar?</legend>
+                        {!suggested && !options.isError && (
+                            <p>
+                                Acerto padrão não definido. Escolha outra data,
+                                um acerto aberto ou sem data de acerto.
+                            </p>
+                        )}
+                        <label>
+                            Acerto
+                            <select
+                                aria-label="Acerto"
+                                name="settlement.mode"
+                                value={selectedMode}
+                                onChange={(e) => {
+                                    mark();
+                                    setSettlementMode(
+                                        e.target.value as Settlement['mode'],
+                                    );
+                                }}
+                            >
+                                {suggested && (
+                                    <option value="SUGGESTED">
+                                        Sugerido: {formatDate(suggested)}
+                                    </option>
+                                )}
+                                <option value="DATE">Outra data</option>
+                                {openCycles.length > 0 && !options.isError && (
+                                    <option value="CYCLE">
+                                        Acerto aberto existente
+                                    </option>
+                                )}
+                                <option value="NONE">Sem data de acerto</option>
+                            </select>
+                        </label>
+                        {selectedMode === 'DATE' && (
                             <label>
-                                Acerto
-                                <select
-                                    aria-label="Acerto"
-                                    name="settlement.mode"
-                                    value={selectedMode}
+                                Data do acerto
+                                <input
+                                    name="settlement.targetDate"
+                                    type="date"
+                                    min={
+                                        options.data?.referenceDate ??
+                                        businessToday()
+                                    }
+                                    value={targetDate}
                                     onChange={(e) => {
                                         mark();
-                                        setSettlementMode(
-                                            e.target
-                                                .value as Settlement['mode'],
-                                        );
+                                        setTargetDate(e.target.value);
+                                    }}
+                                />
+                            </label>
+                        )}
+                        {selectedMode === 'CYCLE' && (
+                            <label>
+                                Acerto aberto
+                                <select
+                                    aria-label="Acerto aberto"
+                                    name="settlement.cycleId"
+                                    value={cycleId}
+                                    onChange={(e) => {
+                                        mark();
+                                        setCycleId(e.target.value);
                                     }}
                                 >
-                                    {suggested && (
-                                        <option value="SUGGESTED">
-                                            Sugerido: {formatDate(suggested)}
+                                    <option value="">Selecione</option>
+                                    {openCycles.map((c) => (
+                                        <option key={c.id} value={c.id}>
+                                            {formatDate(c.targetDate)}
                                         </option>
-                                    )}
-                                    <option value="DATE">Outra data</option>
-                                    {openCycles.length > 0 &&
-                                        !options.isError && (
-                                            <option value="CYCLE">
-                                                Acerto aberto existente
-                                            </option>
-                                        )}
-                                    <option value="NONE">
-                                        Sem data de acerto
-                                    </option>
+                                    ))}
                                 </select>
                             </label>
-                            {selectedMode === 'DATE' && (
-                                <label>
-                                    Data do acerto
-                                    <input
-                                        name="settlement.targetDate"
-                                        type="date"
-                                        min={
-                                            options.data?.referenceDate ??
-                                            businessToday()
-                                        }
-                                        value={targetDate}
-                                        onChange={(e) => {
-                                            mark();
-                                            setTargetDate(e.target.value);
-                                        }}
-                                    />
-                                </label>
-                            )}
-                            {selectedMode === 'CYCLE' && (
-                                <label>
-                                    Acerto aberto
-                                    <select
-                                        aria-label="Acerto aberto"
-                                        name="settlement.cycleId"
-                                        value={cycleId}
-                                        onChange={(e) => {
-                                            mark();
-                                            setCycleId(e.target.value);
-                                        }}
-                                    >
-                                        <option value="">Selecione</option>
-                                        {openCycles.map((c) => (
-                                            <option key={c.id} value={c.id}>
-                                                {formatDate(c.targetDate)}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </label>
-                            )}
-                            {options.data?.nextCursor && !options.isError && (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setPages(openCycles);
-                                        setCursor(options.data!.nextCursor);
-                                    }}
-                                >
-                                    Carregar mais acertos
-                                </button>
-                            )}
-                        </fieldset>
-                    )}
+                        )}
+                        {options.data?.nextCursor && !options.isError && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setPages(openCycles);
+                                    setCursor(options.data!.nextCursor);
+                                }}
+                            >
+                                Carregar mais acertos
+                            </button>
+                        )}
+                    </fieldset>
                     {financial?.status !== 'ACTIVE' && financial && (
                         <p role="status">
                             Este espaço está em encerramento ou encerrado. Novas
@@ -863,26 +872,36 @@ function Composer({
                             ?.displayName ?? 'Carregando'}
                     </p>
                     <p>
-                        {debt > 0
-                            ? `Falta acertar: ${members.find((m) => m.memberId !== actualPayer)?.displayName} deve ${formatMoney(debt)} a ${members.find((m) => m.memberId === actualPayer)?.displayName}`
-                            : 'Não há valor a acertar'}
+                        Valor pago agora:{' '}
+                        {paid !== null ? formatMoney(paid) : 'Confira o valor'}.
                     </p>
-                    {debt > 0 && (
-                        <p>
-                            Acerto:{' '}
-                            {selectedMode === 'SUGGESTED' && suggested
-                                ? formatDate(suggested)
-                                : selectedMode === 'DATE' && targetDate
-                                  ? formatDate(targetDate)
-                                  : selectedMode === 'CYCLE' && cycleId
-                                    ? formatDate(
-                                          openCycles.find(
-                                              (c) => c.id === cycleId,
-                                          )?.targetDate ?? '',
-                                      )
-                                    : 'Sem data de acerto'}
-                        </p>
-                    )}
+                    <p>
+                        Falta pagar:{' '}
+                        {total !== null &&
+                        paid !== null &&
+                        paid <= total &&
+                        paid > 0
+                            ? formatMoney(total - paid)
+                            : 'Confira os valores'}
+                        .
+                    </p>
+                    <p>
+                        A pendência entre membros considera o suporte acumulado
+                        e será apresentada após salvar.
+                    </p>
+                    <p>
+                        Acerto:{' '}
+                        {selectedMode === 'SUGGESTED' && suggested
+                            ? formatDate(suggested)
+                            : selectedMode === 'DATE' && targetDate
+                              ? formatDate(targetDate)
+                              : selectedMode === 'CYCLE' && cycleId
+                                ? formatDate(
+                                      openCycles.find((c) => c.id === cycleId)
+                                          ?.targetDate ?? '',
+                                  )
+                                : 'Sem data de acerto'}
+                    </p>
                 </aside>
             </div>
         </section>

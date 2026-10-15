@@ -1,3 +1,4 @@
+import { normalizeExpenseFulfillment } from './normalize-fulfillment';
 import { apiRequest } from './api-client';
 import type {
     ExpenseInput,
@@ -27,7 +28,7 @@ export const getExpenseDetail = (
     apiRequest<ExpenseDetail>(
         `/spaces/${spaceId}/financial-commitments/${id}`,
         { signal },
-    );
+    ).then(normalizeExpenseFulfillment);
 export const recordExpense = (
     spaceId: string,
     body: ExpenseInput,
@@ -41,4 +42,4 @@ export const recordExpense = (
         csrfToken,
         idempotencyKey,
         signal,
-    });
+    }).then(normalizeExpenseFulfillment);

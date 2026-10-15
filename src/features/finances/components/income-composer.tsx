@@ -51,7 +51,8 @@ function Composer({
         (signal) => getIncomeOptions(spaceId, signal),
     );
     const [description, setDescription] = useState(''),
-        [amount, setAmount] = useState('');
+        [amount, setAmount] = useState(''),
+        [receivedAmount, setReceivedAmount] = useState<string | null>(null);
     const [expectedDate, setExpectedDate] = useState(''),
         [received, setReceived] = useState(false);
     const [factDate, setFactDate] = useState(''),
@@ -139,6 +140,16 @@ function Composer({
                 'amountInCents',
                 'Informe um valor positivo com até duas casas decimais.',
             );
+        const actualAmount =
+            receivedAmount === null ? cents : decimalUnits(receivedAmount);
+        if (
+            received &&
+            (actualAmount === null || actualAmount <= 0 || actualAmount > cents)
+        )
+            return reject(
+                'receipt.amountInCents',
+                'Informe um recebimento positivo com até duas casas decimais, até o valor total da receita.',
+            );
         const forecast = expectedDate || o.referenceDate;
         if (!/^\d{4}-\d{2}-\d{2}$/.test(forecast))
             return reject('expectedReceiptDate', 'Informe a data prevista.');
@@ -156,7 +167,9 @@ function Composer({
                 description: description.trim(),
                 amountInCents: cents,
                 expectedReceiptDate: forecast,
-                receipt: received ? { factDate: actual } : null,
+                receipt: received
+                    ? { factDate: actual, amountInCents: actualAmount! }
+                    : null,
             });
             return;
         }
@@ -210,13 +223,8 @@ function Composer({
             );
         if (received && !members.some((m) => m.memberId === actualRecipient))
             return reject('recipientMemberId', 'Escolha quem recebeu o valor.');
-        const calculated = exactShares(cents, split);
-        const difference = received
-            ? (calculated.find((s) => s.memberId !== actualRecipient)
-                  ?.amountInCents ?? 0)
-            : 0;
         let settlement: Settlement = { mode: 'NONE' };
-        if (received && difference > 0) {
+        if (received) {
             if (settlementMode === 'DATE') {
                 if (!targetDate || targetDate < o.referenceDate)
                     return reject(
@@ -251,6 +259,7 @@ function Composer({
             receipt: received
                 ? {
                       factDate: actual,
+                      amountInCents: actualAmount!,
                       recipientMemberId: actualRecipient,
                       settlement,
                   }
@@ -270,7 +279,13 @@ function Composer({
                 <p>
                     {result.status === 'PENDING'
                         ? 'Recebimento pendente.'
-                        : 'Recebimento integral registrado.'}
+                        : result.status === 'PARTIALLY_RECEIVED'
+                          ? 'Receita parcialmente recebida.'
+                          : 'Recebimento integral registrado.'}
+                </p>
+                <p>
+                    Recebido: {formatMoney(result.receivedAmountInCents)}. Falta
+                    receber: {formatMoney(result.remainingAmountInCents)}.
                 </p>
                 {result.obligation && (
                     <p>
@@ -314,267 +329,294 @@ function Composer({
             {o?.canCreate && (
                 <form
                     ref={form}
+                    noValidate
                     onSubmit={(event) => {
                         event.preventDefault();
                         prepare();
                     }}
                 >
-                    <label htmlFor="income-description">Descrição</label>
-                    <input
-                        id="income-description"
-                        name="description"
-                        value={description}
-                        maxLength={160}
-                        onChange={(e) => {
-                            change();
-                            setDescription(e.target.value);
-                        }}
-                    />
-                    <label htmlFor="income-amount">Valor total (R$)</label>
-                    <input
-                        id="income-amount"
-                        name="amountInCents"
-                        inputMode="decimal"
-                        value={amount}
-                        onChange={(e) => {
-                            change();
-                            setAmount(e.target.value);
-                        }}
-                    />
-                    <label htmlFor="income-expected-date">
-                        Data prevista para recebimento
-                    </label>
-                    <input
-                        id="income-expected-date"
-                        name="expectedReceiptDate"
-                        type="date"
-                        value={expectedDate || o.referenceDate}
-                        onChange={(e) => {
-                            change();
-                            setExpectedDate(e.target.value);
-                        }}
-                    />
-                    {o.spaceType === 'SHARED' && (
-                        <>
-                            <h2>Participação econômica</h2>
-                            <label htmlFor="income-split-mode">
-                                Dividir por
-                            </label>
-                            <select
-                                id="income-split-mode"
-                                value={splitMode}
-                                onChange={(e) => {
-                                    change();
-                                    setSplitMode(
-                                        e.target.value as
-                                            'PERCENTAGES' | 'AMOUNTS',
-                                    );
-                                    setShares({});
-                                }}
-                            >
-                                <option value="PERCENTAGES">Percentual</option>
-                                <option value="AMOUNTS">Valor</option>
-                            </select>
-                            {(o.members ?? []).map((m, index) => (
-                                <label key={m.memberId}>
-                                    {m.displayName} (
-                                    {splitMode === 'PERCENTAGES' ? '%' : 'R$'})
-                                    <input
-                                        name="participationSplit"
-                                        inputMode="decimal"
-                                        value={
-                                            shares[m.memberId] ??
-                                            (splitMode === 'PERCENTAGES'
-                                                ? o.members?.length === 1
-                                                    ? '100'
-                                                    : index === 0
-                                                      ? '50'
-                                                      : '50'
-                                                : '')
-                                        }
-                                        onChange={(e) => {
-                                            change();
-                                            setShares({
-                                                ...shares,
-                                                [m.memberId]: e.target.value,
-                                            });
-                                        }}
-                                    />
+                    <fieldset disabled={busy || options.isFetching}>
+                        <legend>Receita e recebimento</legend>
+                        <label htmlFor="income-description">Descrição</label>
+                        <input
+                            id="income-description"
+                            name="description"
+                            value={description}
+                            maxLength={160}
+                            onChange={(e) => {
+                                change();
+                                setDescription(e.target.value);
+                            }}
+                        />
+                        <label htmlFor="income-amount">Valor total (R$)</label>
+                        <input
+                            id="income-amount"
+                            name="amountInCents"
+                            inputMode="decimal"
+                            value={amount}
+                            onChange={(e) => {
+                                change();
+                                setAmount(e.target.value);
+                            }}
+                        />
+                        <label htmlFor="income-expected-date">
+                            Data prevista para recebimento
+                        </label>
+                        <input
+                            id="income-expected-date"
+                            name="expectedReceiptDate"
+                            type="date"
+                            value={expectedDate || o.referenceDate}
+                            onChange={(e) => {
+                                change();
+                                setExpectedDate(e.target.value);
+                            }}
+                        />
+                        {o.spaceType === 'SHARED' && (
+                            <>
+                                <h2>Participação econômica</h2>
+                                <label htmlFor="income-split-mode">
+                                    Dividir por
                                 </label>
-                            ))}
-                            <label htmlFor="income-expected-recipient">
-                                Quem deve receber, se previsto
-                            </label>
-                            <select
-                                id="income-expected-recipient"
-                                name="expectedRecipientMemberId"
-                                value={expectedRecipient}
-                                onChange={(e) => {
-                                    change();
-                                    setExpectedRecipient(e.target.value);
-                                }}
-                            >
-                                <option value="">Ainda não definido</option>
-                                {o.members?.map((m) => (
-                                    <option key={m.memberId} value={m.memberId}>
-                                        {m.displayName}
+                                <select
+                                    id="income-split-mode"
+                                    value={splitMode}
+                                    onChange={(e) => {
+                                        change();
+                                        setSplitMode(
+                                            e.target.value as
+                                                'PERCENTAGES' | 'AMOUNTS',
+                                        );
+                                        setShares({});
+                                    }}
+                                >
+                                    <option value="PERCENTAGES">
+                                        Percentual
                                     </option>
-                                ))}
-                            </select>
-                        </>
-                    )}
-                    <fieldset>
-                        <legend>Essa receita já foi recebida?</legend>
-                        <label>
-                            <input
-                                type="radio"
-                                name="received"
-                                checked={!received}
-                                onChange={() => {
-                                    change();
-                                    setReceived(false);
-                                }}
-                            />
-                            Ainda não
-                        </label>
-                        <label>
-                            <input
-                                type="radio"
-                                name="received"
-                                checked={received}
-                                onChange={() => {
-                                    change();
-                                    setReceived(true);
-                                }}
-                            />
-                            Sim, integralmente
-                        </label>
-                    </fieldset>
-                    {received && (
-                        <>
-                            <p>
-                                Valor do recebimento integral:{' '}
-                                {formatMoney(decimalUnits(amount) ?? 0)}
-                            </p>
-                            <label htmlFor="income-fact-date">
-                                Data do recebimento efetivo
-                            </label>
-                            <input
-                                id="income-fact-date"
-                                name="factDate"
-                                type="date"
-                                max={o.referenceDate}
-                                value={factDate || o.referenceDate}
-                                onChange={(e) => {
-                                    change();
-                                    setFactDate(e.target.value);
-                                }}
-                            />
-                            {o.spaceType === 'SHARED' && (
-                                <>
-                                    <label htmlFor="income-actual-recipient">
-                                        Quem recebeu de fato
-                                    </label>
-                                    <select
-                                        id="income-actual-recipient"
-                                        name="recipientMemberId"
-                                        value={actualRecipient}
-                                        onChange={(e) => {
-                                            change();
-                                            setActualRecipient(e.target.value);
-                                        }}
-                                    >
-                                        <option value="">
-                                            Escolha uma pessoa
-                                        </option>
-                                        {o.members?.map((m) => (
-                                            <option
-                                                key={m.memberId}
-                                                value={m.memberId}
-                                            >
-                                                {m.displayName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <label htmlFor="income-settlement">
-                                        Repasse de receita
-                                    </label>
-                                    <select
-                                        id="income-settlement"
-                                        name="settlement"
-                                        value={settlementMode}
-                                        onChange={(e) => {
-                                            change();
-                                            setSettlementMode(
-                                                e.target
-                                                    .value as Settlement['mode'],
-                                            );
-                                        }}
-                                    >
-                                        <option value="NONE">
-                                            Sem acerto associado
-                                        </option>
-                                        <option value="DATE">
-                                            Criar acerto por data
-                                        </option>
-                                        {(o.openCycles?.length ?? 0) > 0 && (
-                                            <option value="CYCLE">
-                                                Usar acerto aberto
-                                            </option>
-                                        )}
-                                        {o.suggestedTargetDate && (
-                                            <option value="SUGGESTED">
-                                                Sugestão:{' '}
-                                                {o.suggestedTargetDate}
-                                            </option>
-                                        )}
-                                    </select>
-                                    {settlementMode === 'DATE' && (
-                                        <label>
-                                            Data-alvo do acerto
-                                            <input
-                                                name="targetDate"
-                                                type="date"
-                                                min={o.referenceDate}
-                                                value={targetDate}
-                                                onChange={(e) => {
-                                                    change();
-                                                    setTargetDate(
+                                    <option value="AMOUNTS">Valor</option>
+                                </select>
+                                {(o.members ?? []).map((m, index) => (
+                                    <label key={m.memberId}>
+                                        {m.displayName} (
+                                        {splitMode === 'PERCENTAGES'
+                                            ? '%'
+                                            : 'R$'}
+                                        )
+                                        <input
+                                            name="participationSplit"
+                                            inputMode="decimal"
+                                            value={
+                                                shares[m.memberId] ??
+                                                (splitMode === 'PERCENTAGES'
+                                                    ? o.members?.length === 1
+                                                        ? '100'
+                                                        : index === 0
+                                                          ? '50'
+                                                          : '50'
+                                                    : '')
+                                            }
+                                            onChange={(e) => {
+                                                change();
+                                                setShares({
+                                                    ...shares,
+                                                    [m.memberId]:
                                                         e.target.value,
-                                                    );
-                                                }}
-                                            />
+                                                });
+                                            }}
+                                        />
+                                    </label>
+                                ))}
+                                <label htmlFor="income-expected-recipient">
+                                    Quem deve receber, se previsto
+                                </label>
+                                <select
+                                    id="income-expected-recipient"
+                                    name="expectedRecipientMemberId"
+                                    value={expectedRecipient}
+                                    onChange={(e) => {
+                                        change();
+                                        setExpectedRecipient(e.target.value);
+                                    }}
+                                >
+                                    <option value="">Ainda não definido</option>
+                                    {o.members?.map((m) => (
+                                        <option
+                                            key={m.memberId}
+                                            value={m.memberId}
+                                        >
+                                            {m.displayName}
+                                        </option>
+                                    ))}
+                                </select>
+                            </>
+                        )}
+                        <fieldset>
+                            <legend>Essa receita já foi recebida?</legend>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="received"
+                                    checked={!received}
+                                    onChange={() => {
+                                        change();
+                                        setReceived(false);
+                                    }}
+                                />
+                                Ainda não
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="received"
+                                    checked={received}
+                                    onChange={() => {
+                                        change();
+                                        setReceived(true);
+                                    }}
+                                />
+                                Sim, informar valor
+                            </label>
+                        </fieldset>
+                        {received && (
+                            <>
+                                <label htmlFor="income-received-amount">
+                                    Valor recebido agora (R$)
+                                </label>
+                                <input
+                                    id="income-received-amount"
+                                    name="receipt.amountInCents"
+                                    inputMode="decimal"
+                                    value={receivedAmount ?? amount}
+                                    onChange={(e) => {
+                                        change();
+                                        setReceivedAmount(e.target.value);
+                                    }}
+                                />
+                                <label htmlFor="income-fact-date">
+                                    Data do recebimento efetivo
+                                </label>
+                                <input
+                                    id="income-fact-date"
+                                    name="factDate"
+                                    type="date"
+                                    max={o.referenceDate}
+                                    value={factDate || o.referenceDate}
+                                    onChange={(e) => {
+                                        change();
+                                        setFactDate(e.target.value);
+                                    }}
+                                />
+                                {o.spaceType === 'SHARED' && (
+                                    <>
+                                        <label htmlFor="income-actual-recipient">
+                                            Quem recebeu de fato
                                         </label>
-                                    )}
-                                    {settlementMode === 'CYCLE' && (
-                                        <label>
-                                            Acerto aberto
-                                            <select
-                                                name="cycleId"
-                                                value={cycleId}
-                                                onChange={(e) => {
-                                                    change();
-                                                    setCycleId(e.target.value);
-                                                }}
-                                            >
-                                                <option value="">
-                                                    Escolha
+                                        <select
+                                            id="income-actual-recipient"
+                                            name="recipientMemberId"
+                                            value={actualRecipient}
+                                            onChange={(e) => {
+                                                change();
+                                                setActualRecipient(
+                                                    e.target.value,
+                                                );
+                                            }}
+                                        >
+                                            <option value="">
+                                                Escolha uma pessoa
+                                            </option>
+                                            {o.members?.map((m) => (
+                                                <option
+                                                    key={m.memberId}
+                                                    value={m.memberId}
+                                                >
+                                                    {m.displayName}
                                                 </option>
-                                                {o.openCycles?.map((c) => (
-                                                    <option
-                                                        key={c.id}
-                                                        value={c.id}
-                                                    >
-                                                        {c.targetDate}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            ))}
+                                        </select>
+                                        <label htmlFor="income-settlement">
+                                            Repasse de receita
                                         </label>
-                                    )}
-                                </>
-                            )}
-                        </>
-                    )}
+                                        <select
+                                            id="income-settlement"
+                                            name="settlement"
+                                            value={settlementMode}
+                                            onChange={(e) => {
+                                                change();
+                                                setSettlementMode(
+                                                    e.target
+                                                        .value as Settlement['mode'],
+                                                );
+                                            }}
+                                        >
+                                            <option value="NONE">
+                                                Sem acerto associado
+                                            </option>
+                                            <option value="DATE">
+                                                Criar acerto por data
+                                            </option>
+                                            {(o.openCycles?.length ?? 0) >
+                                                0 && (
+                                                <option value="CYCLE">
+                                                    Usar acerto aberto
+                                                </option>
+                                            )}
+                                            {o.suggestedTargetDate && (
+                                                <option value="SUGGESTED">
+                                                    Sugestão:{' '}
+                                                    {o.suggestedTargetDate}
+                                                </option>
+                                            )}
+                                        </select>
+                                        {settlementMode === 'DATE' && (
+                                            <label>
+                                                Data-alvo do acerto
+                                                <input
+                                                    name="targetDate"
+                                                    type="date"
+                                                    min={o.referenceDate}
+                                                    value={targetDate}
+                                                    onChange={(e) => {
+                                                        change();
+                                                        setTargetDate(
+                                                            e.target.value,
+                                                        );
+                                                    }}
+                                                />
+                                            </label>
+                                        )}
+                                        {settlementMode === 'CYCLE' && (
+                                            <label>
+                                                Acerto aberto
+                                                <select
+                                                    name="cycleId"
+                                                    value={cycleId}
+                                                    onChange={(e) => {
+                                                        change();
+                                                        setCycleId(
+                                                            e.target.value,
+                                                        );
+                                                    }}
+                                                >
+                                                    <option value="">
+                                                        Escolha
+                                                    </option>
+                                                    {o.openCycles?.map((c) => (
+                                                        <option
+                                                            key={c.id}
+                                                            value={c.id}
+                                                        >
+                                                            {c.targetDate}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </label>
+                                        )}
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </fieldset>
                     {validation && <p role="alert">{validation}</p>}
                     {command.error && <p role="alert">{command.error}</p>}
                     <button type="submit" disabled={busy}>
@@ -590,8 +632,16 @@ function Composer({
                             </p>
                             <p>
                                 {review.receipt
-                                    ? `Recebida integralmente em ${review.receipt.factDate}.`
+                                    ? `Recebimento de ${formatMoney(review.receipt.amountInCents!)} em ${review.receipt.factDate}.`
                                     : 'Recebimento pendente.'}
+                            </p>
+                            <p>
+                                Falta receber:{' '}
+                                {formatMoney(
+                                    review.amountInCents -
+                                        (review.receipt?.amountInCents ?? 0),
+                                )}
+                                .
                             </p>
                             <button
                                 type="button"

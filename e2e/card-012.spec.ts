@@ -168,7 +168,7 @@ test('shared receipt shows correctly directed repass and income origin', async (
     await page
         .getByLabel('Quem deve receber, se previsto')
         .selectOption({ label: 'Pessoa A receita' });
-    await page.getByLabel('Sim, integralmente').check();
+    await page.getByLabel('Sim, informar valor').check();
     await page
         .getByLabel('Quem recebeu de fato')
         .selectOption({ label: 'Pessoa B receita' });

@@ -69,7 +69,14 @@ function CycleCard({
                     </dd>
                 </div>
                 <div>
-                    <dt>Valor resolvido</dt>
+                    <dt>Valor reconhecido</dt>
+                    <dd>
+                        {formatPositionMoney(
+                            cycle.totals.recognizedAmountInCents ??
+                                cycle.totals.originalAmountInCents,
+                        )}
+                    </dd>
+                    <dt>Valor reconhecido já acertado</dt>
                     <dd>
                         {formatPositionMoney(
                             cycle.totals.resolvedAmountInCents,
@@ -342,7 +349,11 @@ function TodayRead({
                                             >
                                                 {item.description}
                                             </Link>{' '}
-                                            — {formatMoney(item.amountInCents)}{' '}
+                                            — Falta receber:{' '}
+                                            {formatMoney(
+                                                item.remainingAmountInCents ??
+                                                    item.amountInCents,
+                                            )}{' '}
                                             previsto para{' '}
                                             <time
                                                 dateTime={

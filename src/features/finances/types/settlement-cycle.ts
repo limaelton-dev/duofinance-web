@@ -16,6 +16,7 @@ export type SettlementCycle = {
     openObligationCount: number;
     totals: {
         originalAmountInCents: string;
+        recognizedAmountInCents: string;
         resolvedAmountInCents: string;
         transferredAmountInCents: string;
         remainingAmountInCents: string;
@@ -38,10 +39,11 @@ export type SettlementCycleDetail = SettlementContext & {
     items: {
         id: string;
         version: number;
-        status: 'OPEN' | 'PARTIALLY_SETTLED' | 'SETTLED';
+        status: 'OPEN' | 'PARTIALLY_SETTLED' | 'SETTLED' | 'RECONCILED';
         debtorMemberId: string;
         creditorMemberId: string;
         originalAmountInCents: number;
+        recognizedAmountInCents: number;
         resolvedAmountInCents: number;
         remainingAmountInCents: number;
         factDate: string;

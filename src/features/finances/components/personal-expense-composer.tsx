@@ -41,6 +41,7 @@ export function PersonalExpenseComposer({
     );
     const [description, setDescription] = useState(''),
         [amount, setAmount] = useState(''),
+        [paidAmount, setPaidAmount] = useState<string | null>(null),
         [selectedDate, setDate] = useState<string | null>(null),
         [method, setMethod] = useState<DisbursementMethod>('PIX'),
         [dirty, setDirty] = useState(false),
@@ -98,7 +99,8 @@ export function PersonalExpenseComposer({
         if (result) heading.current?.focus();
     }, [result]);
     const factDate = selectedDate ?? options.data?.referenceDate ?? '',
-        total = decimalUnits(amount);
+        total = decimalUnits(amount),
+        paid = decimalUnits(paidAmount ?? amount);
     function mark() {
         setDirty(true);
         setFieldError(null);
@@ -120,6 +122,11 @@ export function PersonalExpenseComposer({
                 'amountInCents',
                 'Informe um valor positivo com até duas casas decimais.',
             );
+        if (paid === null || paid <= 0 || paid > total)
+            return reject(
+                'disbursement.amountInCents',
+                'Informe um pagamento positivo com até duas casas decimais, até o valor total da despesa.',
+            );
         if (!isPastOrCurrentCivilDate(factDate, options.data.referenceDate))
             return reject(
                 'factDate',
@@ -135,7 +142,7 @@ export function PersonalExpenseComposer({
             description: description.trim(),
             amountInCents: total,
             factDate,
-            disbursement: { method },
+            disbursement: { method, amountInCents: paid },
         });
     }
     function invalid(field: string) {
@@ -165,6 +172,7 @@ export function PersonalExpenseComposer({
                             setResult(null);
                             setDescription('');
                             setAmount('');
+                            setPaidAmount(null);
                             setDate(null);
                             setMethod('PIX');
                             setDirty(false);
@@ -253,6 +261,21 @@ export function PersonalExpenseComposer({
                                 onChange={(event) => {
                                     mark();
                                     setAmount(event.target.value);
+                                }}
+                            />
+                        </label>
+                        <label>
+                            Valor pago agora (R$)
+                            <input
+                                name="disbursement.amountInCents"
+                                inputMode="decimal"
+                                value={paidAmount ?? amount}
+                                aria-invalid={invalid(
+                                    'disbursement.amountInCents',
+                                )}
+                                onChange={(event) => {
+                                    mark();
+                                    setPaidAmount(event.target.value);
                                 }}
                             />
                         </label>
@@ -355,8 +378,8 @@ export function PersonalExpenseComposer({
                         </dd>
                         <dt>Valor desembolsado</dt>
                         <dd>
-                            {total !== null && total > 0
-                                ? formatMoney(total)
+                            {paid !== null && paid > 0
+                                ? formatMoney(paid)
                                 : 'Informe o valor'}
                         </dd>
                         <dt>Meio do desembolso</dt>

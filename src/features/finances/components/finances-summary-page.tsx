@@ -271,6 +271,13 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                                         )}
                                     </p>
                                     <p>
+                                        Valor reconhecido:{' '}
+                                        {formatMoney(
+                                            item.recognizedAmountInCents ??
+                                                item.originalAmountInCents,
+                                        )}
+                                    </p>
+                                    <p>
                                         Data do fato:{' '}
                                         <time dateTime={item.factDate}>
                                             {formatDate(item.factDate)}

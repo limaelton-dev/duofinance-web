@@ -1,3 +1,4 @@
+import { normalizeIncomeFulfillment } from './normalize-fulfillment';
 import { apiRequest } from './api-client';
 import type {
     IncomeDetail,
@@ -28,7 +29,7 @@ export const getIncomeDetail = (
 ) =>
     apiRequest<IncomeDetail>(`/spaces/${spaceId}/financial-commitments/${id}`, {
         signal,
-    });
+    }).then(normalizeIncomeFulfillment);
 export const getIncomeReceiptOptions = (
     spaceId: string,
     id: string,
@@ -51,7 +52,7 @@ export const recordIncome = (
         csrfToken,
         idempotencyKey,
         signal,
-    });
+    }).then(normalizeIncomeFulfillment);
 export const recordIncomeReceipt = (
     spaceId: string,
     id: string,
@@ -63,4 +64,4 @@ export const recordIncomeReceipt = (
     apiRequest<IncomeResult>(
         `/spaces/${spaceId}/financial-commitments/${id}/receipts`,
         { method: 'POST', body, csrfToken, idempotencyKey, signal },
-    );
+    ).then(normalizeIncomeFulfillment);

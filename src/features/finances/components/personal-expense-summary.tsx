@@ -15,6 +15,7 @@ export function PersonalExpenseSummary({
 }: {
     value: PersonalExpenseDetail;
 }) {
+    const first = value.disbursements[0];
     return (
         <div className={styles.summary}>
             <h2>{value.commitment.description}</h2>
@@ -22,19 +23,27 @@ export function PersonalExpenseSummary({
                 <dt>Valor da despesa</dt>
                 <dd>{formatMoney(value.commitment.amountInCents)}</dd>
                 <dt>Valor desembolsado</dt>
-                <dd>{formatMoney(value.disbursement.amountInCents)}</dd>
-                <dt>Meio do desembolso</dt>
-                <dd>{disbursementMethodLabels[value.disbursement.method]}</dd>
+                <dd>{formatMoney(value.paidAmountInCents)}</dd>
+                <dt>Falta pagar</dt>
+                <dd>{formatMoney(value.remainingAmountInCents)}</dd>
+                <dt>Condição</dt>
+                <dd>
+                    {value.status === 'PARTIALLY_PAID'
+                        ? 'Parcialmente paga'
+                        : 'Paga integralmente'}
+                </dd>
+                <dt>Meio do primeiro pagamento</dt>
+                <dd>{disbursementMethodLabels[first.method]}</dd>
                 <dt>Data do fato</dt>
                 <dd>
                     <time dateTime={value.commitment.factDate}>
                         {formatDate(value.commitment.factDate)}
                     </time>
                 </dd>
-                <dt>Data do desembolso</dt>
+                <dt>Data do primeiro pagamento</dt>
                 <dd>
-                    <time dateTime={value.disbursement.factDate}>
-                        {formatDate(value.disbursement.factDate)}
+                    <time dateTime={first.factDate}>
+                        {formatDate(first.factDate)}
                     </time>
                 </dd>
             </dl>

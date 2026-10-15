@@ -25,6 +25,7 @@ export type TransferObligation = {
     debtorMemberId: string;
     creditorMemberId: string;
     originalAmountInCents: number;
+    recognizedAmountInCents: number;
     remainingAmountInCents: number;
     factDate: string;
     registeredAt: string;

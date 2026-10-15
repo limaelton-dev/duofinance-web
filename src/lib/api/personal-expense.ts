@@ -1,3 +1,4 @@
+import { normalizeExpenseFulfillment } from './normalize-fulfillment';
 import { apiRequest } from './api-client';
 import type {
     PersonalExpenseDetail,
@@ -32,7 +33,7 @@ export const getPersonalExpenseDetail = (
     apiRequest<PersonalExpenseDetail>(
         `/spaces/${spaceId}/financial-commitments/${id}`,
         { signal },
-    );
+    ).then(normalizeExpenseFulfillment);
 export const recordPersonalExpense = (
     spaceId: string,
     body: PersonalExpenseInput,
@@ -46,4 +47,4 @@ export const recordPersonalExpense = (
         csrfToken,
         idempotencyKey,
         signal,
-    });
+    }).then(normalizeExpenseFulfillment);
