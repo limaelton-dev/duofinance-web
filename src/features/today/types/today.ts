@@ -17,7 +17,16 @@ export type Today = {
         | {
               status: 'AVAILABLE';
               data: {
-                  upcomingCommitments: { items: []; totalCount: 0 };
+                  upcomingCommitments: {
+                      items: {
+                          commitmentId: string;
+                          kind: 'INCOME';
+                          description: string;
+                          expectedReceiptDate: string;
+                          amountInCents: number;
+                      }[];
+                      totalCount: number;
+                  };
                   settlements: TodaySettlements | null;
               };
           }

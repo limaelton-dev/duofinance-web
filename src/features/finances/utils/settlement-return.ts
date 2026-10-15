@@ -1,3 +1,15 @@
+import type { ObligationOrigin } from '../types/inter-member-position';
+
+export function financialOriginPath(
+    spaceId: string,
+    origin: ObligationOrigin,
+    cycleId?: string | null,
+) {
+    const category = origin.kind === 'INCOME' ? 'incomes' : 'expenses';
+    const returnPath = cycleId ? settlementReturnPath(spaceId, cycleId) : null;
+    return `/spaces/${spaceId}/${category}/${origin.commitmentId}${returnPath ? `?returnCycle=${cycleId}` : ''}`;
+}
+
 export function settlementReturnPath(
     spaceId: string,
     cycleId: unknown,

@@ -18,6 +18,7 @@ import type {
     SettlementTransfer,
 } from '../types/settlement-transfer';
 import { formatDate, formatMoney } from '../utils/expense-money';
+import { financialOriginPath } from '../utils/settlement-return';
 import styles from './finances-summary.module.css';
 
 const uuid =
@@ -327,9 +328,17 @@ function History({
                                     <p>Sem acerto associado</p>
                                 )}
                                 <Link
-                                    href={`/spaces/${spaceId}/expenses/${allocation.origin.commitmentId}${allocation.cycleId ? `?returnCycle=${allocation.cycleId}` : ''}`}
+                                    href={financialOriginPath(
+                                        spaceId,
+                                        allocation.origin,
+                                        allocation.cycleId,
+                                    )}
                                 >
-                                    Ver despesa de origem
+                                    Ver{' '}
+                                    {allocation.origin.kind === 'INCOME'
+                                        ? 'receita'
+                                        : 'despesa'}{' '}
+                                    de origem
                                 </Link>
                             </li>
                         ))}
