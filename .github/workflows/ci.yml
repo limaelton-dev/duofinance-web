@@ -123,7 +123,7 @@ jobs:
                 suite: ${{ fromJSON(needs.select_e2e.outputs.suites) }}
 
         env:
-            API_SHA: ${{ inputs.api_sha || 'ab070e357b7d814d7e54ce31e82ddbbae1b7911d' }}
+            API_SHA: ${{ inputs.api_sha || 'f902442af47d709165ddb3b4d9e09209627640cc' }}
 
         defaults:
             run:
