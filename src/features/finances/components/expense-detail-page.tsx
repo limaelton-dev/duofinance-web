@@ -160,28 +160,6 @@ function Detail({
                             onAccessLost={accessLost}
                         />
                     )}
-                    {query.data.obligation && (
-                        <>
-                            <p>
-                                Pendência: {query.data.obligation.id} ·{' '}
-                                {
-                                    {
-                                        OPEN: 'Aberta',
-                                        PARTIALLY_SETTLED:
-                                            'Parcialmente acertada',
-                                        SETTLED: 'Acertada',
-                                        RECONCILED:
-                                            'Encerrada por reconciliação',
-                                    }[query.data.obligation.status]
-                                }
-                            </p>
-                            <Link
-                                href={`/spaces/${spaceId}/finances/settlements/transfers?obligationId=${query.data.obligation.id}`}
-                            >
-                                Ver transferências desta pendência
-                            </Link>
-                        </>
-                    )}
                 </>
             )}
             <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>

@@ -43,6 +43,7 @@ export function ObligationHistory({
                             {formatMoney(item.remainingAmountInCents)}.
                         </p>
                         <p>
+                            Pendência: {item.id} ·{' '}
                             {
                                 {
                                     OPEN: 'Aberta',

@@ -59,7 +59,7 @@ export function ExpenseSummary({
                     ]
                 }
             </p>
-            {value.obligation ? (
+            {value.obligation && value.obligation.remainingAmountInCents > 0 ? (
                 <p>
                     Falta acertar: {label(value.obligation.debtorMemberId)} deve{' '}
                     {formatMoney(value.obligation.remainingAmountInCents)} a{' '}

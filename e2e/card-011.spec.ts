@@ -483,7 +483,7 @@ test('A10/A20: lost response after real commit keeps the immutable key/input, gu
     await page.route(expenseUrl(), async (route) => {
         if (route.request().method() !== 'POST') return route.continue();
         const response = await route.fetch();
-        expect(response.status()).toBe(201);
+        expect(response.status()).toBe(attempts.length === 0 ? 201 : 200);
         attempts.push({
             key: route.request().headers()['idempotency-key'],
             body: route.request().postData()!,

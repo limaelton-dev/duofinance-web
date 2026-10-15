@@ -378,34 +378,35 @@ function Detail({
                             )}
                         </>
                     )}
-                    {value.obligation && (
-                        <>
-                            <h3>Repasse de receita</h3>
-                            <p>
-                                {value.members?.find(
-                                    (m) =>
-                                        m.memberId ===
-                                        value.obligation?.debtorMemberId,
-                                )?.displayName ?? 'Quem recebeu'}{' '}
-                                deve repassar{' '}
-                                {formatMoney(
-                                    value.obligation.remainingAmountInCents,
-                                )}{' '}
-                                a{' '}
-                                {value.members?.find(
-                                    (m) =>
-                                        m.memberId ===
-                                        value.obligation?.creditorMemberId,
-                                )?.displayName ?? 'outro membro'}
-                                .
-                            </p>
-                            <Link
-                                href={`/spaces/${spaceId}/finances/settlements/transfers/new`}
-                            >
-                                Registrar transferência
-                            </Link>
-                        </>
-                    )}
+                    {value.obligation &&
+                        value.obligation.remainingAmountInCents > 0 && (
+                            <>
+                                <h3>Repasse de receita</h3>
+                                <p>
+                                    {value.members?.find(
+                                        (m) =>
+                                            m.memberId ===
+                                            value.obligation?.debtorMemberId,
+                                    )?.displayName ?? 'Quem recebeu'}{' '}
+                                    deve repassar{' '}
+                                    {formatMoney(
+                                        value.obligation.remainingAmountInCents,
+                                    )}{' '}
+                                    a{' '}
+                                    {value.members?.find(
+                                        (m) =>
+                                            m.memberId ===
+                                            value.obligation?.creditorMemberId,
+                                    )?.displayName ?? 'outro membro'}
+                                    .
+                                </p>
+                                <Link
+                                    href={`/spaces/${spaceId}/finances/settlements/transfers/new`}
+                                >
+                                    Registrar transferência
+                                </Link>
+                            </>
+                        )}
                     {result?.replayed && (
                         <p>A tentativa original foi recuperada.</p>
                     )}

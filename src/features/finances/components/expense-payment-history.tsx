@@ -31,7 +31,10 @@ export function ExpensePaymentHistory({
                             </time>
                         </p>
                         <p>
-                            Quem pagou:{' '}
+                            {'payerMemberId' in fact
+                                ? 'Quem pagou'
+                                : 'Titular do pagamento'}
+                            :{' '}
                             {'payerMemberId' in fact
                                 ? (members.find(
                                       (m) => m.memberId === fact.payerMemberId,

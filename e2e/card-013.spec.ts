@@ -6,6 +6,7 @@ import {
     type BrowserContext,
     type Page,
 } from '@playwright/test';
+import type { TransferOptions } from '../src/features/finances/types/settlement-transfer';
 
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 const setupUrl = 'http://127.0.0.1:3101/v2';
@@ -296,6 +297,7 @@ test('shared expense keeps original responsibilities with different effective pa
     page,
     context,
 }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await open(page, context, a, `/spaces/${sharedId}/expenses/new`);
     await page
         .getByLabel('Descrição', { exact: true })
@@ -335,11 +337,17 @@ test('shared expense keeps original responsibilities with different effective pa
     await expect(
         page.getByText('Pessoa B parcial: R$ 200,00', { exact: true }),
     ).toBeVisible();
+    expect(
+        await page.evaluate(
+            () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+    ).toBe(true);
 });
 
 test('shared receipts reverse repass while preserving reconciliation history', async ({
     page,
     context,
+    playwright,
 }) => {
     await open(page, context, a, `/spaces/${sharedId}/incomes/new`);
     await page.getByLabel('Descrição').fill('Receita com inversão');
@@ -377,6 +385,52 @@ test('shared receipts reverse repass while preserving reconciliation history', a
     ).toBeVisible();
     await page.reload();
     await expect(history.getByRole('listitem')).toHaveCount(2);
+    const commitmentId = page.url().split('/').at(-1);
+    const api = await playwright.request.newContext({ storageState: a.state });
+    try {
+        const response = await api.get(
+            `${setupUrl}/spaces/${sharedId}/settlement-transfers/options?direction=RECEIVABLE`,
+        );
+        expect(response.status()).toBe(200);
+        const options: TransferOptions = await response.json();
+        const obligation = options.items.find(
+            (item) => item.origin.commitmentId === commitmentId,
+        );
+        if (!obligation)
+            throw new Error(
+                'O repasse da receita deve estar disponível para acerto.',
+            );
+        const transfer = await post(
+            api,
+            `/spaces/${sharedId}/settlement-transfers`,
+            {
+                expectedSpaceVersion: options.spaceVersion,
+                payerMemberId: obligation.debtorMemberId,
+                recipientMemberId: obligation.creditorMemberId,
+                amountInCents: obligation.remainingAmountInCents,
+                factDate: options.referenceDate,
+                allocations: [
+                    {
+                        obligationId: obligation.id,
+                        expectedObligationVersion: obligation.version,
+                        amountInCents: obligation.remainingAmountInCents,
+                    },
+                ],
+            },
+        );
+        expect(transfer.status()).toBe(201);
+    } finally {
+        await api.dispose();
+    }
+    await page.reload();
+    await expect(history.getByText(/Pendência: .*Acertada/)).toBeVisible();
+    await expect(page.getByText(/deve repassar/)).toHaveCount(0);
+    await expect(
+        page.getByRole('link', {
+            name: 'Registrar transferência',
+            exact: true,
+        }),
+    ).toHaveCount(0);
 });
 
 test('partial payment rejects zero, excess, fractions and future date before sending', async ({

@@ -322,6 +322,7 @@ test('A01/A02/A22: real expenses preserve cycle totals, origin and authorized re
     await expect(list(page).getByRole('listitem')).toHaveCount(1);
     await expect(totals(page)).toHaveText([
         'R$ 430,00',
+        'R$ 430,00',
         'R$ 0,00',
         'R$ 0,00',
         'R$ 430,00',
@@ -335,6 +336,7 @@ test('A01/A02/A22: real expenses preserve cycle totals, origin and authorized re
     await expect(page).toHaveURL(`${path()}/${cycleId}`);
     await expect(detailList(page).getByRole('listitem')).toHaveCount(2);
     await expect(totals(page)).toHaveText([
+        'R$ 430,00',
         'R$ 430,00',
         'R$ 0,00',
         'R$ 0,00',
@@ -362,6 +364,7 @@ test('A01/A02/A22: real expenses preserve cycle totals, origin and authorized re
     await expect(detailList(page).getByRole('listitem')).toHaveCount(1);
     await expect(totals(page)).toHaveText([
         'R$ 430,00',
+        'R$ 430,00',
         'R$ 0,00',
         'R$ 0,00',
         'R$ 430,00',
@@ -373,6 +376,7 @@ test('A01/A02/A22: real expenses preserve cycle totals, origin and authorized re
     await context.addCookies(b.state.cookies);
     await page.goto(`${path()}/${cycleId}`);
     await expect(totals(page)).toHaveText([
+        'R$ 430,00',
         'R$ 430,00',
         'R$ 0,00',
         'R$ 0,00',
@@ -397,6 +401,7 @@ test('A03: explicit financial fixture preserves balanced obligations in an overd
         'Os valores se equilibram, mas ainda existem pendências abertas.',
     );
     await expect(totals(page)).toHaveText([
+        'R$ 160,00',
         'R$ 160,00',
         'R$ 0,00',
         'R$ 0,00',
@@ -428,6 +433,7 @@ test('A04/A05: partial and zero reduction fixtures preserve original amounts and
     await list(page).getByRole('link').click();
     await expect(totals(page)).toHaveText([
         'R$ 500,00',
+        'R$ 500,00',
         'R$ 250,00',
         'R$ 0,00',
         'R$ 250,00',
@@ -448,6 +454,7 @@ test('A04/A05: partial and zero reduction fixtures preserve original amounts and
         })
         .click();
     await expect(totals(page)).toHaveText([
+        'R$ 500,00',
         'R$ 500,00',
         'R$ 500,00',
         'R$ 0,00',
@@ -626,6 +633,7 @@ test('A09: 21 real origins preserve timestamp ties, replacement pages and full t
     ).toEqual(ids.sort());
     await expect(totals(page)).toHaveText([
         'R$ 21,00',
+        'R$ 21,00',
         'R$ 0,00',
         'R$ 0,00',
         'R$ 21,00',
@@ -643,6 +651,7 @@ test('A09: 21 real origins preserve timestamp ties, replacement pages and full t
         ),
     ).toBeVisible();
     await expect(totals(page)).toHaveText([
+        'R$ 21,00',
         'R$ 21,00',
         'R$ 0,00',
         'R$ 0,00',
@@ -674,6 +683,7 @@ test('A10: HTTP fake totals above the safe integer retain exact cents', async ({
     await context.addCookies(a.state.cookies);
     await page.goto(`${path()}/${value.cycle.id}`);
     await expect(totals(page)).toHaveText([
+        'R$ 180.143.985.094.819,83',
         'R$ 180.143.985.094.819,83',
         'R$ 90.071.992.547.409,92',
         'R$ 0,00',
@@ -1031,7 +1041,7 @@ for (const status of [200, 401])
                 await page
                     .getByLabel('Mostrar composição', { exact: true })
                     .selectOption('PAYABLE');
-                await expect(totals(page)).toHaveCount(7);
+                await expect(totals(page)).toHaveCount(8);
                 await page
                     .getByLabel('Mostrar composição', { exact: true })
                     .selectOption('ALL');
@@ -1060,7 +1070,7 @@ for (const status of [200, 401])
                 })
                 .click();
             await expect(totals(page)).toHaveCount(
-                change === 'cycle' || change === 'direction' ? 7 : 14,
+                change === 'cycle' || change === 'direction' ? 8 : 16,
             );
             await expect(page.getByText(/999,00/)).toHaveCount(0);
             await expect(trigger(page)).toHaveValue(shared);
@@ -1197,6 +1207,7 @@ for (const status of [200, 401])
         release.resolve();
         await (await late).finished();
         await expect(totals(page)).toHaveText([
+            'R$ 430,00',
             'R$ 430,00',
             'R$ 0,00',
             'R$ 0,00',
