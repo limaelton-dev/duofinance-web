@@ -12,6 +12,7 @@ import { ExpenseSummary } from './expense-summary';
 import { formatDate } from '../utils/expense-money';
 import { settlementReturnPath } from '../utils/settlement-return';
 import { PersonalExpenseDetailPage } from './personal-expense-detail-page';
+import { ExternalLiabilityForm } from './external-liability-form';
 import { ExpenseDisbursementForm } from './expense-disbursement-form';
 import { ExpensePaymentHistory } from './expense-payment-history';
 import { ObligationHistory } from './obligation-history';
@@ -123,8 +124,10 @@ function Detail({
                         personId={personId}
                     />
                     <p>
-                        Data do pagamento:{' '}
-                        {formatDate(query.data.commitment.factDate)}
+                        {query.data.externalLiabilities?.length
+                            ? 'Data do fato'
+                            : 'Data do pagamento'}
+                        : {formatDate(query.data.commitment.factDate)}
                     </p>
                     <p>
                         Registrada em:{' '}
@@ -141,7 +144,9 @@ function Detail({
                             : 'Sem regra padrão'}
                     </p>
                     <p>Registro: {query.data.commitment.id}</p>
-                    <p>Desembolso: {query.data.disbursements[0].id}</p>
+                    {query.data.disbursements[0] && (
+                        <p>Desembolso: {query.data.disbursements[0].id}</p>
+                    )}
                     <ExpensePaymentHistory
                         value={query.data}
                         personId={personId}
@@ -152,6 +157,14 @@ function Detail({
                         obligations={query.data.obligations}
                         members={query.data.members}
                     />
+                    {query.data.remainingAmountInCents > 0 && (
+                        <ExternalLiabilityForm
+                            personId={personId}
+                            spaceId={spaceId}
+                            commitmentId={commitmentId}
+                            onAccessLost={accessLost}
+                        />
+                    )}
                     {query.data.remainingAmountInCents > 0 && (
                         <ExpenseDisbursementForm
                             personId={personId}

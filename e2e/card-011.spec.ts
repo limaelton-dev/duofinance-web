@@ -215,10 +215,10 @@ test('A01/A13/A15/A16/A17: real personal journey from Today to confirmation, his
     const result = (await http.json()) as PersonalExpenseResult;
     expect(result.spaceType).toBe('PERSONAL');
     expect(result.commitment.amountInCents).toBe(12000);
-    expect(result.disbursement.amountInCents).toBe(12000);
-    expect(result.commitment.id).not.toBe(result.disbursement.id);
+    expect(result.disbursement!.amountInCents).toBe(12000);
+    expect(result.commitment.id).not.toBe(result.disbursement!.id);
     expect(result.commitment.ownerPersonId).toBe(a.id);
-    expect(result.disbursement.payerPersonId).toBe(a.id);
+    expect(result.disbursement!.payerPersonId).toBe(a.id);
     await recorded(page);
     await expect(
         page.getByRole('heading', { name: 'Despesa registrada' }),
@@ -236,7 +236,7 @@ test('A01/A13/A15/A16/A17: real personal journey from Today to confirmation, his
     await noSharedConcepts(page);
     await page.reload();
     await expect(
-        page.getByText(`Desembolso: ${result.disbursement.id}`, {
+        page.getByText(`Desembolso: ${result.disbursement!.id}`, {
             exact: true,
         }),
     ).toBeVisible();
@@ -273,15 +273,15 @@ for (const [method, amount] of [
         await open(page, context, a, composer());
         await fill(page, `Despesa ${method}`, amount);
         await page.getByLabel('Data do pagamento').fill('2024-02-29');
-        await page.getByLabel('Meio do desembolso').selectOption(method);
+        await page.getByLabel('Forma de pagamento').selectOption(method);
         expect(
             await page
-                .getByLabel('Meio do desembolso')
+                .getByLabel('Forma de pagamento')
                 .locator('option')
                 .evaluateAll((nodes) =>
                     nodes.map((node) => (node as HTMLOptionElement).value),
                 ),
-        ).toEqual(['PIX', 'DEBIT', 'CASH']);
+        ).toEqual(['CREDIT_CARD', 'PIX', 'DEBIT', 'CASH']);
         await save(page);
         await recorded(page);
         await expect(page.getByRole('definition')).toContainText([
@@ -400,7 +400,7 @@ test('A07/A08: a shared partner cannot list or open personal data and surfaces s
         ).toBeVisible();
         await switcher(page).selectOption(b.personalId);
         await expect(page).toHaveURL(composer(b));
-        await expect(page.getByLabel('Meio do desembolso')).toBeVisible();
+        await expect(page.getByLabel('Forma de pagamento')).toBeVisible();
         await noSharedConcepts(page);
     } finally {
         await owner.dispose();
@@ -516,8 +516,8 @@ test('A10/A20: lost response after real commit keeps the immutable key/input, gu
     expect(attempts[1].result.commitment.id).toBe(
         attempts[0].result.commitment.id,
     );
-    expect(attempts[1].result.disbursement.id).toBe(
-        attempts[0].result.disbursement.id,
+    expect(attempts[1].result.disbursement!.id).toBe(
+        attempts[0].result.disbursement!.id,
     );
     await page.getByRole('link', { name: 'Ver histórico de despesas' }).click();
     await expect(

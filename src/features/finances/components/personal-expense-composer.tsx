@@ -10,10 +10,7 @@ import { personalExpenseQueryKeys } from '../cache/personal-expense-query-keys';
 import { useExpenseQuery } from '../hooks/use-expense-query';
 import { usePersonalExpenseCommand } from '../hooks/use-personal-expense-command';
 import { useExpenseLeaveGuard } from '../hooks/use-expense-leave-guard';
-import type {
-    DisbursementMethod,
-    PersonalExpenseResult,
-} from '../types/personal-expense';
+import type { PersonalExpenseResult } from '../types/personal-expense';
 import { decimalUnits, formatMoney } from '../utils/expense-money';
 import { isPastOrCurrentCivilDate } from '../utils/personal-expense-date';
 import {
@@ -32,18 +29,24 @@ export function PersonalExpenseComposer({
     const space = useSpaceContext(),
         context = useSpaceContextInstance(),
         router = useRouter();
+    const [method, setMethod] = useState<
+        'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
+    >('PIX');
+    const creditCard = method === 'CREDIT_CARD';
+    const supportAmountField = creditCard
+        ? 'externalLiability.amountInCents'
+        : 'disbursement.amountInCents';
     const options = useExpenseQuery(
         personId,
         spaceId,
-        personalExpenseQueryKeys.options(personId, spaceId),
+        [...personalExpenseQueryKeys.options(personId, spaceId), creditCard],
         true,
-        (signal) => getPersonalExpenseOptions(spaceId, signal),
+        (signal) => getPersonalExpenseOptions(spaceId, signal, creditCard),
     );
     const [description, setDescription] = useState(''),
         [amount, setAmount] = useState(''),
         [paidAmount, setPaidAmount] = useState<string | null>(null),
         [selectedDate, setDate] = useState<string | null>(null),
-        [method, setMethod] = useState<DisbursementMethod>('PIX'),
         [dirty, setDirty] = useState(false),
         [fieldError, setFieldError] = useState<{
             field: string;
@@ -124,15 +127,24 @@ export function PersonalExpenseComposer({
             );
         if (paid === null || paid <= 0 || paid > total)
             return reject(
-                'disbursement.amountInCents',
-                'Informe um pagamento positivo com até duas casas decimais, até o valor total da despesa.',
+                supportAmountField,
+                creditCard
+                    ? 'Informe um valor assumido positivo com até duas casas decimais, até o valor total da despesa.'
+                    : 'Informe um pagamento positivo com até duas casas decimais, até o valor total da despesa.',
             );
         if (!isPastOrCurrentCivilDate(factDate, options.data.referenceDate))
             return reject(
                 'factDate',
-                'Informe uma data válida do pagamento já ocorrido, até hoje.',
+                creditCard
+                    ? 'Informe uma data válida da compra já ocorrida, até hoje.'
+                    : 'Informe uma data válida do pagamento já ocorrido, até hoje.',
             );
-        if (!options.data.disbursementMethods.includes(method))
+        if (
+            !creditCard &&
+            !options.data.disbursementMethods?.includes(
+                method as 'PIX' | 'DEBIT' | 'CASH',
+            )
+        )
             return reject(
                 'disbursement.method',
                 'Escolha um meio de desembolso disponível.',
@@ -142,7 +154,14 @@ export function PersonalExpenseComposer({
             description: description.trim(),
             amountInCents: total,
             factDate,
-            disbursement: { method, amountInCents: paid },
+            ...(creditCard
+                ? { externalLiability: { amountInCents: paid } }
+                : {
+                      disbursement: {
+                          method: method as 'PIX' | 'DEBIT' | 'CASH',
+                          amountInCents: paid,
+                      },
+                  }),
         });
     }
     function invalid(field: string) {
@@ -227,7 +246,11 @@ export function PersonalExpenseComposer({
                             options.isFetching
                         }
                     >
-                        <legend>Despesa já paga</legend>
+                        <legend>
+                            {creditCard
+                                ? 'Despesa realizada no cartão'
+                                : 'Despesa já paga'}
+                        </legend>
                         <label>
                             Descrição
                             <input
@@ -265,14 +288,14 @@ export function PersonalExpenseComposer({
                             />
                         </label>
                         <label>
-                            Valor pago agora (R$)
+                            {creditCard
+                                ? 'Valor assumido no cartão (R$)'
+                                : 'Valor pago agora (R$)'}
                             <input
-                                name="disbursement.amountInCents"
+                                name={supportAmountField}
                                 inputMode="decimal"
                                 value={paidAmount ?? amount}
-                                aria-invalid={invalid(
-                                    'disbursement.amountInCents',
-                                )}
+                                aria-invalid={invalid(supportAmountField)}
                                 onChange={(event) => {
                                     mark();
                                     setPaidAmount(event.target.value);
@@ -280,7 +303,9 @@ export function PersonalExpenseComposer({
                             />
                         </label>
                         <label>
-                            Data do pagamento
+                            {creditCard
+                                ? 'Data da compra'
+                                : 'Data do pagamento'}
                             <input
                                 name="factDate"
                                 type="date"
@@ -299,9 +324,10 @@ export function PersonalExpenseComposer({
                             />
                         </label>
                         <label>
-                            Meio do desembolso
+                            Forma de pagamento
                             <select
                                 name="disbursement.method"
+                                aria-label="Forma de pagamento"
                                 value={method}
                                 aria-invalid={invalid('disbursement.method')}
                                 aria-describedby={
@@ -312,18 +338,21 @@ export function PersonalExpenseComposer({
                                 onChange={(event) => {
                                     mark();
                                     setMethod(
-                                        event.target
-                                            .value as DisbursementMethod,
+                                        event.target.value as typeof method,
                                     );
                                 }}
                             >
-                                {(options.data?.disbursementMethods ?? []).map(
-                                    (value) => (
-                                        <option key={value} value={value}>
-                                            {disbursementMethodLabels[value]}
-                                        </option>
-                                    ),
-                                )}
+                                <option value="CREDIT_CARD">
+                                    Cartão de crédito
+                                </option>
+                                {(
+                                    options.data?.disbursementMethods ??
+                                    (['PIX', 'DEBIT', 'CASH'] as const)
+                                ).map((value) => (
+                                    <option key={value} value={value}>
+                                        {disbursementMethodLabels[value]}
+                                    </option>
+                                ))}
                             </select>
                         </label>
                     </fieldset>
@@ -376,18 +405,39 @@ export function PersonalExpenseComposer({
                                 ? formatMoney(total)
                                 : 'Informe o valor'}
                         </dd>
-                        <dt>Valor desembolsado</dt>
+                        <dt>
+                            {creditCard
+                                ? 'No seu cartão'
+                                : 'Valor desembolsado'}
+                        </dt>
                         <dd>
                             {paid !== null && paid > 0
                                 ? formatMoney(paid)
                                 : 'Informe o valor'}
                         </dd>
-                        <dt>Meio do desembolso</dt>
-                        <dd>{disbursementMethodLabels[method]}</dd>
+                        <dt>Forma de pagamento</dt>
+                        <dd>
+                            {creditCard
+                                ? 'Cartão de crédito'
+                                : disbursementMethodLabels[
+                                      method as 'PIX' | 'DEBIT' | 'CASH'
+                                  ]}
+                        </dd>
                     </dl>
+                    {creditCard &&
+                        total !== null &&
+                        paid !== null &&
+                        paid > 0 &&
+                        paid <= total && (
+                            <p>
+                                Restante a realizar: {formatMoney(total - paid)}
+                                .
+                            </p>
+                        )}
                     <p>
-                        O desembolso integral será registrado junto com esta
-                        despesa.
+                        {creditCard
+                            ? `Cartão do próprio titular. Saiu da conta agora: ${formatMoney(0)}. A obrigação externa permanece aberta.`
+                            : 'O valor pago agora será registrado junto com esta despesa.'}
                     </p>
                 </aside>
             </div>

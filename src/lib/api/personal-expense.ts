@@ -11,9 +11,10 @@ import type {
 export const getPersonalExpenseOptions = (
     spaceId: string,
     signal?: AbortSignal,
+    creditCard = false,
 ) =>
     apiRequest<PersonalExpenseOptions>(
-        `/spaces/${spaceId}/personal-expense-options`,
+        `/spaces/${spaceId}/${creditCard ? 'credit-card-purchase-options' : 'personal-expense-options'}`,
         { signal },
     );
 export const getPersonalExpenseHistory = (
@@ -41,10 +42,13 @@ export const recordPersonalExpense = (
     idempotencyKey: string,
     signal?: AbortSignal,
 ) =>
-    apiRequest<PersonalExpenseResult>(`/spaces/${spaceId}/personal-expenses`, {
-        method: 'POST',
-        body,
-        csrfToken,
-        idempotencyKey,
-        signal,
-    }).then(normalizeExpenseFulfillment);
+    apiRequest<PersonalExpenseResult>(
+        `/spaces/${spaceId}/${body.externalLiability ? 'credit-card-purchases' : 'personal-expenses'}`,
+        {
+            method: 'POST',
+            body,
+            csrfToken,
+            idempotencyKey,
+            signal,
+        },
+    ).then(normalizeExpenseFulfillment);

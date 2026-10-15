@@ -9,6 +9,7 @@ import { useExpenseQuery } from '../hooks/use-expense-query';
 import { personalExpenseQueryKeys } from '../cache/personal-expense-query-keys';
 import { PersonalExpenseSummary } from './personal-expense-summary';
 import styles from './expenses.module.css';
+import { ExternalLiabilityForm } from './external-liability-form';
 import { ExpenseDisbursementForm } from './expense-disbursement-form';
 import { ExpensePaymentHistory } from './expense-payment-history';
 
@@ -89,6 +90,14 @@ export function PersonalExpenseDetailPage({
                     <PersonalExpenseSummary value={value} />
                     <ExpensePaymentHistory value={value} personId={personId} />
                     {value.remainingAmountInCents > 0 && (
+                        <ExternalLiabilityForm
+                            personId={personId}
+                            spaceId={spaceId}
+                            commitmentId={commitmentId}
+                            onAccessLost={accessLost}
+                        />
+                    )}
+                    {value.remainingAmountInCents > 0 && (
                         <ExpenseDisbursementForm
                             personId={personId}
                             spaceId={spaceId}
@@ -107,7 +116,9 @@ export function PersonalExpenseDetailPage({
                         </time>
                     </p>
                     <p>Registro: {value.commitment.id}</p>
-                    <p>Desembolso: {value.disbursements[0].id}</p>
+                    {value.disbursements[0] && (
+                        <p>Desembolso: {value.disbursements[0].id}</p>
+                    )}
                 </>
             )}
             <Link href={`/spaces/${spaceId}/finances`}>Voltar às Finanças</Link>

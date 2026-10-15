@@ -69,14 +69,28 @@ function Composer({
         context = useSpaceContextInstance(),
         router = useRouter(),
         shared = space.currentSpace?.type === 'SHARED';
+    const [method, setMethod] = useState<
+        'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
+    >('DEBIT');
+    const creditCard = method === 'CREDIT_CARD';
+    const supportAmountField = creditCard
+        ? 'externalLiability.amountInCents'
+        : 'disbursement.amountInCents';
     const [cursor, setCursor] = useState<string | null>(null),
         [pages, setPages] = useState<ExpenseOptions['openCycles']>([]);
     const options = useExpenseQuery(
         personId,
         spaceId,
-        ['finances', personId, spaceId, 'shared-cash-expense-options', cursor],
+        [
+            'finances',
+            personId,
+            spaceId,
+            'shared-cash-expense-options',
+            creditCard,
+            cursor,
+        ],
         shared,
-        (signal) => getExpenseOptions(spaceId, cursor, signal),
+        (signal) => getExpenseOptions(spaceId, cursor, signal, creditCard),
     );
     const fallback = useExpenseQuery(
         personId,
@@ -99,7 +113,6 @@ function Composer({
         [planned, setPlanned] = useState(''),
         [planningOpen, setPlanningOpen] = useState(false),
         [payer, setPayer] = useState(''),
-        [method, setMethod] = useState<'PIX' | 'DEBIT' | 'CASH'>('DEBIT'),
         [settlementMode, setSettlementMode] = useState<
             Settlement['mode'] | null
         >(null),
@@ -200,7 +213,8 @@ function Composer({
             input?.focus();
         }
     }, [command.fields]);
-    const actualPayer = payer || financial?.actorMemberId || '',
+    const actualPayer =
+            payer || (creditCard ? '' : financial?.actorMemberId) || '',
         expected = planned || null;
     const total = decimalUnits(amount),
         paid = decimalUnits(paidAmount ?? amount);
@@ -293,8 +307,10 @@ function Composer({
         }
         if (paid === null || paid <= 0 || paid > total) {
             focus(
-                'disbursement.amountInCents',
-                'Informe um pagamento positivo com até duas casas decimais, até o valor total da despesa.',
+                supportAmountField,
+                creditCard
+                    ? 'Informe um valor assumido positivo com até duas casas decimais, até o valor total da despesa.'
+                    : 'Informe um pagamento positivo com até duas casas decimais, até o valor total da despesa.',
             );
             return;
         }
@@ -304,7 +320,9 @@ function Composer({
         ) {
             focus(
                 'factDate',
-                'Informe a data do pagamento já ocorrido, até hoje.',
+                creditCard
+                    ? 'Informe a data da compra já ocorrida, até hoje.'
+                    : 'Informe a data do pagamento já ocorrido, até hoje.',
             );
             return;
         }
@@ -312,6 +330,13 @@ function Composer({
             focus(
                 'responsibilitySplit.shares',
                 splitError ?? 'Confira a divisão.',
+            );
+            return;
+        }
+        if (creditCard && !members.some((m) => m.memberId === actualPayer)) {
+            focus(
+                'externalLiability.holderMemberId',
+                'Informe de quem é o cartão.',
             );
             return;
         }
@@ -355,11 +380,20 @@ function Composer({
             factDate,
             responsibilitySplit: split,
             expectedPayerMemberId: expected,
-            disbursement: {
-                payerMemberId: actualPayer,
-                method,
-                amountInCents: paid,
-            },
+            ...(creditCard
+                ? {
+                      externalLiability: {
+                          holderMemberId: actualPayer,
+                          amountInCents: paid,
+                      },
+                  }
+                : {
+                      disbursement: {
+                          payerMemberId: actualPayer,
+                          method: method as 'PIX' | 'DEBIT' | 'CASH',
+                          amountInCents: paid,
+                      },
+                  }),
             settlement,
         };
         setFieldError(null);
@@ -459,9 +493,11 @@ function Composer({
                             />
                         </label>
                         <label>
-                            Valor pago agora (R$)
+                            {creditCard
+                                ? 'Valor assumido no cartão (R$)'
+                                : 'Valor pago agora (R$)'}
                             <input
-                                name="disbursement.amountInCents"
+                                name={supportAmountField}
                                 inputMode="decimal"
                                 value={paidAmount ?? amount}
                                 onChange={(event) => {
@@ -471,7 +507,9 @@ function Composer({
                             />
                         </label>
                         <label>
-                            Data do pagamento
+                            {creditCard
+                                ? 'Data da compra'
+                                : 'Data do pagamento'}
                             <input
                                 name="factDate"
                                 type="date"
@@ -608,18 +646,33 @@ function Composer({
                                 {splitError && <p>{splitError}</p>}
                             </fieldset>
                             <fieldset disabled={busy}>
-                                <legend>Como foi pago?</legend>
+                                <legend>Como foi feita a compra?</legend>
                                 <label>
-                                    Quem pagou?
+                                    {creditCard
+                                        ? 'De quem é o cartão?'
+                                        : 'Quem pagou?'}
                                     <select
-                                        aria-label="Quem pagou?"
-                                        name="disbursement.payerMemberId"
+                                        aria-label={
+                                            creditCard
+                                                ? 'De quem é o cartão?'
+                                                : 'Quem pagou?'
+                                        }
+                                        name={
+                                            creditCard
+                                                ? 'externalLiability.holderMemberId'
+                                                : 'disbursement.payerMemberId'
+                                        }
                                         value={actualPayer}
                                         onChange={(e) => {
                                             mark();
                                             setPayer(e.target.value);
                                         }}
                                     >
+                                        {creditCard && (
+                                            <option value="">
+                                                Escolha o titular
+                                            </option>
+                                        )}
                                         {members.map((m) => (
                                             <option
                                                 key={m.memberId}
@@ -646,6 +699,9 @@ function Composer({
                                         <option value="PIX">PIX</option>
                                         <option value="DEBIT">Débito</option>
                                         <option value="CASH">Dinheiro</option>
+                                        <option value="CREDIT_CARD">
+                                            Cartão de crédito
+                                        </option>
                                     </select>
                                 </label>
                             </fieldset>
@@ -867,16 +923,22 @@ function Composer({
                         </p>
                     )}
                     <p>
-                        Pago por:{' '}
+                        {creditCard ? 'No cartão de' : 'Pago por'}:{' '}
                         {members.find((m) => m.memberId === actualPayer)
                             ?.displayName ?? 'Carregando'}
                     </p>
                     <p>
-                        Valor pago agora:{' '}
+                        {creditCard
+                            ? 'Valor assumido no cartão'
+                            : 'Valor pago agora'}
+                        :{' '}
                         {paid !== null ? formatMoney(paid) : 'Confira o valor'}.
                     </p>
+                    {creditCard && (
+                        <p>Saiu da conta agora: {formatMoney(0)}.</p>
+                    )}
                     <p>
-                        Falta pagar:{' '}
+                        {creditCard ? 'Restante a realizar' : 'Falta pagar'}:{' '}
                         {total !== null &&
                         paid !== null &&
                         paid <= total &&
@@ -885,10 +947,40 @@ function Composer({
                             : 'Confira os valores'}
                         .
                     </p>
-                    <p>
-                        A pendência entre membros considera o suporte acumulado
-                        e será apresentada após salvar.
-                    </p>
+                    {creditCard &&
+                    paid !== null &&
+                    total !== null &&
+                    paid > 0 &&
+                    paid <= total &&
+                    actualPayer &&
+                    calculated.length ? (
+                        <p>
+                            Falta acertar:{' '}
+                            {members
+                                .filter((m) => m.memberId !== actualPayer)
+                                .map((m) => {
+                                    const holderShare =
+                                        calculated.find(
+                                            (share) =>
+                                                share.memberId === actualPayer,
+                                        )?.amountInCents ?? 0;
+                                    const excess = Math.max(
+                                        0,
+                                        paid - holderShare,
+                                    );
+                                    return excess > 0
+                                        ? `${m.displayName} deve ${formatMoney(excess)} a ${members.find((holder) => holder.memberId === actualPayer)?.displayName}`
+                                        : 'Não há valor a acertar';
+                                })
+                                .join('; ') || 'Não há valor a acertar'}
+                            .
+                        </p>
+                    ) : (
+                        <p>
+                            A pendência entre membros considera o suporte
+                            acumulado e será apresentada após salvar.
+                        </p>
+                    )}
                     <p>
                         Acerto:{' '}
                         {selectedMode === 'SUGGESTED' && suggested

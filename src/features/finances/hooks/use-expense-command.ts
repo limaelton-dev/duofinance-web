@@ -11,7 +11,7 @@ import type { SpaceContextCapture } from '@/features/spaces/state/space-context'
 import { ApiError } from '@/lib/api/api-error';
 import { recordExpense } from '@/lib/api/shared-expense';
 import type { ExpenseInput, ExpenseResult } from '../types/shared-expense';
-import { todayQueryKeys } from '@/features/today/cache/today-query-keys';
+import { invalidateIncomeQueries } from '../cache/income-query-keys';
 type Attempt = {
     input: ExpenseInput;
     key: string;
@@ -89,47 +89,12 @@ export function useExpenseCommand(
                     'Não foi possível confirmar o destino do registro.',
                 );
             finish();
-            void client.invalidateQueries({
-                queryKey: todayQueryKeys.space(
-                    value.capture.personId,
-                    value.capture.spaceId,
-                ),
-            });
-            void client.invalidateQueries({
-                queryKey: [
-                    'finances',
-                    value.capture.personId,
-                    value.capture.spaceId,
-                    'settlement-cycles',
-                ],
-            });
-            if (result.settlementCycle)
-                void client.invalidateQueries({
-                    queryKey: [
-                        'finances',
-                        value.capture.personId,
-                        value.capture.spaceId,
-                        'settlement-cycle',
-                        result.settlementCycle.id,
-                    ],
-                });
-            void client.invalidateQueries({
-                queryKey: [
-                    'finances',
-                    value.capture.personId,
-                    value.capture.spaceId,
-                    'inter-member-position',
-                ],
-            });
+            invalidateIncomeQueries(
+                client,
+                value.capture.personId,
+                value.capture.spaceId,
+            );
             onSuccess(result);
-            void client.invalidateQueries({
-                queryKey: [
-                    'finances',
-                    value.capture.personId,
-                    value.capture.spaceId,
-                    'shared-cash-expense-options',
-                ],
-            });
         } catch (failure) {
             if (!current(value)) return;
             if (failure instanceof ApiError && failure.status === 401) {
