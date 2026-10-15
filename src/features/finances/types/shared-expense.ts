@@ -59,6 +59,7 @@ export type ExpenseView = {
     fulfillmentStatus?: 'PARTIALLY_FULFILLED' | 'FULFILLED';
     assumedAmountInCents?: number;
     externalOutstandingAmountInCents?: number;
+    externalSettledAmountInCents?: number;
     supportedAmountInCents?: number;
     externalLiabilities?: ExternalLiability[];
     externalLiability?: ExternalLiability | null;

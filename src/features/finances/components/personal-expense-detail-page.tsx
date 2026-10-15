@@ -12,6 +12,7 @@ import styles from './expenses.module.css';
 import { ExternalLiabilityForm } from './external-liability-form';
 import { ExpenseDisbursementForm } from './expense-disbursement-form';
 import { ExpensePaymentHistory } from './expense-payment-history';
+import { ExternalLiabilityHistory } from './external-liability-history';
 
 export function PersonalExpenseDetailPage({
     personId,
@@ -64,9 +65,7 @@ export function PersonalExpenseDetailPage({
             accessLost();
     });
     const value =
-        !query.isError &&
-        !query.isFetching &&
-        query.data?.spaceType === 'PERSONAL'
+        !query.isError && query.data?.spaceType === 'PERSONAL'
             ? query.data
             : undefined;
     return (
@@ -89,6 +88,11 @@ export function PersonalExpenseDetailPage({
                 <>
                     <PersonalExpenseSummary value={value} />
                     <ExpensePaymentHistory value={value} personId={personId} />
+                    <ExternalLiabilityHistory
+                        value={value}
+                        personId={personId}
+                        onAccessLost={accessLost}
+                    />
                     {value.remainingAmountInCents > 0 && (
                         <ExternalLiabilityForm
                             personId={personId}

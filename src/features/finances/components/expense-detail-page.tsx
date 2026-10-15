@@ -16,6 +16,7 @@ import { ExternalLiabilityForm } from './external-liability-form';
 import { ExpenseDisbursementForm } from './expense-disbursement-form';
 import { ExpensePaymentHistory } from './expense-payment-history';
 import { ObligationHistory } from './obligation-history';
+import { ExternalLiabilityHistory } from './external-liability-history';
 export function ExpenseDetailPage({
     spaceId,
     commitmentId,
@@ -156,6 +157,12 @@ function Detail({
                         spaceId={spaceId}
                         obligations={query.data.obligations}
                         members={query.data.members}
+                    />
+                    <ExternalLiabilityHistory
+                        value={query.data}
+                        personId={personId}
+                        members={query.data.members}
+                        onAccessLost={accessLost}
                     />
                     {query.data.remainingAmountInCents > 0 && (
                         <ExternalLiabilityForm
