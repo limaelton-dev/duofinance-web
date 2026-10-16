@@ -10,7 +10,8 @@
     align-items: center;
 }
 .stack button,
-.stack select {
+.stack select,
+.stack input {
     min-height: 2.8rem;
     max-width: 100%;
     border: 1px solid #205d49;
@@ -18,6 +19,17 @@
     padding: 0.6rem 0.9rem;
     background: white;
     color: #205d49;
+}
+.stack button:focus-visible,
+.stack input:focus-visible,
+.stack select:focus-visible,
+.stack a:focus-visible {
+    outline: 3px solid #2b7760;
+    outline-offset: 3px;
+}
+.stack [aria-current='page'] {
+    font-weight: 700;
+    background: #edf5ef;
 }
 .stack button {
     cursor: pointer;

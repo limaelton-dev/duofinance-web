@@ -55,13 +55,13 @@ export const formatMoney = (cents: number) => {
     return `R$ ${new Intl.NumberFormat('pt-BR').format(value / 100n)},${String(value % 100n).padStart(2, '0')}`;
 };
 export const formatDate = (date: string) => date.split('-').reverse().join('/');
-export function businessToday() {
+export function businessToday(now = new Date()) {
     const parts = new Intl.DateTimeFormat('en-CA', {
         timeZone: 'America/Sao_Paulo',
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
-    }).formatToParts(new Date());
+    }).formatToParts(now);
     return ['year', 'month', 'day']
         .map((kind) => parts.find((p) => p.type === kind)!.value)
         .join('-');

@@ -11,7 +11,13 @@ import { useExpenseQuery } from '../hooks/use-expense-query';
 import { formatDate, formatMoney } from '../utils/expense-money';
 import styles from './expenses.module.css';
 
-export function ExternalLiabilitiesPage({ spaceId }: { spaceId: string }) {
+export function ExternalLiabilitiesPage({
+    spaceId,
+    memberId = null,
+}: {
+    spaceId: string;
+    memberId?: string | null;
+}) {
     const auth = useAuthenticatedContext({ enabled: false }),
         space = useSpaceContext();
     if (
@@ -22,13 +28,22 @@ export function ExternalLiabilitiesPage({ spaceId }: { spaceId: string }) {
         return null;
     return (
         <List
-            key={`${auth.data.person.id}:${spaceId}:${space.generation}`}
+            key={`${auth.data.person.id}:${spaceId}:${space.generation}:${memberId}`}
             personId={auth.data.person.id}
             spaceId={spaceId}
+            memberId={memberId}
         />
     );
 }
-function List({ personId, spaceId }: { personId: string; spaceId: string }) {
+function List({
+    personId,
+    spaceId,
+    memberId,
+}: {
+    personId: string;
+    spaceId: string;
+    memberId: string | null;
+}) {
     const context = useSpaceContextInstance(),
         router = useRouter();
     const [selection, setSelection] = useState<{ cursor: string | null }>({
@@ -52,11 +67,17 @@ function List({ personId, spaceId }: { personId: string; spaceId: string }) {
             personId,
             spaceId,
             'external-liabilities',
+            memberId,
             selection.cursor,
         ],
         true,
         (signal) =>
-            getOpenExternalLiabilities(spaceId, selection.cursor, signal),
+            getOpenExternalLiabilities(
+                spaceId,
+                selection.cursor,
+                signal,
+                memberId,
+            ),
         () => current.current === selection,
     );
     useEffect(() => {
@@ -87,10 +108,15 @@ function List({ personId, spaceId }: { personId: string; spaceId: string }) {
     const value = !query.isFetching && !query.isError ? query.data : undefined;
     return (
         <section className={styles.stack}>
-            <h1>Obrigações externas em meu nome</h1>
+            <h1>
+                {memberId === null
+                    ? 'Obrigações externas em meu nome'
+                    : 'Obrigações externas do membro selecionado'}
+            </h1>
             <p>
                 Compras no cartão com saldo aberto neste espaço. Selecione uma
-                origem para registrar o pagamento e consultar seu histórico.
+                origem para consultar seu histórico. O pagamento continua
+                autorizado somente ao titular da obrigação.
             </p>
             <Link href={`/spaces/${spaceId}/finances`}>Voltar às Finanças</Link>
             <button

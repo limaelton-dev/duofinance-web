@@ -14,9 +14,11 @@ import styles from './expenses.module.css';
 export function PersonalExpenseHistoryPage({
     personId,
     spaceId,
+    embedded = false,
 }: {
     personId: string;
     spaceId: string;
+    embedded?: boolean;
 }) {
     const context = useSpaceContextInstance(),
         router = useRouter();
@@ -69,12 +71,19 @@ export function PersonalExpenseHistoryPage({
     const value = !query.isFetching && !query.isError ? query.data : undefined;
     return (
         <section className={styles.stack}>
-            <h1>Finanças</h1>
+            {!embedded && <h1>Finanças</h1>}
             <h2>Histórico de despesas</h2>
-            <nav className={styles.actions} aria-label="Navegação financeira">
-                <Link href={`/spaces/${spaceId}/finances/external-liabilities`}>
-                    Obrigações externas em meu nome
-                </Link>
+            <nav
+                className={styles.actions}
+                aria-label="Despesas e receitas pessoais"
+            >
+                {!embedded && (
+                    <Link
+                        href={`/spaces/${spaceId}/finances/external-liabilities`}
+                    >
+                        Obrigações externas em meu nome
+                    </Link>
+                )}
                 <Link href={`/spaces/${spaceId}/expenses/new`}>
                     Adicionar despesa
                 </Link>
@@ -82,7 +91,9 @@ export function PersonalExpenseHistoryPage({
                 <Link href={`/spaces/${spaceId}/incomes/new`}>
                     Adicionar receita
                 </Link>
-                <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
+                {!embedded && (
+                    <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
+                )}
             </nav>
             <button
                 type="button"
