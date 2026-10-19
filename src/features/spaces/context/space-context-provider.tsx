@@ -17,6 +17,7 @@ import {
     getAuthenticatedPersonId,
     getSpacesSessionEpoch,
     queryInSpacesSession,
+    spaceDataFamilies,
 } from '../cache/spaces-session';
 import { spacesQueryKeys } from '../cache/spaces-query-keys';
 import { SpaceContext } from '../state/space-context';
@@ -86,16 +87,13 @@ function AuthenticatedSpaceContext({
                     getSpaceDetails(id, signal),
                 ),
             cancelDetails: () => {
-                void client.cancelQueries(
-                    { queryKey: ['today', personId] },
-                    { revert: false },
-                );
-                client.removeQueries({ queryKey: ['today', personId] });
-                void client.cancelQueries(
-                    { queryKey: ['finances', personId] },
-                    { revert: false },
-                );
-                client.removeQueries({ queryKey: ['finances', personId] });
+                for (const family of spaceDataFamilies) {
+                    void client.cancelQueries(
+                        { queryKey: [family, personId] },
+                        { revert: false },
+                    );
+                    client.removeQueries({ queryKey: [family, personId] });
+                }
                 void client.cancelQueries(
                     {
                         predicate: (query) =>
@@ -114,16 +112,13 @@ function AuthenticatedSpaceContext({
                     details,
                 ),
             revoke: (id) => {
-                void client.cancelQueries(
-                    { queryKey: ['today', personId, id] },
-                    { revert: false },
-                );
-                client.removeQueries({ queryKey: ['today', personId, id] });
-                void client.cancelQueries(
-                    { queryKey: ['finances', personId, id] },
-                    { revert: false },
-                );
-                client.removeQueries({ queryKey: ['finances', personId, id] });
+                for (const family of spaceDataFamilies) {
+                    void client.cancelQueries(
+                        { queryKey: [family, personId, id] },
+                        { revert: false },
+                    );
+                    client.removeQueries({ queryKey: [family, personId, id] });
+                }
                 void client.cancelQueries(
                     { queryKey: spacesQueryKeys.detail(personId, id) },
                     { revert: false },

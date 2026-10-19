@@ -168,6 +168,9 @@ test('limpa dados na troca de pessoa e no logout', () => {
         client.setQueryData(spacesQueryKeys.detail('a', 'space-a'), {
             space: { id: 'space-a' },
         });
+        for (const family of ['routine', 'shopping', 'closure']) {
+            client.setQueryData([family, 'a', 'space-a'], { private: 'a' });
+        }
 
         client.setQueryData(['auth', 'me'], context('b'));
 
@@ -177,8 +180,21 @@ test('limpa dados na troca de pessoa e no logout', () => {
             }),
         ).toHaveLength(0);
 
+        for (const family of ['routine', 'shopping', 'closure']) {
+            expect(
+                client.getQueryCache().findAll({ queryKey: [family] }),
+            ).toHaveLength(0);
+            client.setQueryData([family, 'b', 'space-b'], { private: 'b' });
+        }
+
         client.setQueryData(spacesQueryKeys.list('b'), { items: [] });
         client.setQueryData(['auth', 'me'], null);
+
+        for (const family of ['routine', 'shopping', 'closure']) {
+            expect(
+                client.getQueryCache().findAll({ queryKey: [family] }),
+            ).toHaveLength(0);
+        }
 
         expect(
             client.getQueryCache().findAll({

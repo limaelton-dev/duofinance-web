@@ -26,11 +26,19 @@ function clearSpacesCache(client: QueryClient): void {
     );
 
     client.removeQueries({ queryKey: spacesQueryKeys.all });
-    void client.cancelQueries({ queryKey: ['finances'] }, { revert: false });
-    client.removeQueries({ queryKey: ['finances'] });
-    void client.cancelQueries({ queryKey: ['today'] }, { revert: false });
-    client.removeQueries({ queryKey: ['today'] });
+    for (const family of spaceDataFamilies) {
+        void client.cancelQueries({ queryKey: [family] }, { revert: false });
+        client.removeQueries({ queryKey: [family] });
+    }
 }
+
+export const spaceDataFamilies = [
+    'finances',
+    'today',
+    'routine',
+    'shopping',
+    'closure',
+] as const;
 
 export function watchSpacesSession(client: QueryClient): () => void {
     let previousPersonId = getAuthenticatedPersonId(client);

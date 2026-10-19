@@ -80,17 +80,20 @@ export class SpaceContext {
     private retryRoute = false;
     private lastSpace: SpaceSummary | null = null;
     private discardedDraft = false;
-    private leaveGuard: (() => boolean) | null = null;
+    private leaveGuards = new Set<() => boolean>();
 
     registerLeaveGuard(guard: () => boolean): () => void {
-        this.leaveGuard = guard;
+        this.leaveGuards.add(guard);
         return () => {
-            if (this.leaveGuard === guard) this.leaveGuard = null;
+            this.leaveGuards.delete(guard);
         };
     }
 
     canLeave(): boolean {
-        return this.locks.size === 0 && (this.leaveGuard?.() ?? true);
+        return (
+            this.locks.size === 0 &&
+            [...this.leaveGuards].every((guard) => guard())
+        );
     }
 
     notifyDraftDiscarded(): void {

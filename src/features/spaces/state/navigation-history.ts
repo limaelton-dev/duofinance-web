@@ -1,10 +1,10 @@
 const historyIndex = '__prosperaHistoryIndex';
 let initialized = false;
-let guard: (() => boolean) | null = null;
+const guards = new Set<() => boolean>();
 export function registerTraversalGuard(value: () => boolean): () => void {
-    guard = value;
+    guards.add(value);
     return () => {
-        if (guard === value) guard = null;
+        guards.delete(value);
     };
 }
 export function currentHistoryIndex(): number | null {
@@ -25,7 +25,10 @@ export function trackNavigationHistory(): void {
                 event.stopImmediatePropagation();
                 return;
             }
-            if (destination !== null && guard && !guard()) {
+            if (
+                destination !== null &&
+                ![...guards].every((guard) => guard())
+            ) {
                 event.stopImmediatePropagation();
                 restoring = true;
                 window.history.go(position - destination);

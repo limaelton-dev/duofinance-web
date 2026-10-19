@@ -393,3 +393,16 @@ test('A11 retry de fallback refaz lista falhada ou inconsistente antes de valida
         ]);
     }
 });
+
+test('múltiplos formulários preservam todos os guards ao navegar e desmontar', async () => {
+    const { context } = fixture();
+    await context.initialize();
+    const removeParent = context.registerLeaveGuard(() => false);
+    const removeChild = context.registerLeaveGuard(() => true);
+    expect(context.canLeave()).toBe(false);
+    expect(await context.select(a)).toBe(false);
+    removeChild();
+    expect(context.canLeave()).toBe(false);
+    removeParent();
+    expect(await context.select(a)).toBe(true);
+});
