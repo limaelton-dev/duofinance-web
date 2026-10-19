@@ -15,9 +15,11 @@ import styles from './finances-summary.module.css';
 export function PersonalExpenseHistoryPage({
     personId,
     spaceId,
+    embedded = false,
 }: {
     personId: string;
     spaceId: string;
+    embedded?: boolean;
 }) {
     const context = useSpaceContextInstance(),
         router = useRouter();
@@ -70,23 +72,41 @@ export function PersonalExpenseHistoryPage({
     const value = !query.isFetching && !query.isError ? query.data : undefined;
     return (
         <section className={styles.stack}>
-            <div className={styles.heading}>
-                <h1>Finanças</h1>
-                <Button asChild>
-                    <Link href={`/spaces/${spaceId}/expenses/new`}>
-                        Adicionar despesa
+            {!embedded && (
+                <div className={styles.heading}>
+                    <h1>Finanças</h1>
+                    <Button asChild>
+                        <Link href={`/spaces/${spaceId}/expenses/new`}>
+                            Adicionar despesa
+                        </Link>
+                    </Button>
+                </div>
+            )}
+            <nav
+                className={styles.actions}
+                aria-label="Despesas e receitas pessoais"
+            >
+                {!embedded && (
+                    <Link
+                        href={`/spaces/${spaceId}/finances/external-liabilities`}
+                    >
+                        Obrigações externas em meu nome
                     </Link>
-                </Button>
-            </div>
-            <nav className={styles.actions} aria-label="Navegação financeira">
-                <Link href={`/spaces/${spaceId}/finances/external-liabilities`}>
-                    Obrigações externas em meu nome
-                </Link>
+                )}
+                {embedded && (
+                    <Button asChild>
+                        <Link href={`/spaces/${spaceId}/expenses/new`}>
+                            Adicionar despesa
+                        </Link>
+                    </Button>
+                )}
                 <Link href={`/spaces/${spaceId}/incomes`}>Ver receitas</Link>
                 <Link href={`/spaces/${spaceId}/incomes/new`}>
                     Adicionar receita
                 </Link>
-                <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
+                {!embedded && (
+                    <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
+                )}
             </nav>
             <div className={styles.intro}>
                 <h2>Histórico de despesas</h2>

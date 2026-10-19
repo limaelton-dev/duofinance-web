@@ -14,11 +14,16 @@ export const getOpenExternalLiabilities = (
     spaceId: string,
     cursor: string | null,
     signal?: AbortSignal,
-) =>
-    apiRequest<OpenExternalLiabilities>(
-        `/spaces/${spaceId}/external-liabilities${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`,
+    memberId: string | null = null,
+) => {
+    const query = new URLSearchParams();
+    if (cursor) query.set('cursor', cursor);
+    if (memberId !== null) query.set('memberId', memberId);
+    return apiRequest<OpenExternalLiabilities>(
+        `/spaces/${spaceId}/external-liabilities${query.size ? `?${query.toString().replace(/\+/g, '%20')}` : ''}`,
         { signal },
     );
+};
 
 export const getExternalLiabilitySettlementOptions = (
     spaceId: string,

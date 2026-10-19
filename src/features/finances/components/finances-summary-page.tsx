@@ -3,20 +3,20 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuthenticatedContext } from '@/features/auth/hooks/use-authenticated-context';
 import { useSpaceContext } from '@/features/spaces/hooks/use-space-context';
-import { useSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
-import { ApiError } from '@/lib/api/api-error';
-import { getInterMemberPosition } from '@/lib/api/get-inter-member-position';
+import { getFinancialOverview } from '@/lib/api/financial-review';
+import { millisecondsUntilBusinessDateChange } from '@/features/today/utils/business-date-change';
 import { financesQueryKeys } from '../cache/finances-query-keys';
 import { useExpenseQuery } from '../hooks/use-expense-query';
-import type { PositionDirection } from '../types/inter-member-position';
-import { formatPositionMoney } from '../utils/position-money';
-import { formatDate, formatMoney } from '../utils/expense-money';
-import { financialOriginPath } from '../utils/settlement-return';
-import styles from './finances-summary.module.css';
+import { useFinancialReviewAccess } from '../hooks/use-financial-review-access';
+import type { FinancialReviewView } from '../types/financial-review';
+import { financialReferenceDate } from '../utils/financial-review';
+import { FinancialOverviewSection } from './financial-overview-section';
+import { FinancialTimelineSection } from './financial-timeline-section';
+import { InterMemberPositionSection } from './inter-member-position-section';
 import { PersonalExpenseHistoryPage } from './personal-expense-history-page';
+import styles from './finances-summary.module.css';
 
 export function FinancesSummaryPage({ spaceId }: { spaceId: string }) {
     const auth = useAuthenticatedContext({ enabled: false });
@@ -27,368 +27,296 @@ export function FinancesSummaryPage({ spaceId }: { spaceId: string }) {
         space.activeSpaceId !== spaceId
     )
         return null;
-    if (space.currentSpace?.type !== 'SHARED')
-        return (
-            <PersonalExpenseHistoryPage
-                key={`${auth.data.person.id}:${spaceId}:${space.generation}`}
-                personId={auth.data.person.id}
-                spaceId={spaceId}
-            />
-        );
     return (
-        <Summary
+        <FinancialReviewPage
             key={`${auth.data.person.id}:${spaceId}:${space.generation}`}
             personId={auth.data.person.id}
             spaceId={spaceId}
+            shared={space.currentSpace?.type === 'SHARED'}
         />
     );
 }
 
-function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
-    const context = useSpaceContextInstance();
-    const router = useRouter();
-    const [selection, setSelection] = useState<{
-        direction: PositionDirection;
-        cursor: string | null;
-    }>({ direction: 'ALL', cursor: null });
-    const currentSelection = useRef(selection);
-    useLayoutEffect(() => {
-        currentSelection.current = selection;
-    }, [selection]);
-    const query = useExpenseQuery(
-        personId,
-        spaceId,
-        financesQueryKeys.position(
-            personId,
-            spaceId,
-            selection.direction,
-            selection.cursor,
-        ),
-        true,
-        (signal) =>
-            getInterMemberPosition(
-                spaceId,
-                selection.direction,
-                selection.cursor,
-                signal,
-            ),
-        () => currentSelection.current === selection,
+function FinancialReviewPage({
+    personId,
+    spaceId,
+    shared,
+}: {
+    personId: string;
+    spaceId: string;
+    shared: boolean;
+}) {
+    const [referenceDate, setReferenceDate] = useState(() =>
+        financialReferenceDate(),
     );
-    useEffect(
-        () => () => {
-            currentSelection.current = { direction: 'ALL', cursor: null };
-        },
-        [],
+    const [selection, setSelection] = useState({
+        month: referenceDate.slice(0, 7),
+        memberId: null as string | null,
+    });
+    const [view, setView] = useState<FinancialReviewView | 'FORECAST'>(
+        'CALENDAR',
     );
+    const [tab, setTab] = useState<'SUMMARY' | 'COMMITMENTS'>('SUMMARY');
     useEffect(() => {
-        if (
-            !(query.error instanceof ApiError) ||
-            query.error.code !== 'SPACE_NOT_FOUND'
-        )
-            return;
-        let active = true;
-        const request = context.accessLost(spaceId);
-        const generation = context.getSnapshot().generation;
-        void request.then((success) => {
-            if (
-                success &&
-                active &&
-                context.getSnapshot().generation === generation &&
-                window.location.pathname === `/spaces/${spaceId}/finances`
-            )
-                router.replace(
-                    `/spaces/${context.getSnapshot().activeSpaceId}`,
-                );
-        });
-        return () => {
-            active = false;
+        let timer: number;
+        const update = () => {
+            window.clearTimeout(timer);
+            setReferenceDate(financialReferenceDate());
+            timer = window.setTimeout(
+                update,
+                millisecondsUntilBusinessDateChange(),
+            );
         };
-    }, [context, query.error, router, spaceId]);
-    const value = !query.isFetching && !query.isError ? query.data : undefined;
-    const empty =
-        value?.summary.payableAmountInCents === '0' &&
-        value.summary.receivableAmountInCents === '0';
-    const memberName = (id: string) =>
-        value?.members.find((member) => member.memberId === id)?.displayName ??
-        'Membro do espaço';
-    function refresh() {
-        if (query.isFetching) return;
-        if (selection.cursor === null) void query.refetch();
-        else setSelection({ direction: selection.direction, cursor: null });
-    }
+        update();
+        window.addEventListener('focus', update);
+        document.addEventListener('visibilitychange', update);
+        return () => {
+            window.clearTimeout(timer);
+            window.removeEventListener('focus', update);
+            document.removeEventListener('visibilitychange', update);
+        };
+    }, []);
     return (
         <section className={styles.stack}>
-            <div className={styles.heading}>
-                <h1>Finanças</h1>
-                {value?.spaceStatus === 'ACTIVE' && (
-                    <Button asChild>
-                        <Link href={`/spaces/${spaceId}/expenses/new`}>
-                            Adicionar despesa
-                        </Link>
-                    </Button>
-                )}
-            </div>
-            <nav aria-label="Navegação financeira" className={styles.actions}>
-                <Link href={`/spaces/${spaceId}/finances/external-liabilities`}>
-                    Obrigações externas em meu nome
-                </Link>
-                <span aria-current="page">Resumo</span>
-                <Link href={`/spaces/${spaceId}/finances/settlements`}>
-                    Acertos
-                </Link>
-                <Link href={`/spaces/${spaceId}/incomes`}>Receitas</Link>
-                <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
-            </nav>
-            <div className={styles.intro}>
-                <h2>Entre vocês</h2>
-                <p>
-                    Todas as pendências abertas deste espaço, de qualquer data,
-                    com ou sem acerto associado.
-                </p>
-                <p>
-                    A posição líquida é informativa. Consultar este resumo não
-                    resolve nem compensa pendências.
-                </p>
-            </div>
-            <div className={styles.actions}>
-                <Button variant="outline" asChild>
-                    <Link href={`/spaces/${spaceId}/finances/settlements`}>
-                        Ver acertos
-                    </Link>
-                </Button>
-                <Button variant="ghost" asChild>
-                    <Link
-                        href={`/spaces/${spaceId}/finances/settlements/transfers`}
-                    >
-                        Histórico de transferências
-                    </Link>
-                </Button>
-            </div>
-            <div className={styles.actions}>
-                <label htmlFor="position-direction">Mostrar pendências</label>
-                <select
-                    id="position-direction"
-                    value={selection.direction}
-                    onChange={(event) =>
-                        setSelection({
-                            direction: event.target.value as PositionDirection,
-                            cursor: null,
-                        })
-                    }
-                >
-                    <option value="ALL">Todas as direções</option>
-                    <option value="PAYABLE">A pagar</option>
-                    <option value="RECEIVABLE">A receber</option>
-                </select>
+            <h1>Finanças</h1>
+            <nav className={styles.actions} aria-label="Navegação financeira">
                 <Button
                     variant="outline"
                     type="button"
-                    onClick={refresh}
-                    aria-disabled={query.isFetching}
+                    aria-current={tab === 'SUMMARY' ? 'page' : undefined}
+                    onClick={() => setTab('SUMMARY')}
                 >
-                    Atualizar / Voltar ao início
+                    Resumo
+                </Button>
+                <Button
+                    variant="outline"
+                    type="button"
+                    aria-current={tab === 'COMMITMENTS' ? 'page' : undefined}
+                    onClick={() => setTab('COMMITMENTS')}
+                >
+                    Compromissos
+                </Button>
+                {shared && (
+                    <Link href={`/spaces/${spaceId}/finances/settlements`}>
+                        Acertos
+                    </Link>
+                )}
+                <Link href={`/spaces/${spaceId}/incomes`}>Receitas</Link>
+                <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
+            </nav>
+            <FinancialReviewContent
+                key={referenceDate}
+                personId={personId}
+                spaceId={spaceId}
+                shared={shared}
+                referenceDate={referenceDate}
+                selection={selection}
+                onSelection={setSelection}
+                tab={tab}
+                view={view}
+                onView={setView}
+            />
+        </section>
+    );
+}
+
+type Selection = { month: string; memberId: string | null };
+function FinancialReviewContent({
+    personId,
+    spaceId,
+    shared,
+    referenceDate,
+    selection,
+    onSelection,
+    tab,
+    view,
+    onView,
+}: {
+    personId: string;
+    spaceId: string;
+    shared: boolean;
+    referenceDate: string;
+    selection: Selection;
+    onSelection: (value: Selection) => void;
+    tab: 'SUMMARY' | 'COMMITMENTS';
+    view: FinancialReviewView | 'FORECAST';
+    onView: (value: FinancialReviewView | 'FORECAST') => void;
+}) {
+    const space = useSpaceContext();
+    const current = useRef<Selection | null>(selection);
+    useLayoutEffect(() => {
+        current.current = selection;
+    }, [selection]);
+    useEffect(
+        () => () => {
+            current.current = null;
+        },
+        [],
+    );
+    const overview = useExpenseQuery(
+        personId,
+        spaceId,
+        financesQueryKeys.review(
+            personId,
+            spaceId,
+            'OVERVIEW',
+            selection.month,
+            selection.memberId,
+            null,
+            referenceDate,
+        ),
+        true,
+        (signal) =>
+            getFinancialOverview(
+                spaceId,
+                selection.month,
+                selection.memberId,
+                signal,
+            ),
+        () => current.current === selection,
+    );
+    useFinancialReviewAccess(overview.error, spaceId);
+    const value =
+        !overview.isFetching && !overview.isError ? overview.data : undefined;
+    return (
+        <>
+            <div className={styles.actions}>
+                <label htmlFor="financial-month">Mês calendário</label>
+                <input
+                    id="financial-month"
+                    type="month"
+                    required
+                    min="0001-01"
+                    max="9999-12"
+                    value={selection.month}
+                    onChange={(event) => {
+                        if (
+                            /^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(
+                                event.target.value,
+                            )
+                        )
+                            onSelection({
+                                ...selection,
+                                month: event.target.value,
+                            });
+                    }}
+                />
+                {shared && (
+                    <>
+                        <label htmlFor="financial-member">
+                            Valores por membro
+                        </label>
+                        <select
+                            id="financial-member"
+                            value={selection.memberId ?? ''}
+                            disabled={!value}
+                            onChange={(event) =>
+                                onSelection({
+                                    ...selection,
+                                    memberId: event.target.value || null,
+                                })
+                            }
+                        >
+                            <option value="">Todo o espaço</option>
+                            {value?.members.map((member) => (
+                                <option
+                                    key={member.memberId}
+                                    value={member.memberId}
+                                >
+                                    {member.displayName}
+                                </option>
+                            ))}
+                        </select>
+                    </>
+                )}
+                <Button
+                    variant="outline"
+                    type="button"
+                    disabled={overview.isFetching}
+                    onClick={() => void overview.refetch()}
+                >
+                    Atualizar resumo
                 </Button>
             </div>
-            {(query.isPending || query.isFetching) && (
+            <p>
+                O mês usa a data real de cada fato. Previsões usam a data
+                prevista. O cadastro e a data-alvo de acerto têm seus próprios
+                significados.
+            </p>
+            {(overview.isPending || overview.isFetching) && (
                 <p role="status" aria-busy="true">
-                    Carregando posição entre vocês…
+                    Carregando resumo financeiro…
                 </p>
             )}
-            {query.isError && (
+            {overview.isError && (
                 <div>
                     <p role="alert">
-                        {query.error instanceof ApiError &&
-                        query.error.code === 'SHARED_SPACE_REQUIRED'
-                            ? 'Este espaço não possui resumo entre membros.'
-                            : 'Não foi possível consultar a posição entre vocês.'}
+                        Não foi possível consultar o resumo financeiro.
                     </p>
                     <Button
                         variant="outline"
                         type="button"
-                        onClick={() => void query.refetch()}
+                        onClick={() => void overview.refetch()}
                     >
-                        Tentar novamente a posição
+                        Tentar novamente o resumo
                     </Button>
                 </div>
             )}
-            {value && (
+            {tab === 'SUMMARY' ? (
                 <>
-                    <dl
-                        className={styles.totals}
-                        aria-label="Posição entre vocês"
+                    {value && (
+                        <FinancialOverviewSection
+                            value={value}
+                            shared={shared}
+                        />
+                    )}
+                    <Link
+                        href={`/spaces/${spaceId}/finances/external-liabilities`}
                     >
-                        <div>
-                            <dt>Pendências a pagar</dt>
-                            <dd>
-                                {formatPositionMoney(
-                                    value.summary.payableAmountInCents,
-                                )}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt>Pendências a receber</dt>
-                            <dd>
-                                {formatPositionMoney(
-                                    value.summary.receivableAmountInCents,
-                                )}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt>Posição líquida informativa</dt>
-                            <dd>
-                                {value.summary.net.direction === 'PAYABLE'
-                                    ? 'Você paga '
-                                    : value.summary.net.direction ===
-                                        'RECEIVABLE'
-                                      ? 'Você recebe '
-                                      : ''}
-                                {formatPositionMoney(
-                                    value.summary.net.amountInCents,
-                                )}
-                            </dd>
-                        </div>
-                    </dl>
-                    {!empty && value.summary.net.direction === 'BALANCED' && (
-                        <p>
-                            Os valores se equilibram, mas ainda existem
-                            pendências abertas.
-                        </p>
-                    )}
-                    {!empty && value.spaceStatus !== 'CLOSED' && (
-                        <Link
-                            href={`/spaces/${spaceId}/finances/settlements/transfers/new`}
-                        >
-                            Registrar transferência
-                        </Link>
-                    )}
-                    <p>
-                        Os totais consideram todas as pendências abertas,
-                        independentemente do filtro e da página.
-                    </p>
-                    {empty ? (
-                        <div className={styles.empty}>
-                            <h3>Nenhum valor em aberto</h3>
-                            <p>Não há valores a acertar.</p>
-                        </div>
-                    ) : value.items.length === 0 ? (
-                        <p>
-                            Nenhuma pendência nesta página para o filtro
-                            escolhido.
-                        </p>
+                        Obrigações externas em meu nome
+                    </Link>
+                    {shared ? (
+                        <InterMemberPositionSection
+                            personId={personId}
+                            spaceId={spaceId}
+                        />
                     ) : (
-                        <ul
-                            className={styles.list}
-                            aria-label="Pendências abertas"
-                        >
-                            {value.items.map((item) => (
-                                <li key={item.id}>
-                                    <h3>{item.origin.description}</h3>
-                                    <p>
-                                        {item.debtorMemberId ===
-                                        value.actorMemberId
-                                            ? `Você precisa acertar com ${memberName(item.creditorMemberId)}`
-                                            : `${memberName(item.debtorMemberId)} precisa acertar com você`}
-                                    </p>
-                                    <p className={styles.balance}>
-                                        Em aberto:{' '}
-                                        {formatMoney(
-                                            item.remainingAmountInCents,
-                                        )}
-                                    </p>
-                                    <p>
-                                        Valor original:{' '}
-                                        {formatMoney(
-                                            item.originalAmountInCents,
-                                        )}
-                                    </p>
-                                    <p>
-                                        Valor reconhecido:{' '}
-                                        {formatMoney(
-                                            item.recognizedAmountInCents ??
-                                                item.originalAmountInCents,
-                                        )}
-                                    </p>
-                                    <p>
-                                        Data do fato:{' '}
-                                        <time dateTime={item.factDate}>
-                                            {formatDate(item.factDate)}
-                                        </time>
-                                    </p>
-                                    <p>
-                                        Registrada em:{' '}
-                                        <time dateTime={item.registeredAt}>
-                                            {new Intl.DateTimeFormat('pt-BR', {
-                                                timeZone: 'America/Sao_Paulo',
-                                                dateStyle: 'short',
-                                                timeStyle: 'short',
-                                            }).format(
-                                                new Date(item.registeredAt),
-                                            )}
-                                        </time>
-                                    </p>
-                                    <p>
-                                        {item.settlementCycle ? (
-                                            <Link
-                                                href={`/spaces/${spaceId}/finances/settlements/${item.settlementCycle.id}`}
-                                            >
-                                                Data-alvo do acerto:{' '}
-                                                {formatDate(
-                                                    item.settlementCycle
-                                                        .targetDate,
-                                                )}
-                                            </Link>
-                                        ) : (
-                                            'Sem acerto associado'
-                                        )}
-                                    </p>
-                                    <Link
-                                        href={financialOriginPath(
-                                            spaceId,
-                                            item.origin,
-                                        )}
-                                        aria-label={`Ver ${item.origin.kind === 'INCOME' ? 'receita' : 'despesa'}: ${item.origin.description}`}
-                                    >
-                                        Ver{' '}
-                                        {item.origin.kind === 'INCOME'
-                                            ? 'receita'
-                                            : 'despesa'}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                    {!empty &&
-                        (value.page.nextCursor ? (
-                            <Button
-                                variant="outline"
-                                type="button"
-                                onClick={() =>
-                                    setSelection({
-                                        direction: selection.direction,
-                                        cursor: value.page.nextCursor,
-                                    })
-                                }
-                            >
-                                Próximas pendências
-                            </Button>
-                        ) : (
-                            <p role="status">
-                                Fim das pendências para este filtro.
-                            </p>
-                        ))}
-                    <p>
-                        Cada página reflete uma consulta atual. Novos registros
-                        podem aparecer ao voltar ao início.
-                    </p>
-                    {value.spaceStatus === 'ACTIVE' && (
-                        <>
-                            <Link href={`/spaces/${spaceId}/incomes/new`}>
-                                Adicionar receita
-                            </Link>
-                        </>
+                        <PersonalExpenseHistoryPage
+                            personId={personId}
+                            spaceId={spaceId}
+                            embedded
+                        />
                     )}
                 </>
+            ) : (
+                <>
+                    <div className={styles.actions}>
+                        {space.currentSpace?.status === 'ACTIVE' && (
+                            <>
+                                <Link href={`/spaces/${spaceId}/expenses/new`}>
+                                    Adicionar despesa
+                                </Link>
+                                <Link href={`/spaces/${spaceId}/incomes/new`}>
+                                    Adicionar receita
+                                </Link>
+                            </>
+                        )}
+                        <Link href={`/spaces/${spaceId}/incomes`}>
+                            Histórico de receitas
+                        </Link>
+                    </div>
+                    <FinancialTimelineSection
+                        key={`${selection.month}:${selection.memberId}:${view}`}
+                        personId={personId}
+                        spaceId={spaceId}
+                        month={selection.month}
+                        memberId={selection.memberId}
+                        referenceDate={referenceDate}
+                        view={view}
+                        onView={onView}
+                    />
+                </>
             )}
-        </section>
+        </>
     );
 }

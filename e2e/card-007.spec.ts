@@ -58,7 +58,10 @@ const trigger = (page: Page) =>
 const list = (page: Page) =>
     page.getByRole('list', { name: 'Pendências abertas' });
 const totals = (page: Page) =>
-    page.getByRole('definition').filter({ hasText: 'R$' });
+    page
+        .getByLabel('Posição entre vocês', { exact: true })
+        .getByRole('definition')
+        .filter({ hasText: 'R$' });
 async function post(api: APIRequestContext, url: string, data: object) {
     const csrf = await api.get(`${setupUrl}/auth/csrf`);
     expect(csrf.status()).toBe(200);

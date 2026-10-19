@@ -54,7 +54,8 @@
     padding-bottom: 0.75rem;
 }
 .stack nav > a,
-.stack nav > span {
+.stack nav > span,
+.stack nav > button {
     display: inline-flex;
     align-items: center;
     min-height: 3rem;
@@ -63,7 +64,8 @@
     font-size: 0.875rem;
     text-decoration: none;
 }
-.stack nav > a:hover {
+.stack nav > a:not([aria-current]):hover,
+.stack nav > button:not([aria-current]):hover:not(:disabled) {
     background: var(--accent, #eee);
 }
 .stack nav > [aria-current] {
@@ -72,7 +74,8 @@
     font-weight: 600;
 }
 .stack button:not([data-slot]),
-.stack select {
+.stack select,
+.stack input {
     min-height: 3rem;
     max-width: 100%;
     border: 1px solid var(--input, #858585);
@@ -97,6 +100,7 @@
 }
 .stack a:focus-visible,
 .stack button:focus-visible,
+.stack input:focus-visible,
 .stack select:focus-visible {
     outline: 2px solid var(--ring, #171717);
     outline-offset: 3px;
