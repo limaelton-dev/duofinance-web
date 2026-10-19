@@ -44,4 +44,7 @@ export function invalidatePersonalExpenseQueries(
     void client.invalidateQueries({
         queryKey: todayQueryKeys.space(personId, spaceId),
     });
+    void client.invalidateQueries({
+        queryKey: ['finances', personId, spaceId, 'financial-review'],
+    });
 }

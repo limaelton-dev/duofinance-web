@@ -3,7 +3,7 @@ import type {
     DisbursementMethod,
 } from '../types/personal-expense';
 import { formatDate, formatMoney } from '../utils/expense-money';
-import styles from './expenses.module.css';
+import styles from './financial-records.module.css';
 
 export const disbursementMethodLabels: Record<DisbursementMethod, string> = {
     PIX: 'PIX',
@@ -18,19 +18,30 @@ export function PersonalExpenseSummary({
     const first = value.disbursements[0];
     const card = !!value.externalLiabilities?.length;
     return (
-        <div className={styles.summary}>
+        <section className={styles.receipt} aria-label="Resumo da despesa">
             <h2>{value.commitment.description}</h2>
+            <p className={styles.amount}>
+                {formatMoney(value.commitment.amountInCents)}
+            </p>
             <dl aria-label="Despesa e desembolso">
                 <dt>Valor da despesa</dt>
                 <dd>{formatMoney(value.commitment.amountInCents)}</dd>
-                <dt>Valor desembolsado</dt>
+                <dt>
+                    {card
+                        ? 'Pagamentos diretos da despesa'
+                        : 'Valor desembolsado'}
+                </dt>
                 <dd>{formatMoney(value.paidAmountInCents)}</dd>
                 {card && (
                     <>
                         <dt>No seu cartão</dt>
                         <dd>{formatMoney(value.assumedAmountInCents ?? 0)}</dd>
-                        <dt>Saiu da conta agora</dt>
-                        <dd>{formatMoney(value.paidAmountInCents)}</dd>
+                        <dt>Pago ao credor do cartão</dt>
+                        <dd>
+                            {formatMoney(
+                                value.externalSettledAmountInCents ?? 0,
+                            )}
+                        </dd>
                         <dt>Obrigação externa aberta</dt>
                         <dd>
                             {formatMoney(
@@ -43,8 +54,12 @@ export function PersonalExpenseSummary({
                         </dd>
                     </>
                 )}
-                <dt>{card ? 'Restante a realizar' : 'Falta pagar'}</dt>
-                <dd>{formatMoney(value.remainingAmountInCents)}</dd>
+                {value.remainingAmountInCents > 0 && (
+                    <>
+                        <dt>{card ? 'Restante a realizar' : 'Falta pagar'}</dt>
+                        <dd>{formatMoney(value.remainingAmountInCents)}</dd>
+                    </>
+                )}
                 <dt>Condição</dt>
                 <dd>
                     {card
@@ -78,6 +93,6 @@ export function PersonalExpenseSummary({
                     </>
                 )}
             </dl>
-        </div>
+        </section>
     );
 }

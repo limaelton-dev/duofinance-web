@@ -1,5 +1,7 @@
 'use client';
+import { FinancialLoading } from './financial-loading';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
@@ -8,7 +10,7 @@ import { ApiError } from '@/lib/api/api-error';
 import { useExpenseQuery } from '../hooks/use-expense-query';
 import { personalExpenseQueryKeys } from '../cache/personal-expense-query-keys';
 import { PersonalExpenseSummary } from './personal-expense-summary';
-import styles from './expenses.module.css';
+import styles from './financial-records.module.css';
 import { ExternalLiabilityForm } from './external-liability-form';
 import { ExpenseDisbursementForm } from './expense-disbursement-form';
 import { ExpensePaymentHistory } from './expense-payment-history';
@@ -71,17 +73,26 @@ export function PersonalExpenseDetailPage({
     return (
         <section className={styles.stack}>
             <h1>Despesa</h1>
+            <Button asChild variant="outline">
+                <Link
+                    href={`/spaces/${spaceId}/finances/commitments/${commitmentId}`}
+                >
+                    Histórico e correções
+                </Link>
+            </Button>
             {(query.isPending || query.isFetching) && (
-                <p role="status" aria-busy="true">
-                    Carregando despesa…
-                </p>
+                <FinancialLoading label="Carregando despesa…" />
             )}
             {query.isError && (
                 <div>
                     <p role="alert">Não foi possível consultar esta despesa.</p>
-                    <button type="button" onClick={() => void query.refetch()}>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => void query.refetch()}
+                    >
                         Tentar novamente a despesa
-                    </button>
+                    </Button>
                 </div>
             )}
             {value && (
@@ -119,10 +130,13 @@ export function PersonalExpenseDetailPage({
                             }).format(new Date(value.commitment.registeredAt))}
                         </time>
                     </p>
-                    <p>Registro: {value.commitment.id}</p>
-                    {value.disbursements[0] && (
-                        <p>Desembolso: {value.disbursements[0].id}</p>
-                    )}
+                    <details className={styles.details}>
+                        <summary>Identificação do registro</summary>
+                        <p>Registro: {value.commitment.id}</p>
+                        {value.disbursements[0] && (
+                            <p>Desembolso: {value.disbursements[0].id}</p>
+                        )}
+                    </details>
                 </>
             )}
             <Link href={`/spaces/${spaceId}/finances`}>Voltar às Finanças</Link>

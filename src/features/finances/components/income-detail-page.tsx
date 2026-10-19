@@ -1,4 +1,7 @@
 'use client';
+import { FinancialLoading } from './financial-loading';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -20,7 +23,7 @@ import type { Settlement } from '../types/shared-expense';
 import { decimalUnits, formatDate, formatMoney } from '../utils/expense-money';
 import { settlementReturnPath } from '../utils/settlement-return';
 import { isPastOrCurrentCivilDate } from '../utils/personal-expense-date';
-import styles from './expenses.module.css';
+import styles from './financial-records.module.css';
 import { ObligationHistory } from './obligation-history';
 
 export function IncomeDetailPage({
@@ -225,62 +228,85 @@ function Detail({
                 Receita
             </h1>
             <Link href={`/spaces/${spaceId}/incomes`}>Voltar às receitas</Link>
+            <Button asChild variant="outline">
+                <Link
+                    href={`/spaces/${spaceId}/finances/commitments/${commitmentId}`}
+                >
+                    Histórico e correções
+                </Link>
+            </Button>
             {returnCycle && settlementReturnPath(spaceId, returnCycle) && (
                 <Link href={settlementReturnPath(spaceId, returnCycle)!}>
                     Voltar ao acerto
                 </Link>
             )}
             {(detail.isPending || detail.isFetching) && !result && (
-                <p role="status">Carregando receita…</p>
+                <FinancialLoading label="Carregando receita…" />
             )}
             {detail.isError && (
                 <div>
                     <p role="alert">Não foi possível consultar a receita.</p>
-                    <button type="button" onClick={() => void detail.refetch()}>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => void detail.refetch()}
+                    >
                         Tentar novamente
-                    </button>
+                    </Button>
                 </div>
             )}
             {value && (
                 <>
-                    <h2>{value.commitment.description}</h2>
-                    <dl>
-                        <div>
-                            <dt>Valor previsto</dt>
-                            <dd>
-                                {formatMoney(value.commitment.amountInCents)}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt>Data prevista</dt>
-                            <dd>
-                                <time
-                                    dateTime={
-                                        value.commitment.expectedReceiptDate
-                                    }
-                                >
-                                    {formatDate(
-                                        value.commitment.expectedReceiptDate,
+                    <div className={styles.receipt}>
+                        <h2>{value.commitment.description}</h2>
+                        <p className={styles.amount}>
+                            {formatMoney(value.commitment.amountInCents)}
+                        </p>
+                        <dl>
+                            <div>
+                                <dt>Valor previsto</dt>
+                                <dd>
+                                    {formatMoney(
+                                        value.commitment.amountInCents,
                                     )}
-                                </time>
-                            </dd>
-                        </div>
-                        <div>
-                            <dt>Recebido</dt>
-                            <dd>{formatMoney(value.receivedAmountInCents)}</dd>
-                        </div>
-                        <div>
-                            <dt>Falta receber</dt>
-                            <dd>{formatMoney(value.remainingAmountInCents)}</dd>
-                        </div>
-                    </dl>
-                    <p>
-                        {value.status === 'PENDING'
-                            ? 'Recebimento pendente.'
-                            : value.status === 'PARTIALLY_RECEIVED'
-                              ? 'Receita parcialmente recebida.'
-                              : 'Receita recebida integralmente.'}
-                    </p>
+                                </dd>
+                            </div>
+                            <div>
+                                <dt>Data prevista</dt>
+                                <dd>
+                                    <time
+                                        dateTime={
+                                            value.commitment.expectedReceiptDate
+                                        }
+                                    >
+                                        {formatDate(
+                                            value.commitment
+                                                .expectedReceiptDate,
+                                        )}
+                                    </time>
+                                </dd>
+                            </div>
+                            <div>
+                                <dt>Recebido</dt>
+                                <dd>
+                                    {formatMoney(value.receivedAmountInCents)}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt>Falta receber</dt>
+                                <dd>
+                                    {formatMoney(value.remainingAmountInCents)}
+                                </dd>
+                            </div>
+                        </dl>
+                        <p>
+                            {value.status === 'PENDING'
+                                ? 'Recebimento pendente.'
+                                : value.status === 'PARTIALLY_RECEIVED'
+                                  ? 'Receita parcialmente recebida.'
+                                  : 'Receita recebida integralmente.'}
+                        </p>
+                    </div>
                     {value.commitment.participationSplit && (
                         <>
                             <h3>Participação econômica</h3>
@@ -311,6 +337,13 @@ function Detail({
                     )}
                     <section aria-label="Histórico de recebimentos">
                         <h3>Recebimentos realizados</h3>
+                        {value.receipts.length === 0 && (
+                            <p className={styles.empty}>
+                                Nenhum recebimento registrado. A receita
+                                permanece prevista até que você registre o
+                                recebimento.
+                            </p>
+                        )}
                         <ol>
                             {value.receipts.map((fact) => (
                                 <li key={fact.id}>
@@ -414,23 +447,22 @@ function Detail({
                         <>
                             <h3>Registrar recebimento</h3>
                             {receiptOptions.isPending && (
-                                <p role="status">
-                                    Carregando opções de recebimento…
-                                </p>
+                                <FinancialLoading label="Carregando opções de recebimento…" />
                             )}
                             {receiptOptions.isError && (
                                 <div>
                                     <p role="alert">
                                         Não foi possível carregar as opções.
                                     </p>
-                                    <button
+                                    <Button
+                                        variant="outline"
                                         type="button"
                                         onClick={() =>
                                             void receiptOptions.refetch()
                                         }
                                     >
                                         Tentar novamente
-                                    </button>
+                                    </Button>
                                 </div>
                             )}
                             {receiptOptions.data &&
@@ -465,7 +497,7 @@ function Detail({
                                         </p>
                                         <label>
                                             Valor recebido agora (R$)
-                                            <input
+                                            <Input
                                                 name="amountInCents"
                                                 inputMode="decimal"
                                                 value={
@@ -479,11 +511,16 @@ function Detail({
                                                     change();
                                                     setAmount(e.target.value);
                                                 }}
+                                                aria-invalid={
+                                                    command.fields.includes(
+                                                        'amountInCents',
+                                                    ) || undefined
+                                                }
                                             />
                                         </label>
                                         <label>
                                             Data do recebimento efetivo
-                                            <input
+                                            <Input
                                                 name="factDate"
                                                 type="date"
                                                 max={
@@ -499,6 +536,11 @@ function Detail({
                                                     change();
                                                     setFactDate(e.target.value);
                                                 }}
+                                                aria-invalid={
+                                                    command.fields.includes(
+                                                        'factDate',
+                                                    ) || undefined
+                                                }
                                             />
                                         </label>
                                         {receiptOptions.data.spaceType ===
@@ -582,7 +624,7 @@ function Detail({
                                                 {mode === 'DATE' && (
                                                     <label>
                                                         Data-alvo
-                                                        <input
+                                                        <Input
                                                             name="targetDate"
                                                             type="date"
                                                             min={
@@ -598,6 +640,11 @@ function Detail({
                                                                         .value,
                                                                 );
                                                             }}
+                                                            aria-invalid={
+                                                                command.fields.includes(
+                                                                    'targetDate',
+                                                                ) || undefined
+                                                            }
                                                         />
                                                     </label>
                                                 )}
@@ -647,7 +694,8 @@ function Detail({
                                         <div>
                                             <p role="alert">{command.error}</p>
                                             {!busy && (
-                                                <button
+                                                <Button
+                                                    variant="outline"
                                                     type="button"
                                                     onClick={() => {
                                                         setReview(null);
@@ -656,18 +704,18 @@ function Detail({
                                                     }}
                                                 >
                                                     Atualizar opções e revisar
-                                                </button>
+                                                </Button>
                                             )}
                                         </div>
                                     )}
-                                    <button
+                                    <Button
                                         type="submit"
                                         disabled={
                                             busy || receiptOptions.isFetching
                                         }
                                     >
                                         Revisar recebimento
-                                    </button>
+                                    </Button>
                                     {review && (
                                         <div
                                             role="group"
@@ -680,7 +728,7 @@ function Detail({
                                                 )}{' '}
                                                 em {review.factDate}.
                                             </p>
-                                            <button
+                                            <Button
                                                 type="button"
                                                 disabled={
                                                     busy ||
@@ -695,8 +743,9 @@ function Detail({
                                                 }
                                             >
                                                 Confirmar recebimento
-                                            </button>
-                                            <button
+                                            </Button>
+                                            <Button
+                                                variant="outline"
                                                 type="button"
                                                 disabled={
                                                     busy ||
@@ -705,16 +754,17 @@ function Detail({
                                                 onClick={() => setReview(null)}
                                             >
                                                 Editar
-                                            </button>
+                                            </Button>
                                         </div>
                                     )}
                                     {command.canRetry && (
-                                        <button
+                                        <Button
+                                            variant="outline"
                                             type="button"
                                             onClick={command.retry}
                                         >
                                             Reenviar a mesma tentativa
-                                        </button>
+                                        </Button>
                                     )}
                                     {command.isPending && (
                                         <p role="status">

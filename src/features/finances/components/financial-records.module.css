@@ -1,0 +1,334 @@
+.stack {
+    display: grid;
+    gap: 1.5rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.stack :is(h1, h2, h3, h4, h5, p) {
+    margin: 0;
+}
+
+.stack h1 {
+    font-size: 1.75rem;
+    line-height: 1.22;
+    letter-spacing: -0.035em;
+    font-weight: 700;
+}
+
+.stack h2 {
+    font-size: 1.25rem;
+    line-height: 1.4;
+    font-weight: 650;
+}
+
+.stack :is(h3, h4, h5) {
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: 650;
+}
+
+.stack > p,
+.help {
+    max-width: 70ch;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.stack > a {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    min-height: 3rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-underline-offset: 0.25em;
+}
+
+.stack form {
+    display: grid;
+    gap: 1.25rem;
+    width: 100%;
+    max-width: 35rem;
+    min-width: 0;
+}
+
+.stack fieldset {
+    display: grid;
+    gap: 1.25rem;
+    min-width: 0;
+    margin: 0;
+    padding: 1.5rem 0 0;
+    border: 0;
+    border-top: 1px solid var(--border);
+}
+
+.stack legend {
+    padding-right: 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 650;
+}
+
+.stack label {
+    display: grid;
+    gap: 0.5rem;
+    min-width: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.stack label:has(+ input),
+.stack label:has(+ select) {
+    margin-bottom: -0.75rem;
+}
+
+.stack select {
+    width: 100%;
+    min-width: 0;
+    min-height: 3rem;
+    padding: 0.75rem;
+    border: 1px solid var(--input);
+    border-radius: 0.75rem;
+    background: var(--card);
+    color: var(--foreground);
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 400;
+}
+
+.stack input:is([type='checkbox'], [type='radio']) {
+    width: 1.25rem;
+    height: 1.25rem;
+    min-height: 1.25rem;
+    margin: 0;
+    accent-color: var(--primary);
+}
+
+.stack label:has(input:is([type='checkbox'], [type='radio'])) {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 3rem;
+}
+
+.stack :is(a, select, input[type='checkbox'], summary):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 4px;
+}
+
+.stack select:disabled,
+.stack fieldset:disabled {
+    opacity: 0.6;
+}
+
+.stack [data-slot='button'] {
+    max-width: 100%;
+    white-space: normal;
+}
+
+.stack > [data-slot='button'],
+.stack form > [data-slot='button'] {
+    justify-self: start;
+}
+
+.stack [role='alert'] {
+    padding: 1rem;
+    border: 1px solid var(--destructive);
+    border-radius: 0.5rem;
+    background: var(--card);
+    color: var(--destructive);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.stack [role='status'] {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+}
+
+.stack [role='group'] {
+    display: grid;
+    gap: 1rem;
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--card);
+}
+
+.stack [role='group'] > p {
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+.stack > section:not(.stack) {
+    display: grid;
+    gap: 1rem;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.stack nav {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+}
+
+.heading {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.receipt,
+.summary {
+    display: grid;
+    gap: 1rem;
+    padding: 1.5rem;
+    min-width: 0;
+    max-width: 46rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+}
+
+.amount {
+    font-size: 2rem;
+    line-height: 1.25;
+    letter-spacing: -0.035em;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.stack dl {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.75rem 1rem;
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.stack dl > div {
+    display: contents;
+}
+
+.stack dt {
+    color: var(--muted-foreground);
+}
+
+.stack dd {
+    margin: 0;
+    text-align: right;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+}
+
+.list,
+.stack :is(ul, ol) {
+    display: grid;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+}
+
+.stack li {
+    display: grid;
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 1.25rem;
+}
+
+.stack li + li {
+    border-top: 1px solid var(--border);
+}
+
+.stack li p {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+}
+.stack li .amount {
+    color: var(--foreground);
+    font-size: 1.125rem;
+    font-weight: 650;
+}
+
+.stack li > a {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-underline-offset: 0.25em;
+}
+
+.stack li :is(ul, ol) {
+    border: 0;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+}
+
+.stack li li {
+    padding: 1rem 0;
+}
+.stack :is(ul, ol):empty {
+    display: none;
+}
+
+.empty {
+    display: grid;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+}
+
+.details {
+    display: grid;
+    gap: 0.75rem;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+}
+
+.details summary {
+    cursor: pointer;
+    min-height: 3rem;
+    align-content: center;
+    color: var(--foreground);
+    font-weight: 600;
+}
+
+.success {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--success);
+    font-weight: 600;
+}
+
+@media (max-width: 359px) {
+    .receipt,
+    .summary {
+        padding: 1rem;
+    }
+
+    .stack dl {
+        grid-template-columns: 1fr;
+        gap: 0.375rem;
+    }
+
+    .stack dd {
+        margin-bottom: 0.5rem;
+        text-align: left;
+    }
+}

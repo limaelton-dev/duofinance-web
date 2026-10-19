@@ -5,6 +5,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { ApiError } from '@/lib/api/api-error';
 import { logout } from '@/lib/api/logout';
+import { Button } from '@/components/ui/button';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { LogOut } from 'lucide-react';
 import { useInvitationFlowContext } from '@/features/spaces/context/invitation-flow-provider';
 import { useOptionalSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
 
@@ -14,7 +17,7 @@ import { getAuthErrorMessage } from '../utils/get-auth-error-message';
 import formStyles from './auth-form.module.css';
 import styles from './logout-button.module.css';
 
-export function LogoutButton() {
+export function LogoutButton({ menuItem = false }: { menuItem?: boolean }) {
     const queryClient = useQueryClient();
     const csrf = useCsrf();
     const invitationFlow = useInvitationFlowContext();
@@ -107,6 +110,28 @@ export function LogoutButton() {
               )
             : null);
 
+    const disabled = isBusy || csrf.isFetching || switchBlocked;
+    const button = (
+        <Button
+            type="button"
+            variant="ghost"
+            className={styles.button}
+            onClick={handleLogout}
+            disabled={disabled}
+        >
+            <LogOut aria-hidden="true" size={18} />
+            {signOut.isSuccess
+                ? 'Saída confirmada...'
+                : signOut.isPending
+                  ? 'Saindo...'
+                  : csrf.isFetching
+                    ? 'Preparando...'
+                    : visibleError
+                      ? 'Tentar novamente'
+                      : 'Sair'}
+        </Button>
+    );
+
     return (
         <div className={styles.actions} aria-busy={signOut.isPending}>
             {visibleError && (
@@ -114,23 +139,17 @@ export function LogoutButton() {
                     {visibleError}
                 </p>
             )}
-
-            <button
-                type="button"
-                className={formStyles.button}
-                onClick={handleLogout}
-                disabled={isBusy || csrf.isFetching || switchBlocked}
-            >
-                {signOut.isSuccess
-                    ? 'Saída confirmada...'
-                    : signOut.isPending
-                      ? 'Saindo...'
-                      : csrf.isFetching
-                        ? 'Preparando...'
-                        : visibleError
-                          ? 'Tentar novamente'
-                          : 'Sair'}
-            </button>
+            {menuItem ? (
+                <DropdownMenuItem
+                    asChild
+                    disabled={disabled}
+                    onSelect={(event) => event.preventDefault()}
+                >
+                    {button}
+                </DropdownMenuItem>
+            ) : (
+                button
+            )}
         </div>
     );
 }

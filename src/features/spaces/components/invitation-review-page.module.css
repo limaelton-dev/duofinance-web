@@ -1,14 +1,16 @@
 .page {
-    width: min(38rem, 100%);
+    width: min(35rem, 100%);
+    min-height: 100svh;
     margin: 0 auto;
-    padding: 2rem 1rem;
+    padding: 3rem 1rem;
 }
-
+.brand {
+    margin-bottom: 3rem;
+}
 .title:focus {
     outline: none;
 }
-
 .page a:focus-visible {
-    outline: 3px solid #2563eb;
-    outline-offset: 3px;
+    outline: 2px solid var(--ring);
+    outline-offset: 4px;
 }

@@ -6,6 +6,7 @@ const apiUrl = 'http://localhost:3101/v2';
 
 export default defineConfig({
     testDir: './e2e',
+    testIgnore: ['interface.spec.ts', '*-interface.spec.ts'],
     fullyParallel: false,
     forbidOnly: true,
     retries: 0,
@@ -56,6 +57,7 @@ export default defineConfig({
             env: {
                 NODE_ENV: 'production',
                 NEXT_PUBLIC_API_URL: apiUrl,
+                NEXT_DIST_DIR: '.next-e2e',
             },
         },
     ],

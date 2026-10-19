@@ -1,4 +1,7 @@
 'use client';
+import { FinancialLoading } from './financial-loading';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useEffect, useRef, useState } from 'react';
 import { getExpenseDisbursementOptions } from '@/lib/api/expense-disbursement';
 import { ApiError } from '@/lib/api/api-error';
@@ -8,10 +11,10 @@ import { useExpenseLeaveGuard } from '../hooks/use-expense-leave-guard';
 import type { ExpenseDisbursementInput } from '../types/expense-disbursement';
 import type { DisbursementMethod } from '../types/personal-expense';
 import type { Settlement } from '../types/shared-expense';
-import { decimalUnits, formatMoney } from '../utils/expense-money';
+import { decimalUnits, formatDate, formatMoney } from '../utils/expense-money';
 import { isPastOrCurrentCivilDate } from '../utils/personal-expense-date';
 import { disbursementMethodLabels } from './personal-expense-summary';
-import styles from './expenses.module.css';
+import styles from './financial-records.module.css';
 
 export function ExpenseDisbursementForm({
     personId,
@@ -158,19 +161,20 @@ export function ExpenseDisbursementForm({
         <section className={styles.stack} aria-label="Novo pagamento">
             {message && <p role="status">{message}</p>}
             {(options.isPending || options.isFetching) && (
-                <p role="status">Carregando opções de pagamento…</p>
+                <FinancialLoading label="Carregando opções de pagamento…" />
             )}
             {options.isError && (
                 <div>
                     <p role="alert">
                         Não foi possível carregar as opções de pagamento.
                     </p>
-                    <button
+                    <Button
+                        variant="outline"
                         type="button"
                         onClick={() => void options.refetch()}
                     >
                         Tentar novamente as opções
-                    </button>
+                    </Button>
                 </div>
             )}
             {o && !o.canDisburse && (
@@ -191,7 +195,7 @@ export function ExpenseDisbursementForm({
                         <legend>Pagamento efetivo</legend>
                         <label>
                             Valor pago agora (R$)
-                            <input
+                            <Input
                                 name="amountInCents"
                                 inputMode="decimal"
                                 value={amount}
@@ -199,11 +203,15 @@ export function ExpenseDisbursementForm({
                                     change();
                                     setAmount(e.target.value);
                                 }}
+                                aria-invalid={
+                                    command.fields.includes('amountInCents') ||
+                                    undefined
+                                }
                             />
                         </label>
                         <label>
                             Data do pagamento
-                            <input
+                            <Input
                                 name="factDate"
                                 type="date"
                                 max={o.referenceDate}
@@ -212,6 +220,10 @@ export function ExpenseDisbursementForm({
                                     change();
                                     setDate(e.target.value);
                                 }}
+                                aria-invalid={
+                                    command.fields.includes('factDate') ||
+                                    undefined
+                                }
                             />
                         </label>
                         <label>
@@ -293,7 +305,7 @@ export function ExpenseDisbursementForm({
                                 {mode === 'DATE' && (
                                     <label>
                                         Data-alvo do acerto
-                                        <input
+                                        <Input
                                             name="targetDate"
                                             type="date"
                                             min={o.referenceDate}
@@ -302,6 +314,11 @@ export function ExpenseDisbursementForm({
                                                 change();
                                                 setTargetDate(e.target.value);
                                             }}
+                                            aria-invalid={
+                                                command.fields.includes(
+                                                    'targetDate',
+                                                ) || undefined
+                                            }
                                         />
                                     </label>
                                 )}
@@ -338,7 +355,8 @@ export function ExpenseDisbursementForm({
                         <div>
                             <p role="alert">{command.error}</p>
                             {!busy && (
-                                <button
+                                <Button
+                                    variant="outline"
                                     type="button"
                                     onClick={() => {
                                         setReview(null);
@@ -346,25 +364,41 @@ export function ExpenseDisbursementForm({
                                     }}
                                 >
                                     Atualizar opções e revisar
-                                </button>
+                                </Button>
                             )}
                         </div>
                     )}
-                    <button type="submit" disabled={busy || options.isFetching}>
+                    <Button type="submit" disabled={busy || options.isFetching}>
                         Revisar pagamento
-                    </button>
+                    </Button>
                     {review && (
                         <div role="group" aria-label="Confirmar pagamento">
+                            <h3>Confira o pagamento</h3>
+                            <dl>
+                                <dt>Valor pago agora</dt>
+                                <dd>{formatMoney(review.amountInCents)}</dd>
+                                <dt>Meio do pagamento</dt>
+                                <dd>
+                                    {disbursementMethodLabels[review.method]}
+                                </dd>
+                                <dt>Restante a pagar após o registro</dt>
+                                <dd>
+                                    {formatMoney(
+                                        o.remainingAmountInCents -
+                                            review.amountInCents,
+                                    )}
+                                </dd>
+                            </dl>
                             <p>
                                 Confirme o pagamento de{' '}
                                 {formatMoney(review.amountInCents)} em{' '}
-                                {review.factDate}
+                                {formatDate(review.factDate)}
                                 {review.payerMemberId
                                     ? ` por ${o.members?.find((m) => m.memberId === review.payerMemberId)?.displayName}`
                                     : ''}
                                 .
                             </p>
-                            <button
+                            <Button
                                 type="button"
                                 disabled={busy || options.isFetching}
                                 onClick={() =>
@@ -375,24 +409,26 @@ export function ExpenseDisbursementForm({
                                 }
                             >
                                 Confirmar pagamento
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="outline"
                                 type="button"
                                 disabled={busy}
                                 onClick={() => setReview(null)}
                             >
                                 Editar
-                            </button>
+                            </Button>
                         </div>
                     )}
                     {command.canRetry && (
-                        <button
+                        <Button
+                            variant="outline"
                             type="button"
                             disabled={command.isPending}
                             onClick={command.retry}
                         >
                             Reenviar a mesma tentativa
-                        </button>
+                        </Button>
                     )}
                     {command.isPending && (
                         <p role="status">Registrando pagamento…</p>

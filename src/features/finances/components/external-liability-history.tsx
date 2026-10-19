@@ -1,5 +1,7 @@
 'use client';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import styles from './financial-records.module.css';
 import { useState } from 'react';
 import type { ExpenseView, Member } from '../types/shared-expense';
 import type { PersonalExpenseDetail } from '../types/personal-expense';
@@ -27,7 +29,10 @@ export function ExternalLiabilityHistory({
               'Pessoa do registro');
     if (!value.externalLiabilities?.length) return null;
     return (
-        <section aria-label="Obrigações externas e liquidações">
+        <section
+            className={styles.stack}
+            aria-label="Obrigações externas e liquidações"
+        >
             <h3>Obrigações externas e liquidações</h3>
             {message && <p role="status">{message}</p>}
             <p>
@@ -122,7 +127,8 @@ export function ExternalLiabilityHistory({
                             {own &&
                                 liability.remainingAmountInCents > 0 &&
                                 selected !== liability.id && (
-                                    <button
+                                    <Button
+                                        variant="outline"
                                         type="button"
                                         disabled={selected !== null}
                                         onClick={() => {
@@ -131,7 +137,7 @@ export function ExternalLiabilityHistory({
                                         }}
                                     >
                                         Registrar pagamento
-                                    </button>
+                                    </Button>
                                 )}
                             {selected === liability.id && (
                                 <ExternalLiabilitySettlementForm

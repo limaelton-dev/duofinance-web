@@ -79,6 +79,9 @@ export type SettlementTransfer = {
     registeredAt: string;
     createdByPersonId: string;
     mode: 'MANUAL';
+    reversedAmountInCents?: number;
+    effectiveAmountInCents?: number;
+    reversalId?: string | null;
 };
 
 export type TransferDetail = {

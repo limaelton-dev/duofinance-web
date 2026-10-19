@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { ExpenseView, Member } from '../types/shared-expense';
 import type { IncomeDetail } from '../types/income';
 import { formatMoney } from '../utils/expense-money';
+import styles from './finances-summary.module.css';
 
 export function ObligationHistory({
     spaceId,
@@ -20,9 +21,9 @@ export function ObligationHistory({
         'Membro do registro';
     if (!obligations.length) return null;
     return (
-        <section aria-label="Histórico de pendências">
+        <section aria-label="Histórico de pendências" className={styles.stack}>
             <h3>Histórico de pendências</h3>
-            <ol>
+            <ol className={styles.list}>
                 {obligations.map((item) => (
                     <li key={item.id}>
                         <p>
@@ -49,6 +50,7 @@ export function ObligationHistory({
                                     OPEN: 'Aberta',
                                     PARTIALLY_SETTLED: 'Parcialmente acertada',
                                     SETTLED: 'Acertada',
+                                    WAIVED: 'Dispensada pelo credor',
                                     RECONCILED:
                                         'Encerrada por reconciliação dos fatos desta origem; este encerramento não representa uma transferência.',
                                 }[item.status]
@@ -89,6 +91,11 @@ export function ObligationHistory({
                             href={`/spaces/${spaceId}/finances/settlements/transfers?obligationId=${item.id}`}
                         >
                             Ver transferências desta pendência
+                        </Link>
+                        <Link
+                            href={`/spaces/${spaceId}/finances/settlements/obligations/${item.id}`}
+                        >
+                            Conferir pendência, mudar acerto ou dispensar
                         </Link>
                     </li>
                 ))}

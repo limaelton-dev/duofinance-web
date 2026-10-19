@@ -1,5 +1,7 @@
 'use client';
+import { FinancialLoading } from './financial-loading';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
@@ -9,14 +11,16 @@ import { useExpenseQuery } from '../hooks/use-expense-query';
 import { personalExpenseQueryKeys } from '../cache/personal-expense-query-keys';
 import { formatDate, formatMoney } from '../utils/expense-money';
 import { disbursementMethodLabels } from './personal-expense-summary';
-import styles from './expenses.module.css';
+import styles from './finances-summary.module.css';
 
 export function PersonalExpenseHistoryPage({
     personId,
     spaceId,
+    embedded = false,
 }: {
     personId: string;
     spaceId: string;
+    embedded?: boolean;
 }) {
     const context = useSpaceContextInstance(),
         router = useRouter();
@@ -69,22 +73,51 @@ export function PersonalExpenseHistoryPage({
     const value = !query.isFetching && !query.isError ? query.data : undefined;
     return (
         <section className={styles.stack}>
-            <h1>Finanças</h1>
-            <h2>Histórico de despesas</h2>
-            <nav className={styles.actions} aria-label="Navegação financeira">
-                <Link href={`/spaces/${spaceId}/finances/external-liabilities`}>
-                    Obrigações externas em meu nome
-                </Link>
-                <Link href={`/spaces/${spaceId}/expenses/new`}>
-                    Adicionar despesa
-                </Link>
+            {!embedded && (
+                <div className={styles.heading}>
+                    <h1>Finanças</h1>
+                    <Button asChild>
+                        <Link href={`/spaces/${spaceId}/expenses/new`}>
+                            Adicionar despesa
+                        </Link>
+                    </Button>
+                </div>
+            )}
+            <nav
+                className={styles.actions}
+                aria-label="Despesas e receitas pessoais"
+            >
+                {!embedded && (
+                    <Link
+                        href={`/spaces/${spaceId}/finances/external-liabilities`}
+                    >
+                        Obrigações externas em meu nome
+                    </Link>
+                )}
+                {embedded && (
+                    <Button asChild>
+                        <Link href={`/spaces/${spaceId}/expenses/new`}>
+                            Adicionar despesa
+                        </Link>
+                    </Button>
+                )}
                 <Link href={`/spaces/${spaceId}/incomes`}>Ver receitas</Link>
                 <Link href={`/spaces/${spaceId}/incomes/new`}>
                     Adicionar receita
                 </Link>
-                <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
+                {!embedded && (
+                    <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
+                )}
             </nav>
-            <button
+            <div className={styles.intro}>
+                <h2>Histórico de despesas</h2>
+                <p>
+                    O que você registrou neste espaço, com o valor de cada
+                    despesa e seus pagamentos.
+                </p>
+            </div>
+            <Button
+                variant="outline"
                 type="button"
                 disabled={query.isFetching}
                 onClick={() => {
@@ -93,29 +126,37 @@ export function PersonalExpenseHistoryPage({
                 }}
             >
                 Atualizar / Voltar ao início
-            </button>
+            </Button>
             {(query.isPending || query.isFetching) && (
-                <p role="status" aria-busy="true">
-                    Carregando despesas…
-                </p>
+                <FinancialLoading label="Carregando despesas…" />
             )}
             {query.isError && (
                 <div>
                     <p role="alert">
                         Não foi possível consultar suas despesas.
                     </p>
-                    <button type="button" onClick={() => void query.refetch()}>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => void query.refetch()}
+                    >
                         Tentar novamente as despesas
-                    </button>
+                    </Button>
                 </div>
             )}
             {value && (
                 <>
                     {value.items.length === 0 ? (
-                        <p>Nenhuma despesa registrada nesta página.</p>
+                        <div className={styles.empty}>
+                            <h3>Nenhuma despesa por aqui</h3>
+                            <p>Nenhuma despesa registrada nesta página.</p>
+                            <p>
+                                Adicione uma despesa para começar seu histórico.
+                            </p>
+                        </div>
                     ) : (
                         <ul
-                            className={styles.stack}
+                            className={styles.list}
                             aria-label="Despesas pessoais"
                         >
                             {value.items.map((item) => (
@@ -204,14 +245,15 @@ export function PersonalExpenseHistoryPage({
                         </ul>
                     )}
                     {value.nextCursor && (
-                        <button
+                        <Button
+                            variant="outline"
                             type="button"
                             onClick={() =>
                                 setSelection({ cursor: value.nextCursor })
                             }
                         >
                             Próxima página de despesas
-                        </button>
+                        </Button>
                     )}
                 </>
             )}

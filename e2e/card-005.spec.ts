@@ -494,7 +494,7 @@ test('A10/A16: resultado incerto bloqueia troca e retry conserva ator/destino/ke
     await expect(trigger(page)).toBeDisabled();
     release.resolve();
     const retry = page.getByRole('button', {
-        name: 'Tentar novamente o envio',
+        name: 'Recuperar esta tentativa',
         exact: true,
     });
     await expect(retry).toBeEnabled();
@@ -581,7 +581,7 @@ for (const failure of ['network', '500', '429', 'csrf']) {
         await edit(page, 14);
         await save(page);
         const retry = page.getByRole('button', {
-            name: 'Tentar novamente o envio',
+            name: 'Recuperar esta tentativa',
             exact: true,
         });
         await expect(retry).toBeEnabled();
@@ -826,7 +826,7 @@ test('A18: resposta pendente da sessão anterior da mesma pessoa não publica re
     await page.getByRole('button', { name: 'Sair', exact: true }).click();
     await expect(page).toHaveURL('/login');
     await login(page, a);
-    await page.getByRole('link', { name: 'Ver espaços', exact: true }).click();
+    await page.getByRole('link', { name: 'Meus espaços', exact: true }).click();
     await page.locator(`main a[href="/spaces/${s1.id}"]`).click();
     await page
         .getByRole('link', { name: 'Configurações do espaço', exact: true })

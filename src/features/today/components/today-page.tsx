@@ -2,8 +2,24 @@
 
 import Link from 'next/link';
 import { useEffect } from 'react';
+import {
+    ArrowDownLeft,
+    ArrowUpRight,
+    ArrowRight,
+    CalendarDays,
+    Plus,
+    TriangleAlert,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuthenticatedContext } from '@/features/auth/hooks/use-authenticated-context';
-import { LogoutButton } from '@/features/auth/components/logout-button';
 import { useSpaceContext } from '@/features/spaces/hooks/use-space-context';
 import { useSpaceDetails } from '@/features/spaces/hooks/use-space-details';
 import { useSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
@@ -15,7 +31,18 @@ import {
     formatMoney,
 } from '@/features/finances/utils/expense-money';
 import { useToday } from '../hooks/use-today';
-import type { TodaySettlements } from '../types/today';
+import type {
+    Today,
+    TodayBlock,
+    TodayPreviewItem,
+    TodaySettlements,
+} from '../types/today';
+import {
+    formatTodayReferenceDate,
+    shouldShowTodayBlock,
+    todayItemHref,
+    todayItemKey,
+} from '../utils/today-presentation';
 import styles from './today.module.css';
 
 export function TodayPage() {
@@ -27,7 +54,6 @@ export function TodayPage() {
         <TodayRead
             key={`${auth.data.person.id}:${space.activeSpaceId}:${space.generation}`}
             personId={auth.data.person.id}
-            displayName={auth.data.person.displayName}
             spaceId={space.currentSpace.id}
         />
     );
@@ -39,348 +65,527 @@ function CycleCard({
     spaceId,
 }: {
     cycle: SettlementCycle;
-    settlements: TodaySettlements;
+    settlements: TodaySettlements | null;
     spaceId: string;
 }) {
-    const other = settlements.members.find(
+    const other = settlements?.members.find(
         (member) => member.memberId !== settlements.actorMemberId,
     );
+    const net = cycle.position.net;
     return (
-        <article className={styles.card}>
-            <h3>
-                Acerto de{' '}
-                <time dateTime={cycle.targetDate}>
-                    {formatDate(cycle.targetDate)}
-                </time>
-            </h3>
-            <p>Em aberto{cycle.isOverdue ? ' · Vencido' : ''}</p>
-            <p>
-                {cycle.obligationCount}{' '}
-                {cycle.obligationCount === 1 ? 'pendência' : 'pendências'} na
-                composição · {cycle.openObligationCount} com valor em aberto
-            </p>
-            <dl className={styles.totals} aria-label="Resumo do acerto">
-                <div>
-                    <dt>Valor original bruto</dt>
-                    <dd>
-                        {formatPositionMoney(
-                            cycle.totals.originalAmountInCents,
-                        )}
-                    </dd>
-                </div>
-                <div>
-                    <dt>Valor reconhecido</dt>
-                    <dd>
-                        {formatPositionMoney(
-                            cycle.totals.recognizedAmountInCents ??
-                                cycle.totals.originalAmountInCents,
-                        )}
-                    </dd>
-                    <dt>Valor reconhecido já acertado</dt>
-                    <dd>
-                        {formatPositionMoney(
-                            cycle.totals.resolvedAmountInCents,
-                        )}
-                    </dd>
-                </div>
-                <div>
-                    <dt>Dinheiro transferido</dt>
-                    <dd>
-                        {formatPositionMoney(
-                            cycle.totals.transferredAmountInCents,
-                        )}
-                    </dd>
-                </div>
-                <div>
-                    <dt>Falta acertar</dt>
-                    <dd>
-                        {formatPositionMoney(
-                            cycle.totals.remainingAmountInCents,
-                        )}
-                    </dd>
-                </div>
-                <div>
-                    <dt>A pagar</dt>
-                    <dd>
-                        {formatPositionMoney(
-                            cycle.position.payableAmountInCents,
-                        )}
-                    </dd>
-                </div>
-                <div>
-                    <dt>A receber</dt>
-                    <dd>
-                        {formatPositionMoney(
-                            cycle.position.receivableAmountInCents,
-                        )}
-                    </dd>
-                </div>
-                <div>
-                    <dt>Posição líquida informativa</dt>
-                    <dd>
-                        {cycle.position.net.direction === 'PAYABLE'
-                            ? `Você paga${other ? ` para ${other.displayName}` : ''}: `
-                            : cycle.position.net.direction === 'RECEIVABLE'
-                              ? `${other ? `${other.displayName} paga` : 'Pagamento'} para você: `
-                              : ''}
-                        {formatPositionMoney(cycle.position.net.amountInCents)}
-                    </dd>
-                </div>
-            </dl>
+        <article className={styles.cycle}>
+            <div>
+                <h3>
+                    Acerto de{' '}
+                    <time dateTime={cycle.targetDate}>
+                        {formatDate(cycle.targetDate)}
+                    </time>
+                </h3>
+                <p className={styles.meta}>
+                    {cycle.isOverdue
+                        ? 'Data-alvo vencida'
+                        : 'Data-alvo do acerto'}{' '}
+                    · {cycle.openObligationCount}{' '}
+                    {cycle.openObligationCount === 1
+                        ? 'pendência aberta'
+                        : 'pendências abertas'}
+                </p>
+            </div>
             {cycle.totals.remainingAmountInCents === '0' ? (
                 <p>Sem valor em aberto. Este ciclo continua em aberto.</p>
-            ) : cycle.position.net.direction === 'BALANCED' ? (
-                <p>
-                    Os valores se equilibram, mas ainda existem pendências
-                    abertas.
-                </p>
-            ) : null}
-            <Link href={`/spaces/${spaceId}/finances/settlements/${cycle.id}`}>
-                Ver acerto
+            ) : (
+                <div>
+                    {cycle.position.payableAmountInCents !== '0' && (
+                        <p>
+                            Você precisa acertar
+                            {other ? ` com ${other.displayName}` : ''}:{' '}
+                            <strong className={styles.money}>
+                                {formatPositionMoney(
+                                    cycle.position.payableAmountInCents,
+                                )}
+                            </strong>
+                        </p>
+                    )}
+                    {cycle.position.receivableAmountInCents !== '0' && (
+                        <p>
+                            {other?.displayName ?? 'A outra pessoa'} precisa
+                            acertar com você:{' '}
+                            <strong className={styles.money}>
+                                {formatPositionMoney(
+                                    cycle.position.receivableAmountInCents,
+                                )}
+                            </strong>
+                        </p>
+                    )}
+                    {net.direction === 'BALANCED' && (
+                        <p>
+                            Os valores se equilibram, mas ainda existem
+                            pendências abertas.
+                        </p>
+                    )}
+                </div>
+            )}
+            <dl className={styles.cycleAmount}>
+                <dt>Falta acertar</dt>
+                <dd>
+                    {formatPositionMoney(cycle.totals.remainingAmountInCents)}
+                </dd>
+            </dl>
+            <Link
+                className={styles.textLink}
+                href={`/spaces/${spaceId}/finances/settlements/${cycle.id}`}
+            >
+                Ver acerto <ArrowRight aria-hidden="true" size={16} />
             </Link>
         </article>
     );
 }
 
+function PreviewItem({
+    item,
+    today,
+    personId,
+}: {
+    item: TodayPreviewItem;
+    today: Today;
+    personId: string;
+}) {
+    const settlements =
+        today.finance.status === 'AVAILABLE'
+            ? today.finance.data.settlements
+            : null;
+    if (item.type === 'SETTLEMENT_CYCLE')
+        return (
+            <CycleCard
+                cycle={item.details}
+                settlements={settlements}
+                spaceId={today.spaceId}
+            />
+        );
+    const href = todayItemHref(item, today);
+    const financial =
+        item.type === 'FINANCIAL_COMMITMENT' ? item.details : null;
+    const task = item.type === 'TASK' ? item.details : null;
+    const assignee =
+        task?.assignee?.personId === personId
+            ? 'Você'
+            : settlements?.members.find(
+                  (member) => member.personId === task?.assignee?.personId,
+              )?.displayName;
+    return (
+        <article className={styles.item}>
+            <div className={styles.itemMain}>
+                {financial && (
+                    <span className={styles.itemIcon} aria-hidden="true">
+                        {financial.kind === 'INCOME' ? (
+                            <ArrowDownLeft size={20} />
+                        ) : (
+                            <ArrowUpRight size={20} />
+                        )}
+                    </span>
+                )}
+                <div className={styles.itemCopy}>
+                    <h3>
+                        {href ? (
+                            <Link className={styles.itemLink} href={href}>
+                                {item.label}
+                            </Link>
+                        ) : (
+                            item.label
+                        )}
+                    </h3>
+                    <p className={styles.meta}>
+                        {financial
+                            ? financial.kind === 'INCOME'
+                                ? 'Receita prevista'
+                                : 'Despesa prevista'
+                            : item.type === 'TASK'
+                              ? 'Tarefa'
+                              : item.type === 'SHOPPING_LIST'
+                                ? 'Lista de compras'
+                                : item.type === 'CHANGE_PROPOSAL'
+                                  ? 'Aprovação pendente'
+                                  : 'Encerramento do espaço'}
+                        {item.date && (
+                            <>
+                                {' '}
+                                ·{' '}
+                                <time dateTime={item.date}>
+                                    {formatDate(item.date)}
+                                </time>
+                            </>
+                        )}
+                        {task?.deadline?.time && <> às {task.deadline.time}</>}
+                        {task && (
+                            <>
+                                {' '}
+                                ·{' '}
+                                {assignee
+                                    ? `Responsável: ${assignee}`
+                                    : task.assignee
+                                      ? 'Responsável definido'
+                                      : 'Sem responsável'}
+                            </>
+                        )}
+                    </p>
+                    {task &&
+                        (task.conditions.overdue || task.conditions.urgent) && (
+                            <p className={styles.attentionText}>
+                                {task.conditions.overdue
+                                    ? 'Prazo vencido'
+                                    : 'Urgente'}
+                            </p>
+                        )}
+                    {item.type === 'SHOPPING_LIST' && (
+                        <p className={styles.meta}>
+                            {item.details.summary.actionableItemCount}{' '}
+                            {item.details.summary.actionableItemCount === 1
+                                ? 'item por comprar'
+                                : 'itens por comprar'}
+                        </p>
+                    )}
+                    {item.type === 'CHANGE_PROPOSAL' && (
+                        <p className={styles.meta}>
+                            Vigência proposta:{' '}
+                            {formatDate(item.details.effectiveFrom)}.
+                        </p>
+                    )}
+                    {!href && (
+                        <p className={styles.readOnly}>
+                            Para consulta. O detalhe ainda não está disponível
+                            nesta versão.
+                        </p>
+                    )}
+                </div>
+            </div>
+            {financial && (
+                <div className={styles.itemValue}>
+                    {financial.valuePending ||
+                    financial.remainingAmountInCents === null ? (
+                        <>
+                            <span className={styles.meta}>Valor a definir</span>
+                            {financial.expectedAmountInCents !== null && (
+                                <span>
+                                    Estimativa:{' '}
+                                    {formatMoney(
+                                        financial.expectedAmountInCents,
+                                    )}
+                                </span>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <span className={styles.meta}>
+                                {financial.kind === 'INCOME'
+                                    ? 'Falta receber'
+                                    : 'Falta pagar'}
+                            </span>
+                            <strong className={styles.money}>
+                                {formatMoney(financial.remainingAmountInCents)}
+                            </strong>
+                        </>
+                    )}
+                </div>
+            )}
+        </article>
+    );
+}
+
+const blockTitles: Record<TodayBlock['kind'], string> = {
+    ATTENTION: 'Precisa de atenção',
+    TODAY: 'Para hoje',
+    NEXT_SETTLEMENT: 'Próximo acerto',
+    UPCOMING: 'Próximos compromissos',
+    TASKS: 'Tarefas',
+    SHOPPING: 'Compras',
+};
+const emptyMessages: Record<TodayBlock['kind'], string> = {
+    ATTENTION: '',
+    TODAY: 'Nenhum compromisso para hoje.',
+    NEXT_SETTLEMENT: 'Nenhum acerto para hoje ou datas futuras.',
+    UPCOMING: 'Nenhum compromisso próximo para exibir.',
+    TASKS: 'Nenhuma tarefa pendente para exibir.',
+    SHOPPING: 'Nenhuma compra pendente para exibir.',
+};
+
+function TodaySection({
+    block,
+    today,
+    personId,
+    retry,
+    fetching,
+}: {
+    block: TodayBlock;
+    today: Today;
+    personId: string;
+    retry: () => void;
+    fetching: boolean;
+}) {
+    if (!shouldShowTodayBlock(block)) return null;
+    const title = blockTitles[block.kind];
+    const incomplete =
+        block.status === 'PARTIAL' || block.status === 'UNAVAILABLE';
+    return (
+        <section
+            className={styles.section}
+            aria-labelledby={`today-${block.kind}`}
+        >
+            <div className={styles.sectionHeading}>
+                <h2 id={`today-${block.kind}`}>
+                    {block.kind === 'ATTENTION' && (
+                        <TriangleAlert size={20} aria-hidden="true" />
+                    )}
+                    {title}
+                </h2>
+                {block.status === 'AVAILABLE' &&
+                    block.totalCount !== null &&
+                    block.totalCount > 0 && (
+                        <span
+                            className={styles.count}
+                            aria-label={`${block.totalCount} ${block.totalCount === 1 ? 'item' : 'itens'} no total`}
+                        >
+                            {block.totalCount}
+                        </span>
+                    )}
+            </div>
+            {incomplete && (
+                <div className={styles.partial} role="status">
+                    <p>
+                        {block.status === 'PARTIAL'
+                            ? 'Algumas informações não puderam ser carregadas. Os itens disponíveis continuam abaixo.'
+                            : `Não foi possível carregar ${title.toLocaleLowerCase('pt-BR')}.`}
+                    </p>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={retry}
+                        disabled={fetching}
+                    >
+                        Tentar novamente
+                    </Button>
+                </div>
+            )}
+            {block.items.length > 0 ? (
+                <ul className={styles.list}>
+                    {block.items.map((item) => (
+                        <li key={todayItemKey(item)}>
+                            <PreviewItem
+                                item={item}
+                                today={today}
+                                personId={personId}
+                            />
+                        </li>
+                    ))}
+                </ul>
+            ) : block.status === 'AVAILABLE' && block.totalCount === 0 ? (
+                <div className={styles.empty}>
+                    {block.kind === 'TODAY' && (
+                        <CalendarDays size={24} aria-hidden="true" />
+                    )}
+                    <p>{emptyMessages[block.kind]}</p>
+                </div>
+            ) : null}
+            {block.hasMore === true && block.totalCount !== null && (
+                <p className={styles.more}>
+                    Exibindo {block.items.length} de {block.totalCount} itens.
+                </p>
+            )}
+            {block.kind === 'UPCOMING' &&
+                today.finance.status === 'AVAILABLE' && (
+                    <Link
+                        className={styles.textLink}
+                        href={`/spaces/${today.spaceId}/incomes`}
+                    >
+                        Ver receitas <ArrowRight size={16} aria-hidden="true" />
+                    </Link>
+                )}
+            {block.kind === 'ATTENTION' &&
+                block.items.some(
+                    (item) => item.type === 'SETTLEMENT_CYCLE',
+                ) && (
+                    <Link
+                        className={styles.textLink}
+                        href={`/spaces/${today.spaceId}/finances/settlements`}
+                    >
+                        Ver todos os acertos{' '}
+                        <ArrowRight size={16} aria-hidden="true" />
+                    </Link>
+                )}
+        </section>
+    );
+}
+
 function TodayRead({
     personId,
-    displayName,
     spaceId,
 }: {
     personId: string;
-    displayName: string;
     spaceId: string;
 }) {
     const space = useSpaceContext();
     const selection = useSpaceContextInstance();
     const today = useToday(personId, spaceId);
     const details = useSpaceDetails(personId, spaceId);
+    const denied =
+        isSpaceAccessDenied(today.error) || isSpaceAccessDenied(details.error);
     useEffect(() => {
-        if (
-            isSpaceAccessDenied(today.error) ||
-            isSpaceAccessDenied(details.error)
-        )
-            void selection.accessLost(spaceId);
-    }, [today.error, details.error, selection, spaceId]);
-    const shared = space.currentSpace?.type === 'SHARED';
-    const data = today.data;
-    const status =
-        !today.isError && data ? data.spaceStatus : space.currentSpace?.status;
-    const unavailable =
-        !today.isError && data?.finance.status === 'UNAVAILABLE';
-    const finance =
-        !today.isError && data?.finance.status === 'AVAILABLE'
-            ? data.finance.data
-            : null;
-    const settlements = shared ? finance?.settlements : null;
+        if (denied) void selection.accessLost(spaceId);
+    }, [denied, selection, spaceId]);
+    const data = !today.isError ? today.data : undefined;
+    const status = data?.spaceStatus ?? space.currentSpace?.status;
     const confirmed =
         !details.isError && details.data?.space.id === spaceId
             ? details.data
             : null;
-    const canAddExpense =
-        confirmed?.space.status === 'ACTIVE' &&
-        status === 'ACTIVE' &&
-        (confirmed.space.type === 'PERSONAL' ||
-            confirmed.activeMemberCount === 2);
     const canAddIncome =
         confirmed?.space.status === 'ACTIVE' && status === 'ACTIVE';
+    const canAddExpense =
+        canAddIncome &&
+        (confirmed?.space.type === 'PERSONAL' ||
+            confirmed?.activeMemberCount === 2);
+    if (denied) return null;
     return (
         <section className={styles.page} aria-labelledby="today-title">
-            <header>
-                <p className={styles.spaceLabel}>{space.currentSpace?.label}</p>
-                <h1 id="today-title">Hoje</h1>
-                <h2>Olá, {displayName}.</h2>
-                <p>
-                    {!shared
-                        ? 'Seu espaço pessoal está pronto.'
-                        : `Seu espaço compartilhado está ${status === 'ACTIVE' ? 'ativo' : status === 'CLOSING' ? 'em encerramento' : 'encerrado'}.`}
-                </p>
-                {confirmed?.space.type === 'SHARED' && (
-                    <p>
-                        {confirmed.activeMemberCount === 1
-                            ? 'Uma pessoa participa deste espaço.'
-                            : 'Duas pessoas participam deste espaço.'}
-                    </p>
-                )}
-                {data && !today.isError && (
-                    <p>
-                        Referência:{' '}
-                        <time dateTime={data.referenceDate}>
-                            {formatDate(data.referenceDate)}
-                        </time>
-                    </p>
-                )}
+            <header className={styles.header}>
+                <div>
+                    <h1 id="today-title">Hoje</h1>
+                    {data ? (
+                        <p className={styles.date}>
+                            <time dateTime={data.referenceDate}>
+                                {formatTodayReferenceDate(data.referenceDate)}
+                            </time>
+                        </p>
+                    ) : (
+                        <p className={styles.meta}>
+                            Seus próximos passos, neste espaço.
+                        </p>
+                    )}
+                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button disabled={!canAddIncome} aria-label="Adicionar">
+                            <Plus size={18} aria-hidden="true" />
+                            Adicionar
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        {canAddExpense && (
+                            <DropdownMenuItem asChild>
+                                <Link href={`/spaces/${spaceId}/expenses/new`}>
+                                    <ArrowUpRight
+                                        size={18}
+                                        aria-hidden="true"
+                                    />
+                                    Adicionar despesa
+                                </Link>
+                            </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem asChild>
+                            <Link href={`/spaces/${spaceId}/incomes/new`}>
+                                <ArrowDownLeft size={18} aria-hidden="true" />
+                                Adicionar receita
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={`/spaces/${spaceId}/finances/planning`}>
+                                Planejar compromisso
+                            </Link>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </header>
-            <nav className={styles.actions} aria-label="Ações do espaço">
-                <Link href={`/spaces/${spaceId}/finances`}>Finanças</Link>
-                {canAddExpense && (
-                    <Link href={`/spaces/${spaceId}/expenses/new`}>
-                        Adicionar despesa
-                    </Link>
-                )}
-                {canAddIncome && (
-                    <Link href={`/spaces/${spaceId}/incomes/new`}>
-                        Adicionar receita
-                    </Link>
-                )}
-                {!shared && (
-                    <Link href="/spaces/new">Criar espaço compartilhado</Link>
-                )}
-                <Link href="/spaces">Ver espaços</Link>
-            </nav>
+            {status !== 'ACTIVE' && (
+                <Alert>
+                    <AlertTitle>
+                        {status === 'CLOSED'
+                            ? 'Espaço encerrado'
+                            : 'Espaço em encerramento'}
+                    </AlertTitle>
+                    <AlertDescription>
+                        O histórico continua disponível para consulta. Não é
+                        possível adicionar novos registros.
+                    </AlertDescription>
+                </Alert>
+            )}
             {confirmed?.space.type === 'SHARED' &&
                 confirmed.space.status === 'ACTIVE' &&
                 status === 'ACTIVE' &&
                 confirmed.activeMemberCount === 1 && (
-                    <aside className={styles.card}>
-                        <p>Aguardando outra pessoa entrar no espaço.</p>
-                        <Link href={`/spaces/${spaceId}`}>
-                            Ver espaço e convite
-                        </Link>
-                    </aside>
+                    <Alert>
+                        <AlertTitle>
+                            Aguardando outra pessoa entrar no espaço.
+                        </AlertTitle>
+                        <AlertDescription>
+                            Convide a outra pessoa para acompanhar os registros
+                            deste espaço.
+                            <Link
+                                className={styles.textLink}
+                                href={`/spaces/${spaceId}`}
+                            >
+                                Ver espaço e convite{' '}
+                                <ArrowRight size={16} aria-hidden="true" />
+                            </Link>
+                        </AlertDescription>
+                    </Alert>
                 )}
-            {details.isError && !isSpaceAccessDenied(details.error) && (
-                <aside>
-                    <p role="alert">
-                        Não foi possível consultar o espaço. Tente novamente.
-                    </p>
-                    <button
-                        type="button"
-                        onClick={() => void details.refetch()}
-                    >
-                        Tentar novamente o espaço
-                    </button>
-                </aside>
+            {details.isError && (
+                <Alert>
+                    <AlertTitle>
+                        Não foi possível consultar o espaço.
+                    </AlertTitle>
+                    <AlertDescription>
+                        Atualize o espaço para voltar a adicionar registros.
+                        <Button
+                            variant="outline"
+                            onClick={() => void details.refetch()}
+                            disabled={details.isFetching}
+                        >
+                            Tentar novamente o espaço
+                        </Button>
+                    </AlertDescription>
+                </Alert>
             )}
             {today.isPending ? (
                 <div
                     role="status"
                     aria-label="Carregando Hoje"
-                    className={styles.skeleton}
+                    className={styles.loading}
                 >
-                    <p>Carregando Hoje…</p>
-                    <div />
-                    <div />
+                    <span className="sr-only">Carregando Hoje…</span>
+                    <Skeleton className="h-7 w-44" />
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="mt-6 h-7 w-52" />
+                    <Skeleton className="h-24 w-full" />
                 </div>
-            ) : today.isError || unavailable ? (
-                <section
-                    className={styles.card}
-                    aria-label="Finanças indisponíveis"
-                >
-                    <p role="alert">
-                        {unavailable && data?.finance.status === 'UNAVAILABLE'
-                            ? data.finance.error.message
-                            : 'Não foi possível carregar as finanças. Tente novamente.'}
-                    </p>
-                    <button
-                        type="button"
-                        onClick={() => void today.refetch()}
-                        disabled={today.isFetching}
-                    >
-                        Tentar novamente
-                    </button>
-                </section>
-            ) : finance ? (
-                <>
-                    {settlements &&
-                        settlements.overdueCycles.totalCount > 0 && (
-                            <section aria-labelledby="attention-title">
-                                <h2 id="attention-title">Precisa de atenção</h2>
-                                <p>
-                                    {settlements.overdueCycles.totalCount}{' '}
-                                    {settlements.overdueCycles.totalCount === 1
-                                        ? 'acerto vencido'
-                                        : 'acertos vencidos'}{' '}
-                                    com valor em aberto
-                                </p>
-                                <ul
-                                    className={styles.list}
-                                    aria-label="Acertos vencidos"
-                                >
-                                    {settlements.overdueCycles.items.map(
-                                        (cycle) => (
-                                            <li key={cycle.id}>
-                                                <CycleCard
-                                                    cycle={cycle}
-                                                    settlements={settlements}
-                                                    spaceId={spaceId}
-                                                />
-                                            </li>
-                                        ),
-                                    )}
-                                </ul>
-                                {settlements.overdueCycles.totalCount >
-                                    settlements.overdueCycles.items.length && (
-                                    <p>
-                                        <Link
-                                            href={`/spaces/${spaceId}/finances/settlements`}
-                                        >
-                                            Ver todos os acertos
-                                        </Link>
-                                    </p>
-                                )}
-                            </section>
-                        )}
-                    {settlements && (
-                        <section aria-labelledby="next-settlement-title">
-                            <h2 id="next-settlement-title">Próximo acerto</h2>
-                            {settlements.nextCycle ? (
-                                <CycleCard
-                                    cycle={settlements.nextCycle}
-                                    settlements={settlements}
-                                    spaceId={spaceId}
-                                />
-                            ) : (
-                                <p>Nenhum acerto para hoje ou datas futuras.</p>
-                            )}
-                        </section>
-                    )}
-                    <section aria-labelledby="upcoming-commitments-title">
-                        <h2 id="upcoming-commitments-title">
-                            Próximos compromissos
-                        </h2>
-                        {finance?.upcomingCommitments.items.length ? (
-                            <ul>
-                                {finance.upcomingCommitments.items.map(
-                                    (item) => (
-                                        <li key={item.commitmentId}>
-                                            <Link
-                                                href={`/spaces/${spaceId}/incomes/${item.commitmentId}`}
-                                            >
-                                                {item.description}
-                                            </Link>{' '}
-                                            — Falta receber:{' '}
-                                            {formatMoney(
-                                                item.remainingAmountInCents ??
-                                                    item.amountInCents,
-                                            )}{' '}
-                                            previsto para{' '}
-                                            <time
-                                                dateTime={
-                                                    item.expectedReceiptDate
-                                                }
-                                            >
-                                                {formatDate(
-                                                    item.expectedReceiptDate,
-                                                )}
-                                            </time>
-                                        </li>
-                                    ),
-                                )}
-                            </ul>
-                        ) : (
-                            <p>Nenhum compromisso próximo para exibir.</p>
-                        )}
-                        {(finance?.upcomingCommitments.totalCount ?? 0) > 4 && (
-                            <p>Há mais receitas previstas na lista completa.</p>
-                        )}
-                        <Link href={`/spaces/${spaceId}/incomes`}>
-                            Ver receitas
-                        </Link>
-                    </section>
-                </>
+            ) : today.isError ? (
+                <Alert>
+                    <AlertTitle>Não foi possível carregar Hoje.</AlertTitle>
+                    <AlertDescription>
+                        Suas informações não foram alteradas. Tente carregar
+                        novamente.
+                        <Button
+                            variant="outline"
+                            onClick={() => void today.refetch()}
+                            disabled={today.isFetching}
+                        >
+                            Tentar novamente
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            ) : data ? (
+                <div className={styles.sections}>
+                    {data.blocks.map((block) => (
+                        <TodaySection
+                            key={block.kind}
+                            block={block}
+                            today={data}
+                            personId={personId}
+                            retry={() => void today.refetch()}
+                            fetching={today.isFetching}
+                        />
+                    ))}
+                </div>
             ) : null}
-            <LogoutButton />
         </section>
     );
 }

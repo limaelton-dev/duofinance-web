@@ -1,4 +1,7 @@
 'use client';
+import { FinancialLoading } from './financial-loading';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useEffect, useRef, useState } from 'react';
 import { getExternalLiabilityOptions } from '@/lib/api/credit-card-purchase';
 import { ApiError } from '@/lib/api/api-error';
@@ -10,9 +13,9 @@ import type {
     ExternalLiabilityOptions,
 } from '../types/credit-card-purchase';
 import type { Settlement } from '../types/shared-expense';
-import { decimalUnits, formatMoney } from '../utils/expense-money';
+import { decimalUnits, formatDate, formatMoney } from '../utils/expense-money';
 import { isPastOrCurrentCivilDate } from '../utils/personal-expense-date';
-import styles from './expenses.module.css';
+import styles from './financial-records.module.css';
 
 export function ExternalLiabilityForm({
     personId,
@@ -154,19 +157,20 @@ export function ExternalLiabilityForm({
         <section className={styles.stack} aria-label="Nova compra no cartão">
             {message && <p role="status">{message}</p>}
             {(options.isPending || options.isFetching) && (
-                <p role="status">Carregando opções de cartão…</p>
+                <FinancialLoading label="Carregando opções de cartão…" />
             )}
             {options.isError && (
                 <div>
                     <p role="alert">
                         Não foi possível carregar as opções de cartão.
                     </p>
-                    <button
+                    <Button
+                        variant="outline"
                         type="button"
                         onClick={() => void options.refetch()}
                     >
                         Tentar novamente as opções
-                    </button>
+                    </Button>
                 </div>
             )}
             {o && !o.canAssume && (
@@ -192,7 +196,7 @@ export function ExternalLiabilityForm({
                         <legend>Compra realizada</legend>
                         <label>
                             Valor assumido no cartão (R$)
-                            <input
+                            <Input
                                 name="amountInCents"
                                 inputMode="decimal"
                                 value={amount}
@@ -200,11 +204,15 @@ export function ExternalLiabilityForm({
                                     change();
                                     setAmount(e.target.value);
                                 }}
+                                aria-invalid={
+                                    command.fields.includes('amountInCents') ||
+                                    undefined
+                                }
                             />
                         </label>
                         <label>
                             Data da compra
-                            <input
+                            <Input
                                 name="factDate"
                                 type="date"
                                 max={o.referenceDate}
@@ -213,6 +221,10 @@ export function ExternalLiabilityForm({
                                     change();
                                     setDate(e.target.value);
                                 }}
+                                aria-invalid={
+                                    command.fields.includes('factDate') ||
+                                    undefined
+                                }
                             />
                         </label>
                         {o.spaceType === 'SHARED' && (
@@ -275,7 +287,7 @@ export function ExternalLiabilityForm({
                                 {mode === 'DATE' && (
                                     <label>
                                         Data-alvo do acerto
-                                        <input
+                                        <Input
                                             name="targetDate"
                                             type="date"
                                             min={o.referenceDate}
@@ -284,6 +296,11 @@ export function ExternalLiabilityForm({
                                                 change();
                                                 setTargetDate(e.target.value);
                                             }}
+                                            aria-invalid={
+                                                command.fields.includes(
+                                                    'targetDate',
+                                                ) || undefined
+                                            }
                                         />
                                     </label>
                                 )}
@@ -308,7 +325,8 @@ export function ExternalLiabilityForm({
                                     </label>
                                 )}
                                 {o.nextCursor && (
-                                    <button
+                                    <Button
+                                        variant="outline"
                                         type="button"
                                         disabled={busy || options.isFetching}
                                         onClick={() => {
@@ -317,7 +335,7 @@ export function ExternalLiabilityForm({
                                         }}
                                     >
                                         Carregar mais acertos
-                                    </button>
+                                    </Button>
                                 )}
                                 <p>
                                     A escolha se aplica quando esta compra no
@@ -332,7 +350,8 @@ export function ExternalLiabilityForm({
                         <div>
                             <p role="alert">{command.error}</p>
                             {!busy && (
-                                <button
+                                <Button
+                                    variant="outline"
                                     type="button"
                                     onClick={() => {
                                         setReview(null);
@@ -340,7 +359,7 @@ export function ExternalLiabilityForm({
                                     }}
                                 >
                                     Atualizar opções e revisar
-                                </button>
+                                </Button>
                             )}
                         </div>
                     )}
@@ -348,24 +367,38 @@ export function ExternalLiabilityForm({
                         Saiu da conta agora: {formatMoney(0)}. O valor assumido
                         permanece como obrigação externa aberta.
                     </p>
-                    <button type="submit" disabled={busy || options.isFetching}>
+                    <Button type="submit" disabled={busy || options.isFetching}>
                         Revisar compra no cartão
-                    </button>
+                    </Button>
                     {review && (
                         <div
                             role="group"
                             aria-label="Confirmar compra no cartão"
                         >
+                            <h3>Confira a compra no cartão</h3>
+                            <dl>
+                                <dt>Valor assumido no cartão</dt>
+                                <dd>{formatMoney(review.amountInCents)}</dd>
+                                <dt>Desembolso imediato</dt>
+                                <dd>{formatMoney(0)}</dd>
+                                <dt>Restante a realizar após o registro</dt>
+                                <dd>
+                                    {formatMoney(
+                                        o.remainingAmountInCents -
+                                            review.amountInCents,
+                                    )}
+                                </dd>
+                            </dl>
                             <p>
                                 Confirme a compra no cartão de{' '}
                                 {formatMoney(review.amountInCents)} em{' '}
-                                {review.factDate}
+                                {formatDate(review.factDate)}
                                 {review.holderMemberId
                                     ? ` por ${o.members?.find((m) => m.memberId === review.holderMemberId)?.displayName}`
                                     : ''}
                                 .
                             </p>
-                            <button
+                            <Button
                                 type="button"
                                 disabled={busy || options.isFetching}
                                 onClick={() =>
@@ -376,24 +409,26 @@ export function ExternalLiabilityForm({
                                 }
                             >
                                 Confirmar compra no cartão
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="outline"
                                 type="button"
                                 disabled={busy}
                                 onClick={() => setReview(null)}
                             >
                                 Editar
-                            </button>
+                            </Button>
                         </div>
                     )}
                     {command.canRetry && (
-                        <button
+                        <Button
+                            variant="outline"
                             type="button"
                             disabled={command.isPending}
                             onClick={command.retry}
                         >
                             Reenviar a mesma tentativa
-                        </button>
+                        </Button>
                     )}
                     {command.isPending && (
                         <p role="status">Registrando compra no cartão…</p>

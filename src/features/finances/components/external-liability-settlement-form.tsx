@@ -1,4 +1,7 @@
 'use client';
+import { FinancialLoading } from './financial-loading';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useEffect, useRef, useState } from 'react';
 import { getExternalLiabilitySettlementOptions } from '@/lib/api/external-liability-settlement';
 import { ApiError } from '@/lib/api/api-error';
@@ -8,7 +11,7 @@ import { useExpenseLeaveGuard } from '../hooks/use-expense-leave-guard';
 import type { SettleExternalLiabilityInput } from '../types/external-liability-settlement';
 import { decimalUnits, formatDate, formatMoney } from '../utils/expense-money';
 import { isPastOrCurrentCivilDate } from '../utils/personal-expense-date';
-import styles from './expenses.module.css';
+import styles from './financial-records.module.css';
 
 export function ExternalLiabilitySettlementForm({
     personId,
@@ -118,16 +121,19 @@ export function ExternalLiabilitySettlementForm({
             aria-label="Pagamento da obrigação externa"
         >
             {(options.isPending || options.isFetching) && (
-                <p role="status">Carregando opções de pagamento…</p>
+                <FinancialLoading label="Carregando opções de pagamento…" />
             )}
             {options.isError && (
                 <>
                     <p role="alert">
                         Não foi possível carregar as opções de pagamento.
                     </p>
-                    <button onClick={() => void options.refetch()}>
+                    <Button
+                        variant="outline"
+                        onClick={() => void options.refetch()}
+                    >
                         Tentar novamente as opções
-                    </button>
+                    </Button>
                 </>
             )}
             {o && !o.canSettle && (
@@ -157,7 +163,7 @@ export function ExternalLiabilitySettlementForm({
                         <legend>Pagamento ao credor externo</legend>
                         <label>
                             Valor do pagamento (R$)
-                            <input
+                            <Input
                                 name="amountInCents"
                                 inputMode="decimal"
                                 value={amount}
@@ -165,11 +171,15 @@ export function ExternalLiabilitySettlementForm({
                                     change();
                                     setAmount(e.target.value);
                                 }}
+                                aria-invalid={
+                                    command.fields.includes('amountInCents') ||
+                                    undefined
+                                }
                             />
                         </label>
                         <label>
                             Data do pagamento externo
-                            <input
+                            <Input
                                 name="factDate"
                                 type="date"
                                 max={o.referenceDate}
@@ -178,6 +188,10 @@ export function ExternalLiabilitySettlementForm({
                                     change();
                                     setDate(e.target.value);
                                 }}
+                                aria-invalid={
+                                    command.fields.includes('factDate') ||
+                                    undefined
+                                }
                             />
                         </label>
                     </fieldset>
@@ -186,7 +200,8 @@ export function ExternalLiabilitySettlementForm({
                         <>
                             <p role="alert">{command.error}</p>
                             {!busy && (
-                                <button
+                                <Button
+                                    variant="outline"
                                     type="button"
                                     onClick={() => {
                                         setReview(null);
@@ -194,13 +209,13 @@ export function ExternalLiabilitySettlementForm({
                                     }}
                                 >
                                     Atualizar saldo e revisar
-                                </button>
+                                </Button>
                             )}
                         </>
                     )}
-                    <button type="submit" disabled={busy || options.isFetching}>
+                    <Button type="submit" disabled={busy || options.isFetching}>
                         Revisar pagamento
-                    </button>
+                    </Button>
                     {review && (
                         <div
                             role="group"
@@ -220,7 +235,7 @@ export function ExternalLiabilitySettlementForm({
                                 O valor da despesa, o suporte acumulado e os
                                 acertos entre membros permanecem iguais.
                             </p>
-                            <button
+                            <Button
                                 type="button"
                                 disabled={busy || options.isFetching}
                                 onClick={() =>
@@ -232,31 +247,34 @@ export function ExternalLiabilitySettlementForm({
                                 }
                             >
                                 Confirmar pagamento externo
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="outline"
                                 type="button"
                                 disabled={busy}
                                 onClick={() => setReview(null)}
                             >
                                 Editar pagamento
-                            </button>
+                            </Button>
                         </div>
                     )}
                     {command.canRetry && (
-                        <button
+                        <Button
+                            variant="outline"
                             type="button"
                             disabled={command.isPending}
                             onClick={command.retry}
                         >
                             Reenviar a mesma tentativa
-                        </button>
+                        </Button>
                     )}
                     {command.isPending && (
                         <p role="status">Registrando pagamento externo…</p>
                     )}
                 </form>
             )}
-            <button
+            <Button
+                variant="outline"
                 type="button"
                 disabled={busy}
                 onClick={() => {
@@ -265,7 +283,7 @@ export function ExternalLiabilitySettlementForm({
                 }}
             >
                 Cancelar pagamento
-            </button>
+            </Button>
         </section>
     );
 }

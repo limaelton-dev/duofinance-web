@@ -2,6 +2,9 @@
 
 import { Fragment, useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Brand } from '@/components/patterns/brand';
 
 import { useAuthenticatedContext } from '../hooks/use-authenticated-context';
 import styles from './auth-form.module.css';
@@ -30,11 +33,12 @@ export function AuthGate({ children }: AuthGateProps) {
                     className={styles.card}
                     aria-label="Verificando sessão"
                 >
+                    <Brand className={styles.brand} />
                     <p role="status">Verificando sua sessão...</p>
                     <div className={gateStyles.skeleton} aria-hidden="true">
-                        <div className={gateStyles.bar} />
-                        <div className={gateStyles.bar} />
-                        <div className={gateStyles.bar} />
+                        <Skeleton className={gateStyles.bar} />
+                        <Skeleton className={gateStyles.bar} />
+                        <Skeleton className={gateStyles.bar} />
                     </div>
                 </section>
             </main>
@@ -59,7 +63,7 @@ export function AuthGate({ children }: AuthGateProps) {
                                 : 'Não foi possível consultar sua sessão. Tente novamente.'}
                         </p>
 
-                        <button
+                        <Button
                             type="button"
                             className={styles.button}
                             disabled={auth.isFetching}
@@ -70,7 +74,7 @@ export function AuthGate({ children }: AuthGateProps) {
                             {auth.isFetching
                                 ? 'Tentando novamente...'
                                 : 'Tentar novamente'}
-                        </button>
+                        </Button>
                     </div>
                 </section>
             </main>

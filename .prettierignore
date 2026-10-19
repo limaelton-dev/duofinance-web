@@ -1,8 +1,17 @@
 node_modules/
 .next/
+.next-interface/
+.next-e2e/
 out/
 build/
 coverage/
 package-lock.json
 next-env.d.ts
 *.tsbuildinfo
+.github/skills/
+.github/agents/
+.github/hooks/
+.impeccable/review/
+.impeccable/config.local.json
+test-results/
+debug.log

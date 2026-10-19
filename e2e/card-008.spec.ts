@@ -1291,6 +1291,7 @@ test('A21: real UI expense invalidates cycles and return reads current compositi
         .click();
     await page.getByLabel('Descrição', { exact: true }).fill('Nova no ciclo');
     await page.getByLabel('Valor (R$)', { exact: true }).fill('100,00');
+    await page.getByLabel('Forma de pagamento').selectOption('DEBIT');
     await page.getByLabel('Posição A (%)', { exact: true }).fill('0');
     await page.getByLabel('Posição B (%)', { exact: true }).fill('100');
     await page.getByLabel('Acerto', { exact: true }).selectOption('CYCLE');

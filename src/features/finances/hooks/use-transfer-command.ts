@@ -110,6 +110,7 @@ export function useTransferCommand(
                 value.capture.spaceId,
             ];
             for (const name of [
+                'financial-review',
                 'inter-member-position',
                 'settlement-transfer-options',
                 'settlement-transfers',

@@ -1,18 +1,23 @@
 'use client';
 
-import { useRef, useState, type SubmitEvent } from 'react';
+import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { ApiError } from '@/lib/api/api-error';
 import { login, type LoginInput } from '@/lib/api/login';
 import { useInvitationFlowContext } from '@/features/spaces/context/invitation-flow-provider';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 import { useCsrf } from '../hooks/use-csrf';
 import { getAuthErrorMessage } from '../utils/get-auth-error-message';
 import { setAuthenticatedContext } from '../utils/set-authenticated-context';
 
 import styles from './auth-form.module.css';
+import { PasswordField } from './password-field';
+import { useAuthRetry } from './use-auth-retry';
 
 export function LoginForm() {
     const router = useRouter();
@@ -22,6 +27,13 @@ export function LoginForm() {
     const formRef = useRef<HTMLFormElement>(null);
     const submittingRef = useRef(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+    const errorRef = useRef<HTMLDivElement>(null);
+    const { retrySeconds, respectRetryAfter } = useAuthRetry();
+
+    useEffect(() => {
+        if (errorMessage) errorRef.current?.focus();
+    }, [errorMessage]);
 
     const authentication = useMutation({
         mutationFn: async (input: LoginInput) => {
@@ -41,6 +53,7 @@ export function LoginForm() {
             );
         },
         onError: async (error) => {
+            respectRetryAfter(error);
             setErrorMessage(
                 getAuthErrorMessage(
                     error,
@@ -73,19 +86,40 @@ export function LoginForm() {
     function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        if (submittingRef.current || authentication.isSuccess) {
+        if (
+            submittingRef.current ||
+            authentication.isSuccess ||
+            retrySeconds > 0
+        ) {
             return;
         }
 
         setErrorMessage(null);
+        setFieldErrors({});
 
         const data = new FormData(event.currentTarget);
         const email = String(data.get('email') ?? '').trim();
         const password = String(data.get('password') ?? '');
         const passwordLength = Array.from(password).length;
+        const errors: Record<string, string> = {};
+        const emailInput = event.currentTarget.elements.namedItem(
+            'email',
+        ) as HTMLInputElement;
+
+        if (!email || !emailInput.validity.valid)
+            errors.email = 'Informe um e-mail válido.';
 
         if (passwordLength < 6 || passwordLength > 128) {
-            setErrorMessage('A senha deve ter de 6 a 128 caracteres.');
+            errors.password = 'A senha deve ter de 6 a 128 caracteres.';
+        }
+
+        if (Object.keys(errors).length) {
+            setFieldErrors(errors);
+            (
+                event.currentTarget.elements.namedItem(
+                    Object.keys(errors)[0],
+                ) as HTMLInputElement
+            )?.focus();
             return;
         }
 
@@ -107,6 +141,7 @@ export function LoginForm() {
         <form
             ref={formRef}
             method="post"
+            noValidate
             onSubmit={handleSubmit}
             className={styles.form}
             aria-busy={authentication.isPending}
@@ -117,50 +152,67 @@ export function LoginForm() {
                 aria-label="Dados de acesso"
             >
                 <div className={styles.field}>
-                    <label htmlFor="email">E-mail</label>
-                    <input
+                    <Label htmlFor="email">E-mail</Label>
+                    <Input
                         id="email"
                         name="email"
                         type="email"
                         autoComplete="username"
                         maxLength={254}
+                        inputMode="email"
+                        autoCapitalize="none"
+                        spellCheck={false}
+                        aria-invalid={Boolean(fieldErrors.email)}
+                        aria-describedby={
+                            fieldErrors.email ? 'email-error' : undefined
+                        }
                         required
                     />
+                    {fieldErrors.email && (
+                        <p id="email-error" className={styles.error}>
+                            {fieldErrors.email}
+                        </p>
+                    )}
                 </div>
 
-                <div className={styles.field}>
-                    <label htmlFor="password">Senha</label>
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        autoComplete="current-password"
-                        required
-                    />
-                </div>
+                <PasswordField
+                    id="password"
+                    autoComplete="current-password"
+                    error={fieldErrors.password}
+                />
             </fieldset>
 
             {visibleError && (
-                <p role="alert" className={styles.error}>
-                    {visibleError}
+                <div
+                    ref={errorRef}
+                    tabIndex={-1}
+                    role="alert"
+                    className={styles.errorSummary}
+                >
+                    <p className={styles.error}>{visibleError}</p>
+                </div>
+            )}
+            {retrySeconds > 0 && (
+                <p role="status" className={styles.hint}>
+                    Aguarde {retrySeconds} segundos para tentar novamente.
                 </p>
             )}
 
-            <button
+            <Button
                 type="submit"
                 className={styles.button}
-                disabled={isBusy || csrf.isFetching}
+                disabled={isBusy || csrf.isFetching || retrySeconds > 0}
             >
                 {authentication.isSuccess
                     ? 'Acesso confirmado! Redirecionando...'
                     : authentication.isPending
                       ? 'Entrando...'
                       : csrf.isFetching
-                        ? 'Preparando...'
+                        ? 'Preparando acesso...'
                         : visibleError
                           ? 'Tentar novamente'
                           : 'Entrar'}
-            </button>
+            </Button>
         </form>
     );
 }

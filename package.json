@@ -10,13 +10,24 @@
         "typecheck": "next typegen && tsc --noEmit",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "test:e2e": "playwright test"
+        "test:e2e": "playwright test",
+        "test:data": "playwright test -c playwright.data.config.ts",
+        "test:interface": "playwright test -c playwright.interface.config.ts"
     },
     "dependencies": {
+        "@fontsource-variable/manrope": "5.3.0",
+        "@tailwindcss/postcss": "4.3.3",
         "@tanstack/react-query": "5.103.2",
+        "class-variance-authority": "0.7.1",
+        "clsx": "2.1.1",
+        "lucide-react": "1.59.0",
         "next": "16.3.6",
+        "postcss": "8.5.31",
+        "radix-ui": "1.8.1",
         "react": "19.2.8",
-        "react-dom": "19.2.8"
+        "react-dom": "19.2.8",
+        "tailwind-merge": "3.7.0",
+        "tailwindcss": "4.3.3"
     },
     "devDependencies": {
         "@playwright/test": "1.63.0",
