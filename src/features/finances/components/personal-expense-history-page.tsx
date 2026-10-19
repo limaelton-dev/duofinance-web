@@ -1,4 +1,5 @@
 'use client';
+import { FinancialLoading } from './financial-loading';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -127,9 +128,7 @@ export function PersonalExpenseHistoryPage({
                 Atualizar / Voltar ao início
             </Button>
             {(query.isPending || query.isFetching) && (
-                <p role="status" aria-busy="true">
-                    Carregando despesas…
-                </p>
+                <FinancialLoading label="Carregando despesas…" />
             )}
             {query.isError && (
                 <div>

@@ -16,6 +16,7 @@ import { useSpaceContextInstance } from '../context/space-context-provider';
 import { useSpaceContext } from '../hooks/use-space-context';
 import { useSpaces } from '../hooks/use-spaces';
 import styles from './space-switcher.module.css';
+import { spaceSelectionPath } from '../utils/space-selection-path';
 
 const statuses = {
     ACTIVE: 'Ativo',
@@ -45,28 +46,12 @@ export function SpaceSwitcher() {
             currentPath.current !== originPath
         )
             return;
-        const selected = context.getSnapshot().activeSpaceId;
+        const selected = context.getSnapshot().currentSpace;
         if (
             /^\/spaces\/(?!new$)[^/]+(?:\/.*)?$/.test(currentPath.current) &&
             selected
         ) {
-            const settings =
-                currentPath.current.endsWith('/settings') &&
-                context.getSnapshot().currentSpace?.type === 'SHARED';
-            const composer = currentPath.current.endsWith('/expenses/new');
-            const finances = currentPath.current.endsWith('/finances');
-            const incomes = currentPath.current.endsWith('/incomes');
-            const transferComposer =
-                currentPath.current.endsWith(
-                    '/finances/settlements/transfers/new',
-                ) && context.getSnapshot().currentSpace?.type === 'SHARED';
-            const settlements =
-                /\/finances\/settlements(?:\/[^/]+)?$/.test(
-                    currentPath.current,
-                ) && context.getSnapshot().currentSpace?.type === 'SHARED';
-            router.replace(
-                `/spaces/${selected}${settings ? '/settings' : composer ? '/expenses/new' : transferComposer ? '/finances/settlements/transfers/new' : settlements ? '/finances/settlements' : finances ? '/finances' : incomes ? '/incomes' : ''}`,
-            );
+            router.replace(spaceSelectionPath(currentPath.current, selected));
         }
     }
     const loading =

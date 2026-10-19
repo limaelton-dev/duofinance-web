@@ -284,7 +284,16 @@ test('income can start partially received and exposes immutable forecast', async
     ).toContainText('Recebimento de R$ 300,00');
     await page.getByRole('button', { name: 'Confirmar receita' }).click();
     await expect(
-        page.getByText('Recebido: R$ 300,00. Falta receber: R$ 700,00.'),
+        page.getByRole('term').filter({ hasText: /^Recebido$/ }),
+    ).toBeVisible();
+    await expect(
+        page.getByRole('definition').filter({ hasText: /^R\$ 300,00$/ }),
+    ).toBeVisible();
+    await expect(
+        page.getByRole('term').filter({ hasText: /^Falta receber$/ }),
+    ).toBeVisible();
+    await expect(
+        page.getByRole('definition').filter({ hasText: /^R\$ 700,00$/ }),
     ).toBeVisible();
     await page.getByRole('link', { name: 'Ver receita', exact: true }).click();
     await expect(

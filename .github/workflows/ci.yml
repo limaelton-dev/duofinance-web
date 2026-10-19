@@ -14,7 +14,7 @@ on:
                 required: false
                 type: string
             full_e2e:
-                description: Executar todos os cards e testes de dados
+                description: Executar todos os cards, waves e testes de dados
                 required: false
                 type: boolean
                 default: false
@@ -108,15 +108,20 @@ jobs:
                   selected=()
                   if [[ "$FULL_E2E" == "true" ]]; then
                       mapfile -t selected < <(find e2e -maxdepth 1 -type f -name 'card-[0-9][0-9][0-9].spec.ts' -printf '%f\n' | sort -V)
+                      mapfile -t waves < <(find e2e -maxdepth 1 -type f \( -name 'wave[0-9].spec.ts' -o -name 'wave[0-9]-edge.spec.ts' \) -printf '%f\n' | sort -V)
+                      selected+=("${waves[@]}")
                       selected+=('.*-data.spec.ts')
                   elif [[ "$EVENT_NAME" == "pull_request" ]]; then
                       if git diff --name-only "${BASE_SHA}...${HEAD_SHA}" -- src/app src/components src/features/auth src/features/spaces src/features/today src/features/finances | grep -q .; then
                           for suite in e2e/card-[0-9][0-9][0-9].spec.ts; do
                               selected+=("${suite#e2e/}")
                           done
+                          for suite in e2e/wave[0-9].spec.ts e2e/wave[0-9]-edge.spec.ts; do
+                              if [[ -f "$suite" ]]; then selected+=("${suite#e2e/}"); fi
+                          done
                           selected+=('.*-data.spec.ts')
                       fi
-                      mapfile -t changed < <(git diff --name-only "${BASE_SHA}...${HEAD_SHA}" -- e2e | sed -nE 's#^e2e/(card-[0-9]{3}\.spec\.ts|[A-Za-z0-9_-]+-data\.spec\.ts)$#\1#p' | sort -u)
+                      mapfile -t changed < <(git diff --name-only "${BASE_SHA}...${HEAD_SHA}" -- e2e | sed -nE 's#^e2e/(card-[0-9]{3}\.spec\.ts|wave[0-9]+(-edge)?\.spec\.ts|[A-Za-z0-9_-]+-data\.spec\.ts)$#\1#p' | sort -u)
                       for suite in "${changed[@]}"; do
                           if [[ -f "e2e/$suite" ]]; then
                               selected+=("$suite")
@@ -151,7 +156,7 @@ jobs:
                 suite: ${{ fromJSON(needs.select_e2e.outputs.suites) }}
 
         env:
-            API_SHA: ${{ inputs.api_sha || 'b72d07fe8993223f11545ae957e2396fcaf9e60c' }}
+            API_SHA: ${{ inputs.api_sha || 'd73c388e49ba972c526073b4533ac379a7be5049' }}
 
         defaults:
             run:

@@ -1,4 +1,5 @@
 'use client';
+import { FinancialLoading } from './financial-loading';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useEffect, useRef } from 'react';
@@ -9,7 +10,7 @@ import { ApiError } from '@/lib/api/api-error';
 import { useExpenseQuery } from '../hooks/use-expense-query';
 import { personalExpenseQueryKeys } from '../cache/personal-expense-query-keys';
 import { PersonalExpenseSummary } from './personal-expense-summary';
-import styles from './expenses.module.css';
+import styles from './financial-records.module.css';
 import { ExternalLiabilityForm } from './external-liability-form';
 import { ExpenseDisbursementForm } from './expense-disbursement-form';
 import { ExpensePaymentHistory } from './expense-payment-history';
@@ -72,10 +73,15 @@ export function PersonalExpenseDetailPage({
     return (
         <section className={styles.stack}>
             <h1>Despesa</h1>
+            <Button asChild variant="outline">
+                <Link
+                    href={`/spaces/${spaceId}/finances/commitments/${commitmentId}`}
+                >
+                    Histórico e correções
+                </Link>
+            </Button>
             {(query.isPending || query.isFetching) && (
-                <p role="status" aria-busy="true">
-                    Carregando despesa…
-                </p>
+                <FinancialLoading label="Carregando despesa…" />
             )}
             {query.isError && (
                 <div>

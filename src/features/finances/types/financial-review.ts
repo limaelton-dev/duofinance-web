@@ -1,19 +1,34 @@
 export type FinancialReviewView = 'CALENDAR' | 'HISTORY';
 export type FinancialReviewItemType =
     | 'EXPENSE'
+    | 'EXPENSE_DISCOUNT'
+    | 'EXPENSE_SURCHARGE'
+    | 'EXPENSE_PAYOFF'
+    | 'EXPENSE_CANCELLATION'
+    | 'INCOME_INCREASE'
+    | 'INCOME_DECREASE'
+    | 'INCOME_CANCELLATION'
     | 'EXPECTED_INCOME'
+    | 'EXPECTED_EXPENSE'
     | 'DISBURSEMENT'
     | 'RECEIPT'
     | 'EXTERNAL_LIABILITY'
     | 'EXTERNAL_SETTLEMENT'
-    | 'INTERNAL_TRANSFER';
+    | 'DISBURSEMENT_REVERSAL'
+    | 'RECEIPT_REVERSAL'
+    | 'EXTERNAL_LIABILITY_REVERSAL'
+    | 'EXTERNAL_SETTLEMENT_REVERSAL'
+    | 'INTERNAL_TRANSFER'
+    | 'INTERNAL_OFFSET'
+    | 'INTERNAL_WAIVER'
+    | 'INTERNAL_REVERSAL';
 export interface FinancialReviewItem {
     id: string;
     type: FinancialReviewItemType;
     commitmentId: string | null;
     externalLiabilityId: string | null;
     description: string;
-    amountInCents: number;
+    amountInCents: number | null;
     relevantDate: string;
     dateNature: 'EXPECTED' | 'ACTUAL';
     registeredAt: string;
@@ -22,11 +37,22 @@ export interface FinancialReviewItem {
     participantPersonId: string | null;
     recipientMemberId: string | null;
     memberIds: string[];
+    reason?: string | null;
+    originalKind?:
+        | 'DISBURSEMENT'
+        | 'RECEIPT'
+        | 'EXTERNAL_LIABILITY'
+        | 'EXTERNAL_SETTLEMENT'
+        | null;
+    originalId?: string | null;
 }
 export interface FinancialForecastItem extends FinancialReviewItem {
-    type: 'EXPECTED_INCOME';
+    type: 'EXPECTED_INCOME' | 'EXPECTED_EXPENSE';
+    expectedAmountInCents?: number | null;
     receivedAmountInCents: number;
-    remainingAmountInCents: number;
+    fulfilledAmountInCents?: number;
+    remainingAmountInCents: number | null;
+    overdue?: boolean;
 }
 export interface FinancialReviewMetrics {
     expenseAmountInCents: string;
@@ -40,6 +66,10 @@ export interface FinancialReviewMetrics {
     supportedAmountInCents: string;
     internalTransfersSentAmountInCents: string;
     internalTransfersReceivedAmountInCents: string;
+    internalTransfersSentReversedAmountInCents?: string;
+    internalTransfersReceivedReversedAmountInCents?: string;
+    internalTransfersSentEffectiveAmountInCents?: string;
+    internalTransfersReceivedEffectiveAmountInCents?: string;
 }
 export interface FinancialReviewContext {
     spaceId: string;
@@ -56,10 +86,19 @@ export interface FinancialTimeline extends FinancialReviewContext {
 }
 export interface FinancialForecast extends FinancialReviewContext {
     items: FinancialForecastItem[];
+    globalCorrections?: {
+        commitmentId: string;
+        globalAdjustmentInCents: string;
+        globalRemainingAmountInCents: string;
+    }[];
     totals: {
         expectedAmountInCents: string;
         receivedAmountInCents: string;
         remainingAmountInCents: string;
+        unknownAmountCount?: number;
+        expectedExpenseAmountInCents?: string;
+        fulfilledExpenseAmountInCents?: string;
+        remainingExpenseAmountInCents?: string;
     };
     nextCursor: string | null;
 }

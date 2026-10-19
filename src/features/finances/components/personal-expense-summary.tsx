@@ -3,7 +3,7 @@ import type {
     DisbursementMethod,
 } from '../types/personal-expense';
 import { formatDate, formatMoney } from '../utils/expense-money';
-import styles from './expenses.module.css';
+import styles from './financial-records.module.css';
 
 export const disbursementMethodLabels: Record<DisbursementMethod, string> = {
     PIX: 'PIX',

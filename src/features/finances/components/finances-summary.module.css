@@ -48,6 +48,46 @@
     gap: 0.75rem;
     align-items: center;
 }
+.filters {
+    display: grid;
+    gap: 1rem;
+    align-items: end;
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--card);
+}
+.filters label {
+    display: grid;
+    gap: 0.5rem;
+    min-width: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.filter {
+    display: grid;
+    gap: 0.5rem;
+    min-width: 0;
+}
+.filters select {
+    width: 100%;
+    min-width: 0;
+    font-size: 1rem;
+    font-weight: 400;
+}
+.stack > p {
+    max-width: 70ch;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+}
+.stack > [data-slot='button'] {
+    justify-self: start;
+}
+.stack [data-slot='button'] {
+    max-width: 100%;
+    white-space: normal;
+}
 .stack nav {
     gap: 0.25rem;
     border-bottom: 1px solid var(--border, #dedede);
@@ -196,13 +236,31 @@
     display: grid;
     gap: 0.75rem;
 }
+.notice {
+    padding: 1rem;
+    border: 1px solid var(--warning);
+    border-radius: 0.5rem;
+    background: var(--warning-surface);
+    color: var(--warning);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
 @media (min-width: 768px) {
+    .filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+    }
     .totals {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .totals > div + div {
         border-top: 0;
         border-left: 1px solid var(--border, #dedede);
+    }
+    .totals > div:nth-child(3n + 1) {
+        border-left: 0;
+    }
+    .totals > div:nth-child(n + 4) {
+        border-top: 1px solid var(--border);
     }
 }
 

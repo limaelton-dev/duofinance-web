@@ -259,17 +259,17 @@
         grid-template-columns: minmax(0, 35rem) minmax(16rem, 1fr);
         gap: 2rem;
     }
-    .fields {
+    .columns > .form > .fields {
         grid-column: 1;
         grid-row: 1;
     }
-    .columns .summary {
+    .columns > .form > .summary {
         grid-column: 2;
         grid-row: 1 / span 2;
         position: sticky;
         top: 6.5rem;
     }
-    .confirmation {
+    .columns > .form > .confirmation {
         grid-column: 1;
     }
 }

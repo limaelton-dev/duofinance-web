@@ -1,4 +1,6 @@
 'use client';
+import { FinancialLoading } from './financial-loading';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,7 +12,7 @@ import { getIncomeHistory } from '@/lib/api/income';
 import { incomeQueryKeys } from '../cache/income-query-keys';
 import { useExpenseQuery } from '../hooks/use-expense-query';
 import { formatDate, formatMoney } from '../utils/expense-money';
-import styles from './expenses.module.css';
+import styles from './financial-records.module.css';
 
 export function IncomeHistoryPage({ spaceId }: { spaceId: string }) {
     const auth = useAuthenticatedContext({ enabled: false }),
@@ -93,12 +95,22 @@ function History({ personId, spaceId }: { personId: string; spaceId: string }) {
     return (
         <section className={styles.stack}>
             <h1>Receitas</h1>
+            <p>
+                Acompanhe as previsões, os valores recebidos e o que ainda falta
+                receber.
+            </p>
             <nav className={styles.actions} aria-label="Navegação financeira">
-                <Link href={`/spaces/${spaceId}/incomes/new`}>
-                    Adicionar receita
-                </Link>
-                <Link href={`/spaces/${spaceId}/finances`}>Finanças</Link>
-                <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
+                <Button asChild>
+                    <Link href={`/spaces/${spaceId}/incomes/new`}>
+                        Adicionar receita
+                    </Link>
+                </Button>
+                <Button asChild variant="ghost">
+                    <Link href={`/spaces/${spaceId}/finances`}>Finanças</Link>
+                </Button>
+                <Button asChild variant="ghost">
+                    <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
+                </Button>
             </nav>
             <label htmlFor="income-status">Mostrar receitas</label>
             <select
@@ -115,7 +127,8 @@ function History({ personId, spaceId }: { personId: string; spaceId: string }) {
                 <option value="PENDING">Pendentes</option>
                 <option value="RECEIVED">Recebidas</option>
             </select>
-            <button
+            <Button
+                variant="outline"
                 type="button"
                 disabled={query.isFetching}
                 onClick={() =>
@@ -125,27 +138,40 @@ function History({ personId, spaceId }: { personId: string; spaceId: string }) {
                 }
             >
                 Atualizar / Voltar ao início
-            </button>
+            </Button>
             {(query.isPending || query.isFetching) && (
-                <p role="status">Carregando receitas…</p>
+                <FinancialLoading label="Carregando receitas…" />
             )}
             {query.isError && (
                 <div>
                     <p role="alert">Não foi possível consultar as receitas.</p>
-                    <button type="button" onClick={() => void query.refetch()}>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => void query.refetch()}
+                    >
                         Tentar novamente
-                    </button>
+                    </Button>
                 </div>
             )}
             {value && (
                 <>
                     {value.items.length === 0 ? (
-                        <p>Nenhuma receita neste filtro.</p>
+                        <div className={styles.empty}>
+                            <h2>Nenhuma receita neste filtro</h2>
+                            <p>
+                                Adicione uma receita ou selecione outro filtro
+                                para consultar seus registros.
+                            </p>
+                        </div>
                     ) : (
                         <ul className={styles.list}>
                             {value.items.map((item) => (
                                 <li key={item.id}>
                                     <h2>{item.description}</h2>
+                                    <p className={styles.amount}>
+                                        {formatMoney(item.amountInCents)}
+                                    </p>
                                     <p>
                                         Previsto:{' '}
                                         {formatMoney(item.amountInCents)} em{' '}
@@ -183,7 +209,8 @@ function History({ personId, spaceId }: { personId: string; spaceId: string }) {
                         </ul>
                     )}
                     {value.nextCursor && (
-                        <button
+                        <Button
+                            variant="outline"
                             type="button"
                             onClick={() =>
                                 setSelection({
@@ -193,7 +220,7 @@ function History({ personId, spaceId }: { personId: string; spaceId: string }) {
                             }
                         >
                             Próximas receitas
-                        </button>
+                        </Button>
                     )}
                 </>
             )}

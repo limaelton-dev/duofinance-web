@@ -161,6 +161,22 @@ function Detail({
                         obligations={query.data.obligations}
                         members={query.data.members}
                     />
+                    <div className={styles.actions}>
+                        <Button variant="outline" asChild>
+                            <Link
+                                href={`/spaces/${spaceId}/finances/commitments/${commitmentId}`}
+                            >
+                                Histórico e correções
+                            </Link>
+                        </Button>
+                        <Button variant="ghost" asChild>
+                            <Link
+                                href={`/spaces/${spaceId}/finances/settlements/rules/${commitmentId}`}
+                            >
+                                Regra específica de acerto
+                            </Link>
+                        </Button>
+                    </div>
                     <ExternalLiabilityHistory
                         value={query.data}
                         personId={personId}

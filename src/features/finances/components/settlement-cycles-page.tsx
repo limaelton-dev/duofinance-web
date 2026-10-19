@@ -22,7 +22,10 @@ import type {
 import { formatPositionMoney } from '../utils/position-money';
 import { formatDate, formatMoney } from '../utils/expense-money';
 import { financialOriginPath } from '../utils/settlement-return';
+import { hasFinancialOriginPage } from '../types/settlement-origin';
 import styles from './finances-summary.module.css';
+import formStyles from './settlement-depth.module.css';
+import { SettlementCycleFinalization } from './settlement-cycle-finalization';
 
 export function SettlementCyclesPage({
     spaceId,
@@ -109,6 +112,18 @@ function CycleTotals({ cycle }: { cycle: SettlementCycle }) {
                     </dd>
                 </div>
                 <div>
+                    <dt>Compensado</dt>
+                    <dd>
+                        {formatPositionMoney(
+                            cycle.totals.compensatedAmountInCents ?? '0',
+                        )}
+                    </dd>
+                    <dt>Dispensado</dt>
+                    <dd>
+                        {formatPositionMoney(
+                            cycle.totals.waivedAmountInCents ?? '0',
+                        )}
+                    </dd>
                     <dt>Bruto a pagar</dt>
                     <dd>
                         {formatPositionMoney(
@@ -167,6 +182,7 @@ function SettlementRead({
         direction: PositionDirection;
         cursor: string | null;
     }>({ view: 'OPEN', direction: 'ALL', cursor: null });
+    const [selectedCycles, setSelectedCycles] = useState<string[]>([]);
     const current = useRef<typeof selection | null>(selection);
     useLayoutEffect(() => {
         current.current = selection;
@@ -242,10 +258,7 @@ function SettlementRead({
     }, [query.error, context, router, spaceId, pathname]);
     const listValue =
         !cycleId && !list.isFetching && !list.isError ? list.data : undefined;
-    const detailValue =
-        cycleId && !detail.isFetching && !detail.isError
-            ? detail.data
-            : undefined;
+    const detailValue = cycleId && !detail.isError ? detail.data : undefined;
     const value = detailValue ?? listValue;
     function select(value: typeof selection) {
         current.current = value;
@@ -281,6 +294,11 @@ function SettlementRead({
                     <span aria-current="page">Acertos</span>
                 )}
                 <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
+                <Link
+                    href={`/spaces/${spaceId}/finances/settlements/offsets${cycleId ? `?cycleId=${cycleId}` : ''}`}
+                >
+                    Compensações
+                </Link>
             </nav>
             <p>
                 A posição líquida é informativa. Consultar este acerto não
@@ -325,6 +343,8 @@ function SettlementRead({
                             }
                         >
                             <option value="OPEN">Em aberto</option>
+                            <option value="OVERDUE">Vencidos</option>
+                            <option value="FINALIZED">Finalizados</option>
                             <option value="UPCOMING">
                                 Hoje e datas futuras
                             </option>
@@ -381,13 +401,44 @@ function SettlementRead({
             )}
             {listValue && (
                 <>
+                    <div className={styles.actions}>
+                        <p>
+                            {selectedCycles.length} ciclos selecionados para
+                            conferir juntos.
+                        </p>
+                        {selectedCycles.length >= 2 ? (
+                            <Button asChild variant="outline">
+                                <Link
+                                    href={`/spaces/${spaceId}/finances/settlements/selected?cycleIds=${[...selectedCycles].sort().join(',')}`}
+                                >
+                                    Conferir ciclos selecionados
+                                </Link>
+                            </Button>
+                        ) : (
+                            <Button variant="outline" disabled>
+                                Selecione ao menos dois ciclos
+                            </Button>
+                        )}
+                        {selectedCycles.length > 0 && (
+                            <Button
+                                variant="ghost"
+                                onClick={() => setSelectedCycles([])}
+                            >
+                                Limpar seleção
+                            </Button>
+                        )}
+                    </div>
                     {listValue.items.length === 0 ? (
                         <p>
                             {selection.cursor
                                 ? 'Nenhum acerto nesta página.'
                                 : selection.view === 'UPCOMING'
                                   ? 'Nenhum acerto em aberto para hoje ou datas futuras.'
-                                  : 'Nenhum ciclo de acerto em aberto neste espaço.'}
+                                  : selection.view === 'OVERDUE'
+                                    ? 'Nenhum acerto vencido neste espaço.'
+                                    : selection.view === 'FINALIZED'
+                                      ? 'Nenhum acerto finalizado neste espaço.'
+                                      : 'Nenhum ciclo de acerto em aberto neste espaço.'}
                         </p>
                     ) : (
                         <ul
@@ -396,6 +447,36 @@ function SettlementRead({
                         >
                             {listValue.items.map((cycle) => (
                                 <li key={cycle.id}>
+                                    <label className={formStyles.check}>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedCycles.includes(
+                                                cycle.id,
+                                            )}
+                                            disabled={
+                                                selectedCycles.length >= 50 &&
+                                                !selectedCycles.includes(
+                                                    cycle.id,
+                                                )
+                                            }
+                                            onChange={(event) =>
+                                                setSelectedCycles(
+                                                    event.target.checked
+                                                        ? [
+                                                              ...selectedCycles,
+                                                              cycle.id,
+                                                          ]
+                                                        : selectedCycles.filter(
+                                                              (id) =>
+                                                                  id !==
+                                                                  cycle.id,
+                                                          ),
+                                                )
+                                            }
+                                        />
+                                        Selecionar acerto de{' '}
+                                        {formatDate(cycle.targetDate)}
+                                    </label>
                                     <h2>
                                         Acerto de{' '}
                                         <time dateTime={cycle.targetDate}>
@@ -428,6 +509,19 @@ function SettlementRead({
                         </time>
                     </h2>
                     <CycleTotals cycle={detailValue.cycle} />
+                    <SettlementCycleFinalization
+                        data={detailValue}
+                        refresh={() => void detail.refetch()}
+                        refreshing={detail.isFetching}
+                    />
+                    {detailValue.cycle.status === 'OPEN' &&
+                        detailValue.spaceStatus !== 'CLOSED' && (
+                            <Link
+                                href={`/spaces/${spaceId}/finances/settlements/offsets/new?cycleIds=${cycleId}`}
+                            >
+                                Conferir compensação deste ciclo
+                            </Link>
+                        )}
                     {detailValue.cycle.status === 'OPEN' &&
                         detailValue.spaceStatus !== 'CLOSED' &&
                         detailValue.cycle.totals.remainingAmountInCents !==
@@ -473,9 +567,11 @@ function SettlementRead({
                                     <h3>{item.origin.description}</h3>
                                     <p>
                                         {item.remainingAmountInCents === 0
-                                            ? item.status === 'RECONCILED'
-                                                ? 'Encerrada por reconciliação dos fatos da origem, sem registrar transferência.'
-                                                : 'Pendência acertada.'
+                                            ? item.status === 'WAIVED'
+                                                ? 'Pendência dispensada pelo credor.'
+                                                : item.status === 'RECONCILED'
+                                                  ? 'Encerrada por reconciliação dos fatos da origem, sem registrar transferência.'
+                                                  : 'Pendência acertada.'
                                             : item.debtorMemberId ===
                                                 detailValue.actorMemberId
                                               ? `Você precisa acertar com ${memberName(item.creditorMemberId)}`
@@ -515,6 +611,11 @@ function SettlementRead({
                                             {formatDate(item.factDate)}
                                         </time>
                                     </p>
+                                    <Link
+                                        href={`/spaces/${spaceId}/finances/settlements/obligations/${item.id}`}
+                                    >
+                                        Conferir pendência e opções de acerto
+                                    </Link>
                                     <p>
                                         Registrada em:{' '}
                                         <time dateTime={item.registeredAt}>
@@ -527,19 +628,21 @@ function SettlementRead({
                                             )}
                                         </time>
                                     </p>
-                                    <Link
-                                        href={financialOriginPath(
-                                            spaceId,
-                                            item.origin,
-                                            cycleId,
-                                        )}
-                                        aria-label={`Ver ${item.origin.kind === 'INCOME' ? 'receita' : 'despesa'}: ${item.origin.description}`}
-                                    >
-                                        Ver{' '}
-                                        {item.origin.kind === 'INCOME'
-                                            ? 'receita'
-                                            : 'despesa'}
-                                    </Link>
+                                    {hasFinancialOriginPage(item.origin) && (
+                                        <Link
+                                            href={financialOriginPath(
+                                                spaceId,
+                                                item.origin,
+                                                cycleId,
+                                            )}
+                                            aria-label={`Ver ${item.origin.kind === 'INCOME' ? 'receita' : 'despesa'}: ${item.origin.description}`}
+                                        >
+                                            Ver{' '}
+                                            {item.origin.kind === 'INCOME'
+                                                ? 'receita'
+                                                : 'despesa'}
+                                        </Link>
+                                    )}
                                 </li>
                             ))}
                         </ul>

@@ -19,6 +19,7 @@ import type {
 } from '../types/settlement-transfer';
 import { formatDate, formatMoney } from '../utils/expense-money';
 import { financialOriginPath } from '../utils/settlement-return';
+import { hasFinancialOriginPage } from '../types/settlement-origin';
 import styles from './finances-summary.module.css';
 
 const uuid =
@@ -106,6 +107,23 @@ function TransferSummary({
                 </time>
             </p>
             <p>Distribuição manual em {allocations.length} pendência(s).</p>
+            {transfer.reversedAmountInCents !== undefined && (
+                <p>
+                    Revertido: {formatMoney(transfer.reversedAmountInCents)}.
+                    Transferência efetiva:{' '}
+                    {formatMoney(
+                        transfer.effectiveAmountInCents ??
+                            transfer.amountInCents,
+                    )}
+                    .
+                </p>
+            )}
+            {transfer.reversalId && (
+                <p>
+                    Esta transferência recebeu uma reversão vinculada. O
+                    registro original foi preservado.
+                </p>
+            )}
         </>
     );
 }
@@ -307,6 +325,11 @@ function History({
                         members={detailValue.members}
                     />
                     <h2>Aplicações</h2>
+                    <Link
+                        href={`/spaces/${spaceId}/finances/settlements/transfers/${transferId}/reverse`}
+                    >
+                        Conferir reversão desta transferência
+                    </Link>
                     <ul
                         className={styles.list}
                         aria-label="Alocações da transferência"
@@ -327,18 +350,25 @@ function History({
                                 ) : (
                                     <p>Sem acerto associado</p>
                                 )}
+                                {hasFinancialOriginPage(allocation.origin) && (
+                                    <Link
+                                        href={financialOriginPath(
+                                            spaceId,
+                                            allocation.origin,
+                                            allocation.cycleId,
+                                        )}
+                                    >
+                                        Ver{' '}
+                                        {allocation.origin.kind === 'INCOME'
+                                            ? 'receita'
+                                            : 'despesa'}{' '}
+                                        de origem
+                                    </Link>
+                                )}
                                 <Link
-                                    href={financialOriginPath(
-                                        spaceId,
-                                        allocation.origin,
-                                        allocation.cycleId,
-                                    )}
+                                    href={`/spaces/${spaceId}/finances/settlements/obligations/${allocation.obligationId}`}
                                 >
-                                    Ver{' '}
-                                    {allocation.origin.kind === 'INCOME'
-                                        ? 'receita'
-                                        : 'despesa'}{' '}
-                                    de origem
+                                    Conferir pendência atual
                                 </Link>
                             </li>
                         ))}
