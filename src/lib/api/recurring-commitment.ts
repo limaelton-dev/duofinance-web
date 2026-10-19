@@ -44,7 +44,16 @@ export const getRecurringOccurrences = (
     apiRequest<RecurringOccurrences>(
         `/spaces/${spaceId}/recurring-commitments/${id}/occurrences?month=${encodeURIComponent(month)}`,
         { signal },
-    ).then((value) => ({ ...value, spaceId }));
+    ).then((value) => {
+        if (
+            value.commitmentId !== id ||
+            ('spaceId' in value && value.spaceId !== spaceId)
+        )
+            throw new Error(
+                'A resposta não corresponde ao compromisso deste espaço.',
+            );
+        return { ...value, spaceId };
+    });
 export const getRecurringOptions = (
     spaceId: string,
     id: string,

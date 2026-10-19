@@ -486,6 +486,11 @@ function TodayRead({
                                 Adicionar receita
                             </Link>
                         </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={`/spaces/${spaceId}/finances/planning`}>
+                                Planejar compromisso
+                            </Link>
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </header>

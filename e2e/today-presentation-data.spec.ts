@@ -144,7 +144,7 @@ test('income links use the selected space and do not depend on a truncated legac
     );
 });
 
-test('planned expenses and recurring occurrences never lead to incompatible expense or income detail contracts', () => {
+test('planned expenses and recurring occurrences open their compatible operation routes', () => {
     const expense = {
         ...income,
         details: { ...income.details, kind: 'EXPENSE' as const },
@@ -162,8 +162,12 @@ test('planned expenses and recurring occurrences never lead to incompatible expe
             occurrenceId: 'occurrence-a',
         },
     };
-    expect(todayItemHref(expense, context)).toBeNull();
-    expect(todayItemHref(recurrence, context)).toBeNull();
+    expect(todayItemHref(expense, context)).toBe(
+        '/spaces/space-a/finances/planning/income-a',
+    );
+    expect(todayItemHref(recurrence, context)).toBe(
+        '/spaces/space-a/recurring-commitments/income-a?month=2026-10',
+    );
     expect(todayItemKey(recurrence)).not.toBe(
         todayItemKey({
             ...recurrence,

@@ -46,7 +46,16 @@ export const getInstallmentItems = (
         items: InstallmentItem[];
     }>(`/spaces/${spaceId}/installment-commitments/${id}/installments`, {
         signal,
-    }).then((value) => ({ ...value, spaceId }));
+    }).then((value) => {
+        if (
+            value.commitmentId !== id ||
+            ('spaceId' in value && value.spaceId !== spaceId)
+        )
+            throw new Error(
+                'A resposta não corresponde ao compromisso deste espaço.',
+            );
+        return { ...value, spaceId };
+    });
 export const getInstallmentOptions = (
     spaceId: string,
     id: string,

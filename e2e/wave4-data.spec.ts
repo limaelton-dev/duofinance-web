@@ -165,6 +165,45 @@ test('Wave 4: reject details from another space and preserve versions in scoped 
         ).toBe('real-fact');
     });
 });
+for (const [label, read] of [
+    [
+        'recurring occurrences',
+        () => getRecurringOccurrences('space-a', 'commitment-a', '2026-10'),
+    ],
+    ['installment items', () => getInstallmentItems('space-a', 'commitment-a')],
+] as const) {
+    test(`Wave 4: ${label} rejects incompatible origins before assigning the requested space`, async () => {
+        await withApi(async (_calls, reply) => {
+            for (const origin of [
+                { commitmentId: 'commitment-b', spaceId: 'space-a' },
+                { commitmentId: 'commitment-a', spaceId: 'space-b' },
+                { commitmentId: 'commitment-a', spaceId: '' },
+                { spaceId: 'space-a' },
+            ]) {
+                reply({
+                    ...origin,
+                    items: [{ id: 'foreign-item', stateVersion: 7 }],
+                });
+                await expect(read()).rejects.toThrow(
+                    'não corresponde ao compromisso',
+                );
+            }
+            const items = [{ id: 'correct-item', stateVersion: 3 }];
+            reply({ commitmentId: 'commitment-a', items });
+            expect(await read()).toEqual({
+                commitmentId: 'commitment-a',
+                spaceId: 'space-a',
+                items,
+            });
+            reply({ commitmentId: 'commitment-a', spaceId: 'space-a', items });
+            expect(await read()).toEqual({
+                commitmentId: 'commitment-a',
+                spaceId: 'space-a',
+                items,
+            });
+        });
+    });
+}
 test('Wave 4: previews do not send idempotency keys; confirmed payoff sends one global value and exact versions', async () => {
     await withApi(async (calls, reply) => {
         reply({

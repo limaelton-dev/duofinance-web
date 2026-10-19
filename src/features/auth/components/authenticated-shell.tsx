@@ -146,9 +146,10 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
                       href: `/spaces/${space.activeSpaceId}/finances`,
                       label: 'Finanças',
                       icon: Wallet,
-                      current: /\/(finances|expenses|incomes)(?:\/|$)/.test(
-                          pathname,
-                      ),
+                      current:
+                          /\/(finances|expenses|incomes|recurring-commitments|installment-commitments)(?:\/|$)/.test(
+                              pathname,
+                          ),
                   },
               ]
             : []),

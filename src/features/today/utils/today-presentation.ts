@@ -33,15 +33,15 @@ export function todayItemHref(
     const base = `/spaces/${encodeURIComponent(today.spaceId)}`;
     if (item.type === 'SETTLEMENT_CYCLE')
         return `${base}/finances/settlements/${encodeURIComponent(item.reference.cycleId)}`;
-    if (
-        item.type !== 'FINANCIAL_COMMITMENT' ||
-        item.reference.modality !== 'ONE_TIME' ||
-        item.reference.occurrenceId !== null
-    )
-        return null;
+    if (item.type === 'CHANGE_PROPOSAL') return `${base}/finances/changes`;
+    if (item.type !== 'FINANCIAL_COMMITMENT') return null;
+    if (item.reference.modality === 'RECURRING')
+        return `${base}/recurring-commitments/${encodeURIComponent(item.reference.commitmentId)}?month=${encodeURIComponent(item.reference.expectedDate.slice(0, 7))}`;
+    if (item.reference.modality === 'INSTALLMENT')
+        return `${base}/installment-commitments/${encodeURIComponent(item.reference.commitmentId)}`;
     return item.details.kind === 'INCOME'
         ? `${base}/incomes/${encodeURIComponent(item.reference.commitmentId)}`
-        : null;
+        : `${base}/finances/planning/${encodeURIComponent(item.reference.commitmentId)}`;
 }
 
 export function formatTodayReferenceDate(date: string) {
