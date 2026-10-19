@@ -317,8 +317,14 @@ test('A01/A10: personal list navigates to origin, partial/full payments preserve
     await expect(history(page)).toContainText(
         'Pagamentos posteriores ao credor externo: R$ 60,00',
     );
+    await expect(
+        page.getByRole('region', { name: 'Resumo da despesa', exact: true }),
+    ).toContainText(/Pago ao credor do cartão\s*R\$\s*60,00/);
     await pay(page, '140,00');
     await expect(history(page)).toContainText('Obrigação externa quitada.');
+    await expect(
+        page.getByRole('region', { name: 'Resumo da despesa', exact: true }),
+    ).toContainText(/Pago ao credor do cartão\s*R\$\s*200,00/);
     await expect(
         history(page).getByRole('button', {
             name: 'Registrar pagamento',

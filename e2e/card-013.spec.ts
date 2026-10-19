@@ -152,6 +152,9 @@ test('personal expense preserves original and three payments with mobile keyboar
         .getByLabel('Descrição', { exact: true })
         .fill('Tratamento em partes');
     await page.getByLabel('Valor (R$)', { exact: true }).fill('1.000,00');
+    await page
+        .getByLabel('Forma de pagamento', { exact: true })
+        .selectOption('PIX');
     await page.getByLabel('Valor pago agora (R$)').fill('300,00');
     await page
         .getByRole('button', { name: 'Salvar despesa', exact: true })
@@ -234,7 +237,8 @@ test('personal forecast receives 300, 200 and 500 and Today tracks remaining', a
             exact: true,
         }),
     });
-    await expect(upcoming).toContainText('Falta receber: R$ 700,00');
+    await expect(upcoming).toContainText('Falta receber');
+    await expect(upcoming).toContainText('R$ 700,00');
     await page.goto(`/spaces/${a.personalId}/incomes`);
     await page.getByLabel('Mostrar receitas').selectOption('PENDING');
     await expect(
@@ -303,6 +307,9 @@ test('shared expense keeps original responsibilities with different effective pa
         .getByLabel('Descrição', { exact: true })
         .fill('Despesa com dois pagadores');
     await page.getByLabel('Valor (R$)', { exact: true }).fill('500,00');
+    await page
+        .getByLabel('Forma de pagamento', { exact: true })
+        .selectOption('DEBIT');
     await page.getByLabel('Valor pago agora (R$)').fill('350,00');
     await page.getByLabel('Pessoa A parcial (%)').fill('60');
     await page.getByLabel('Pessoa B parcial (%)').fill('40');
@@ -332,7 +339,9 @@ test('shared expense keeps original responsibilities with different effective pa
         ),
     ).toBeVisible();
     await expect(
-        page.getByText('Pessoa A parcial: R$ 300,00', { exact: true }),
+        page
+            .getByRole('region', { name: 'Resumo da despesa', exact: true })
+            .getByText('Sua parte: R$ 300,00', { exact: true }),
     ).toBeVisible();
     await expect(
         page.getByText('Pessoa B parcial: R$ 200,00', { exact: true }),

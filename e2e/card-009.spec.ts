@@ -242,8 +242,14 @@ for (const status of [200, 401])
             });
             await switcher.selectOption(second);
             await expect(switcher).toHaveValue(second);
+            await expect(page).toHaveURL(
+                `${origin}/spaces/${second}/finances/settlements/transfers/new`,
+            );
             await switcher.selectOption(first);
             await expect(switcher).toHaveValue(first);
+            await expect(page).toHaveURL(
+                `${origin}/spaces/${first}/finances/settlements/transfers/new`,
+            );
             await expect(
                 page.getByRole('checkbox', { name: /Origem atual/ }),
             ).toBeVisible();

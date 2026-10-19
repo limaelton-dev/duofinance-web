@@ -290,12 +290,21 @@ for (const payer of ['A', 'B'] as const)
             `/spaces/${shared}/expenses/${result.commitment.id}`,
         );
         await expect(
-            page.getByText('Mercado · R$ 500,00', { exact: true }),
+            page.getByRole('heading', { name: 'Mercado', exact: true }),
         ).toBeVisible();
+        await expect(
+            page.getByRole('region', {
+                name: 'Resumo da despesa',
+                exact: true,
+            }),
+        ).toContainText('R$ 500,00');
         await page.reload();
         await expect(
             page.getByText('Sua parte: R$ 200,00', { exact: true }),
         ).toBeVisible();
+        await page
+            .getByText('Identificação do registro', { exact: true })
+            .click();
         await expect(
             page.getByText(`Registro: ${result.commitment.id}`, {
                 exact: true,
@@ -497,6 +506,7 @@ test('A16/A19: nova despesa pela interface retorna à posição atual com outra 
         .getByLabel('Descrição', { exact: true })
         .fill('Despesa pela interface');
     await page.getByLabel('Valor (R$)', { exact: true }).fill('500,00');
+    await page.getByLabel('Forma de pagamento').selectOption('DEBIT');
     await page.getByLabel('Posição A (%)', { exact: true }).fill('40');
     await page.getByLabel('Posição B (%)', { exact: true }).fill('60');
     await page

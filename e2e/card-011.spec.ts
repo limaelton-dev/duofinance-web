@@ -84,6 +84,8 @@ async function fill(
 ) {
     await page.getByLabel('Descrição', { exact: true }).fill(description);
     await page.getByLabel('Valor (R$)', { exact: true }).fill(amount);
+    if ((await page.getByLabel('Forma de pagamento').inputValue()) === '')
+        await page.getByLabel('Forma de pagamento').selectOption('PIX');
 }
 async function save(page: Page) {
     await page
@@ -200,8 +202,9 @@ test('A01/A13/A15/A16/A17: real personal journey from Today to confirmation, his
     await expect(
         page.getByRole('heading', { name: 'Próximo acerto' }),
     ).toHaveCount(0);
+    await page.getByRole('button', { name: 'Adicionar', exact: true }).click();
     await page
-        .getByRole('link', { name: 'Adicionar despesa', exact: true })
+        .getByRole('menuitem', { name: 'Adicionar despesa', exact: true })
         .click();
     await noSharedConcepts(page);
     await fill(page);
@@ -230,11 +233,13 @@ test('A01/A13/A15/A16/A17: real personal journey from Today to confirmation, his
         'PIX',
     ]);
     await page.getByRole('link', { name: 'Ver despesa', exact: true }).click();
+    await page.getByText('Identificação do registro', { exact: true }).click();
     await expect(
         page.getByText(`Registro: ${result.commitment.id}`, { exact: true }),
     ).toBeVisible();
     await noSharedConcepts(page);
     await page.reload();
+    await page.getByText('Identificação do registro', { exact: true }).click();
     await expect(
         page.getByText(`Desembolso: ${result.disbursement!.id}`, {
             exact: true,
@@ -257,6 +262,7 @@ test('A01/A13/A15/A16/A17: real personal journey from Today to confirmation, his
     await page
         .getByRole('link', { name: 'Consulta pessoal', exact: true })
         .click();
+    await page.getByText('Identificação do registro', { exact: true }).click();
     await expect(
         page.getByText(`Registro: ${result.commitment.id}`, { exact: true }),
     ).toBeVisible();
@@ -281,7 +287,7 @@ for (const [method, amount] of [
                 .evaluateAll((nodes) =>
                     nodes.map((node) => (node as HTMLOptionElement).value),
                 ),
-        ).toEqual(['CREDIT_CARD', 'PIX', 'DEBIT', 'CASH']);
+        ).toEqual(['', 'CREDIT_CARD', 'PIX', 'DEBIT', 'CASH']);
         await save(page);
         await recorded(page);
         await expect(page.getByRole('definition')).toContainText([
@@ -343,6 +349,7 @@ test('A04/A21: server date is authoritative in a Tokyo browser with another loca
             },
         );
         await open(page, context, a, composer());
+        await page.getByLabel('Forma de pagamento').selectOption('PIX');
         await expect(page.getByLabel('Data do pagamento')).toHaveValue(
             '2026-10-13',
         );
@@ -396,7 +403,7 @@ test('A07/A08: a shared partner cannot list or open personal data and surfaces s
         await expect(page.getByText('Segredo pessoal')).toHaveCount(0);
         await page.goto(`/spaces/${sharedId}/expenses/new`);
         await expect(
-            page.getByLabel('Quem pagou?', { exact: true }),
+            page.getByLabel('Forma de pagamento', { exact: true }),
         ).toBeVisible();
         await switcher(page).selectOption(b.personalId);
         await expect(page).toHaveURL(composer(b));
@@ -494,7 +501,7 @@ test('A10/A20: lost response after real commit keeps the immutable key/input, gu
     });
     await save(page);
     await expect(
-        page.getByRole('button', { name: 'Tentar novamente o envio' }),
+        page.getByRole('button', { name: 'Recuperar esta tentativa' }),
     ).toBeVisible();
     await expect(switcher(page)).toBeDisabled();
     await expect(page.getByLabel('Descrição', { exact: true })).toBeDisabled();
@@ -503,10 +510,15 @@ test('A10/A20: lost response after real commit keeps the immutable key/input, gu
     ).toBeDisabled();
     await page.getByRole('link', { name: 'Cancelar', exact: true }).click();
     await expect(page).toHaveURL(composer());
-    await page.getByRole('link', { name: 'Hoje', exact: true }).click();
+    const blockedNavigation = page.getByRole('link', {
+        name: 'Hoje',
+        exact: true,
+    });
+    await expect(blockedNavigation).toBeDisabled();
+    await blockedNavigation.click({ force: true });
     await expect(page).toHaveURL(composer());
     await page
-        .getByRole('button', { name: 'Tentar novamente o envio' })
+        .getByRole('button', { name: 'Recuperar esta tentativa' })
         .click();
     await recorded(page);
     expect(attempts).toHaveLength(2);
@@ -532,8 +544,9 @@ test('A20: double submit while pending has one command and blocks traversal and 
     const started = deferred(),
         release = deferred();
     await open(page, context, a, '/');
+    await page.getByRole('button', { name: 'Adicionar', exact: true }).click();
     await page
-        .getByRole('link', { name: 'Adicionar despesa', exact: true })
+        .getByRole('menuitem', { name: 'Adicionar despesa', exact: true })
         .click();
     await fill(page, 'Envio único');
     let commands = 0;
@@ -553,7 +566,7 @@ test('A20: double submit while pending has one command and blocks traversal and 
             });
         await started.promise;
         await expect(
-            page.getByText('Salvando despesa…', { exact: true }),
+            page.getByRole('status').filter({ hasText: 'Salvando despesa…' }),
         ).toBeVisible();
         await expect(switcher(page)).toBeDisabled();
         await page.getByRole('link', { name: 'Cancelar' }).click();
@@ -601,11 +614,11 @@ for (const scenario of [
         });
         await save(page);
         await expect(
-            page.getByRole('button', { name: 'Tentar novamente o envio' }),
+            page.getByRole('button', { name: 'Recuperar esta tentativa' }),
         ).toBeVisible();
         if (scenario.status === 429) {
             await page
-                .getByRole('button', { name: 'Tentar novamente o envio' })
+                .getByRole('button', { name: 'Recuperar esta tentativa' })
                 .click();
             await expect(page.locator('main p[role="alert"]')).toContainText(
                 'Aguarde',
@@ -615,7 +628,7 @@ for (const scenario of [
         else await page.waitForTimeout(1100);
         expect(attempts).toHaveLength(1);
         await page
-            .getByRole('button', { name: 'Tentar novamente o envio' })
+            .getByRole('button', { name: 'Recuperar esta tentativa' })
             .click();
         await recorded(page);
         expect(attempts[1]).toEqual(attempts[0]);

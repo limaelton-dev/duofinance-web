@@ -6,3 +6,10 @@ coverage/
 package-lock.json
 next-env.d.ts
 *.tsbuildinfo
+.github/skills/
+.github/agents/
+.github/hooks/
+.impeccable/review/
+.impeccable/config.local.json
+test-results/
+debug.log
