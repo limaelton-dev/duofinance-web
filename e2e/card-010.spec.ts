@@ -576,6 +576,13 @@ for (const width of [1280, 390])
                 name: 'Ver espaço e convite',
                 exact: true,
             });
+            await expect(
+                page.getByRole('menuitem', {
+                    name: 'Adicionar receita',
+                    exact: true,
+                }),
+            ).toHaveCount(0);
+            await expect(add).toBeFocused();
             await invitation.focus();
             await expect(invitation).toBeFocused();
             await page.keyboard.press('Enter');

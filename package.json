@@ -11,6 +11,7 @@
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "test:e2e": "playwright test",
+        "test:data": "playwright test -c playwright.data.config.ts",
         "test:interface": "playwright test -c playwright.interface.config.ts"
     },
     "dependencies": {
