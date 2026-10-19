@@ -1,4 +1,6 @@
 'use client';
+import { FinancialLoading } from './financial-loading';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
@@ -22,12 +24,27 @@ import styles from './finances-summary.module.css';
 
 const labels: Record<FinancialReviewItemType, string> = {
     EXPENSE: 'Despesa econômica registrada',
+    EXPENSE_DISCOUNT: 'Desconto da despesa',
+    EXPENSE_SURCHARGE: 'Acréscimo da despesa',
+    EXPENSE_PAYOFF: 'Quitação da despesa',
+    EXPENSE_CANCELLATION: 'Cancelamento da despesa',
+    INCOME_INCREASE: 'Aumento da receita',
+    INCOME_DECREASE: 'Redução da receita',
+    INCOME_CANCELLATION: 'Cancelamento da receita',
     EXPECTED_INCOME: 'Receita prevista',
+    EXPECTED_EXPENSE: 'Despesa prevista',
     DISBURSEMENT: 'Pagamento direto',
     RECEIPT: 'Recebimento realizado',
     EXTERNAL_LIABILITY: 'Obrigação externa assumida',
     EXTERNAL_SETTLEMENT: 'Liquidação externa',
     INTERNAL_TRANSFER: 'Transferência interna',
+    INTERNAL_OFFSET: 'Compensação entre membros',
+    INTERNAL_WAIVER: 'Dispensa entre membros',
+    INTERNAL_REVERSAL: 'Reversão de resolução entre membros',
+    DISBURSEMENT_REVERSAL: 'Reversão de pagamento direto',
+    RECEIPT_REVERSAL: 'Reversão de recebimento',
+    EXTERNAL_LIABILITY_REVERSAL: 'Reversão de obrigação no cartão',
+    EXTERNAL_SETTLEMENT_REVERSAL: 'Reversão de pagamento externo',
 };
 export function FinancialTimelineSection({
     personId,
@@ -105,20 +122,23 @@ export function FinancialTimelineSection({
                     indicado pode ser outro membro.
                 </p>
             )}
-            <div className={styles.actions}>
-                <label htmlFor="financial-view">Visão financeira</label>
-                <select
-                    id="financial-view"
-                    value={view}
-                    onChange={(event) =>
-                        onView(event.target.value as typeof view)
-                    }
-                >
-                    <option value="CALENDAR">Calendário</option>
-                    <option value="HISTORY">Histórico</option>
-                    <option value="FORECAST">Previsão</option>
-                </select>
-                <button
+            <div className={styles.filters}>
+                <div className={styles.filter}>
+                    <label htmlFor="financial-view">Visão financeira</label>
+                    <select
+                        id="financial-view"
+                        value={view}
+                        onChange={(event) =>
+                            onView(event.target.value as typeof view)
+                        }
+                    >
+                        <option value="CALENDAR">Calendário</option>
+                        <option value="HISTORY">Histórico</option>
+                        <option value="FORECAST">Previsão</option>
+                    </select>
+                </div>
+                <Button
+                    variant="outline"
                     type="button"
                     disabled={query.isFetching}
                     onClick={() =>
@@ -128,13 +148,13 @@ export function FinancialTimelineSection({
                     }
                 >
                     Atualizar compromissos / Voltar ao início
-                </button>
+                </Button>
             </div>
             {view === 'FORECAST' ? (
                 <p>
-                    Somente o restante de compromissos futuros conhecidos, a
-                    partir da referência de São Paulo. Atrasados não são
-                    reprogramados.
+                    Receitas futuras e despesas ainda pendentes no período.
+                    Despesas atrasadas mantêm sua data original. Os valores de
+                    previsão não representam saldo bancário.
                 </p>
             ) : (
                 <p>
@@ -144,18 +164,20 @@ export function FinancialTimelineSection({
                 </p>
             )}
             {(query.isPending || query.isFetching) && (
-                <p role="status" aria-busy="true">
-                    Carregando consultas financeiras…
-                </p>
+                <FinancialLoading label="Carregando consultas financeiras…" />
             )}
             {query.isError && (
                 <div>
                     <p role="alert">
                         Não foi possível consultar os compromissos financeiros.
                     </p>
-                    <button type="button" onClick={() => void query.refetch()}>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => void query.refetch()}
+                    >
                         Tentar novamente os compromissos
-                    </button>
+                    </Button>
                 </div>
             )}
             {value && (
@@ -168,38 +190,142 @@ export function FinancialTimelineSection({
                         . Totais de todo o recorte, independentes da página.
                     </p>
                     {forecast && (
-                        <dl
-                            className={styles.totals}
-                            aria-label="Previsão de receitas"
-                        >
-                            <div>
-                                <dt>Receitas previstas</dt>
-                                <dd>
-                                    {formatReviewMoney(
-                                        forecast.totals.expectedAmountInCents,
-                                    )}
-                                </dd>
-                            </div>
-                            <div>
-                                <dt>Já recebido dos compromissos previstos</dt>
-                                <dd>
-                                    {formatReviewMoney(
-                                        forecast.totals.receivedAmountInCents,
-                                    )}
-                                </dd>
-                            </div>
-                            <div>
-                                <dt>Restante futuro conhecido</dt>
-                                <dd>
-                                    {formatReviewMoney(
-                                        forecast.totals.remainingAmountInCents,
-                                    )}
-                                </dd>
-                            </div>
-                        </dl>
+                        <>
+                            <dl
+                                className={styles.totals}
+                                aria-label="Previsão de receitas"
+                            >
+                                <div>
+                                    <dt>Receitas previstas</dt>
+                                    <dd>
+                                        {formatReviewMoney(
+                                            forecast.totals
+                                                .expectedAmountInCents,
+                                        )}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt>
+                                        Já recebido dos compromissos previstos
+                                    </dt>
+                                    <dd>
+                                        {formatReviewMoney(
+                                            forecast.totals
+                                                .receivedAmountInCents,
+                                        )}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt>Restante futuro conhecido</dt>
+                                    <dd>
+                                        {formatReviewMoney(
+                                            forecast.totals
+                                                .remainingAmountInCents,
+                                        )}
+                                    </dd>
+                                </div>
+                            </dl>
+                            {forecast.totals.expectedExpenseAmountInCents !==
+                                undefined && (
+                                <dl
+                                    className={styles.totals}
+                                    aria-label="Previsão de despesas"
+                                >
+                                    <div>
+                                        <dt>Despesas previstas</dt>
+                                        <dd>
+                                            {formatReviewMoney(
+                                                forecast.totals
+                                                    .expectedExpenseAmountInCents,
+                                            )}
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt>
+                                            Já realizado das despesas previstas
+                                        </dt>
+                                        <dd>
+                                            {formatReviewMoney(
+                                                forecast.totals
+                                                    .fulfilledExpenseAmountInCents ??
+                                                    '0',
+                                            )}
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt>Restante das despesas previstas</dt>
+                                        <dd>
+                                            {formatReviewMoney(
+                                                forecast.totals
+                                                    .remainingExpenseAmountInCents ??
+                                                    '0',
+                                            )}
+                                        </dd>
+                                    </div>
+                                </dl>
+                            )}
+                            {!!forecast.totals.unknownAmountCount && (
+                                <p className={styles.notice}>
+                                    {forecast.totals.unknownAmountCount}{' '}
+                                    compromisso(s) com valor a definir. Esses
+                                    valores não entram nos totais conhecidos.
+                                </p>
+                            )}
+                            {!!forecast.globalCorrections?.length && (
+                                <section
+                                    className={styles.stack}
+                                    aria-label="Correções globais de planos"
+                                >
+                                    <h3>Correções globais de planos</h3>
+                                    <p>
+                                        Os valores abrangem o plano inteiro e
+                                        não são abatidos das parcelas ou dos
+                                        totais mensais. Confira o saldo global
+                                        no plano.
+                                    </p>
+                                    <ul className={styles.list}>
+                                        {forecast.globalCorrections.map(
+                                            (correction) => (
+                                                <li
+                                                    key={
+                                                        correction.commitmentId
+                                                    }
+                                                >
+                                                    <dl>
+                                                        <dt>
+                                                            Ajuste global do
+                                                            plano
+                                                        </dt>
+                                                        <dd>
+                                                            {formatReviewMoney(
+                                                                correction.globalAdjustmentInCents,
+                                                            )}
+                                                        </dd>
+                                                        <dt>
+                                                            Restante global do
+                                                            plano
+                                                        </dt>
+                                                        <dd>
+                                                            {formatReviewMoney(
+                                                                correction.globalRemainingAmountInCents,
+                                                            )}
+                                                        </dd>
+                                                    </dl>
+                                                    <Link
+                                                        href={`/spaces/${spaceId}/finances/commitments/${correction.commitmentId}`}
+                                                    >
+                                                        Conferir plano
+                                                    </Link>
+                                                </li>
+                                            ),
+                                        )}
+                                    </ul>
+                                </section>
+                            )}
+                        </>
                     )}
                     {value.items.length === 0 ? (
-                        <p>
+                        <p className={styles.empty}>
                             {view === 'FORECAST'
                                 ? 'Nenhum compromisso futuro conhecido neste período.'
                                 : 'Nenhum fato financeiro neste período para este filtro.'}
@@ -233,21 +359,17 @@ export function FinancialTimelineSection({
                                     <h3>{item.description}</h3>
                                     <p>
                                         {labels[item.type]}:{' '}
-                                        {formatMoney(item.amountInCents)}
+                                        {item.amountInCents === null
+                                            ? 'Valor a definir'
+                                            : formatMoney(item.amountInCents)}
                                     </p>
                                     {'remainingAmountInCents' in item && (
-                                        <p>
-                                            Recebido:{' '}
-                                            {formatMoney(
-                                                (item as FinancialForecastItem)
-                                                    .receivedAmountInCents,
-                                            )}{' '}
-                                            · Restante:{' '}
-                                            {formatMoney(
-                                                (item as FinancialForecastItem)
-                                                    .remainingAmountInCents,
-                                            )}
-                                        </p>
+                                        <ForecastAmounts
+                                            item={item as FinancialForecastItem}
+                                        />
+                                    )}
+                                    {item.reason && (
+                                        <p>Motivo: {item.reason}</p>
                                     )}
                                     <p>
                                         {item.dateNature === 'EXPECTED'
@@ -317,7 +439,9 @@ export function FinancialTimelineSection({
                                     <Link href={originPath(spaceId, item)}>
                                         {item.type === 'INTERNAL_TRANSFER'
                                             ? 'Ver transferência'
-                                            : `Ver ${item.type === 'EXPECTED_INCOME' || item.type === 'RECEIPT' ? 'receita' : 'despesa'}: ${item.description}`}
+                                            : item.type.startsWith('INTERNAL_')
+                                              ? 'Ver acertos'
+                                              : `Ver compromisso: ${item.description}`}
                                     </Link>
                                     {item.externalLiabilityId && (
                                         <Link
@@ -332,7 +456,8 @@ export function FinancialTimelineSection({
                         </ol>
                     )}
                     {value.nextCursor ? (
-                        <button
+                        <Button
+                            variant="outline"
                             type="button"
                             onClick={() =>
                                 setSelection({
@@ -342,7 +467,7 @@ export function FinancialTimelineSection({
                             }
                         >
                             Próxima página de compromissos
-                        </button>
+                        </Button>
                     ) : (
                         value.items.length > 0 && (
                             <p role="status">
@@ -358,7 +483,36 @@ export function FinancialTimelineSection({
 function originPath(spaceId: string, item: FinancialReviewItem) {
     if (item.type === 'INTERNAL_TRANSFER')
         return `/spaces/${spaceId}/finances/settlements/transfers/${item.id}`;
-    return `/spaces/${spaceId}/${item.type === 'EXPECTED_INCOME' || item.type === 'RECEIPT' ? 'incomes' : 'expenses'}/${item.commitmentId}`;
+    if (!item.commitmentId) return `/spaces/${spaceId}/finances/settlements`;
+    return `/spaces/${spaceId}/finances/commitments/${item.commitmentId}`;
+}
+
+function ForecastAmounts({ item }: { item: FinancialForecastItem }) {
+    return (
+        <>
+            <p>
+                {item.type === 'EXPECTED_EXPENSE' ? 'Realizado' : 'Recebido'}:{' '}
+                {formatMoney(
+                    item.fulfilledAmountInCents ?? item.receivedAmountInCents,
+                )}{' '}
+                · Restante:{' '}
+                {item.remainingAmountInCents === null
+                    ? 'Valor a definir'
+                    : formatMoney(item.remainingAmountInCents)}
+            </p>
+            {item.expectedAmountInCents !== undefined && (
+                <p>
+                    Previsão original:{' '}
+                    {item.expectedAmountInCents === null
+                        ? 'Valor a definir'
+                        : formatMoney(item.expectedAmountInCents)}
+                </p>
+            )}
+            {item.overdue && (
+                <p>Em atraso. A data prevista original foi preservada.</p>
+            )}
+        </>
+    );
 }
 
 function participantLabel(type: FinancialReviewItemType) {
@@ -368,6 +522,8 @@ function participantLabel(type: FinancialReviewItemType) {
             return 'Titular';
         case 'EXPECTED_INCOME':
             return 'Recebedor previsto';
+        case 'EXPECTED_EXPENSE':
+            return 'Pagador previsto';
         case 'RECEIPT':
             return 'Recebedor efetivo';
         case 'DISBURSEMENT':
@@ -376,5 +532,7 @@ function participantLabel(type: FinancialReviewItemType) {
             return 'Remetente da transferência';
         case 'EXPENSE':
             return 'Responsável econômico';
+        default:
+            return 'Pessoa vinculada ao fato';
     }
 }

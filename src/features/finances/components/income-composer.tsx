@@ -1,4 +1,7 @@
 'use client';
+import { FinancialLoading } from './financial-loading';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -13,8 +16,13 @@ import { useExpenseLeaveGuard } from '../hooks/use-expense-leave-guard';
 import { useIncomeCommand } from '../hooks/use-income-command';
 import type { IncomeInput, IncomeResult } from '../types/income';
 import type { Settlement, Split } from '../types/shared-expense';
-import { decimalUnits, exactShares, formatMoney } from '../utils/expense-money';
-import styles from './expenses.module.css';
+import {
+    decimalUnits,
+    exactShares,
+    formatDate,
+    formatMoney,
+} from '../utils/expense-money';
+import styles from './financial-records.module.css';
 
 export function IncomeComposer({ spaceId }: { spaceId: string }) {
     const auth = useAuthenticatedContext({ enabled: false });
@@ -272,55 +280,77 @@ function Composer({
                 <h1 ref={heading} tabIndex={-1}>
                     Receita registrada
                 </h1>
-                <p>
-                    {result.commitment.description}:{' '}
-                    {formatMoney(result.commitment.amountInCents)}
-                </p>
-                <p>
-                    {result.status === 'PENDING'
-                        ? 'Recebimento pendente.'
-                        : result.status === 'PARTIALLY_RECEIVED'
-                          ? 'Receita parcialmente recebida.'
-                          : 'Recebimento integral registrado.'}
-                </p>
-                <p>
-                    Recebido: {formatMoney(result.receivedAmountInCents)}. Falta
-                    receber: {formatMoney(result.remainingAmountInCents)}.
-                </p>
-                {result.obligation && (
-                    <p>
-                        Repasse de receita:{' '}
-                        {formatMoney(result.obligation.remainingAmountInCents)}.
+                <div className={styles.receipt}>
+                    <h2>{result.commitment.description}</h2>
+                    <p className={styles.amount}>
+                        {formatMoney(result.commitment.amountInCents)}
                     </p>
-                )}
-                {result.replayed && <p>A tentativa original foi recuperada.</p>}
-                <Link
-                    href={`/spaces/${spaceId}/incomes/${result.commitment.id}`}
-                >
-                    Ver receita
-                </Link>
-                <Link href={`/spaces/${spaceId}/incomes`}>Ver receitas</Link>
+                    <p>
+                        {result.status === 'PENDING'
+                            ? 'Recebimento pendente.'
+                            : result.status === 'PARTIALLY_RECEIVED'
+                              ? 'Receita parcialmente recebida.'
+                              : 'Recebimento integral registrado.'}
+                    </p>
+                    <dl>
+                        <dt>Recebido</dt>
+                        <dd>{formatMoney(result.receivedAmountInCents)}</dd>
+                        <dt>Falta receber</dt>
+                        <dd>{formatMoney(result.remainingAmountInCents)}</dd>
+                    </dl>
+                    {result.obligation && (
+                        <p>
+                            Repasse de receita:{' '}
+                            {formatMoney(
+                                result.obligation.remainingAmountInCents,
+                            )}
+                            .
+                        </p>
+                    )}
+                    {result.replayed && (
+                        <p>A tentativa original foi recuperada.</p>
+                    )}
+                </div>
+                <div className={styles.actions}>
+                    <Button asChild>
+                        <Link
+                            href={`/spaces/${spaceId}/incomes/${result.commitment.id}`}
+                        >
+                            Ver receita
+                        </Link>
+                    </Button>
+                    <Button asChild variant="outline">
+                        <Link href={`/spaces/${spaceId}/incomes`}>
+                            Ver receitas
+                        </Link>
+                    </Button>
+                </div>
             </section>
         );
     const o = options.data;
     return (
         <section className={styles.stack}>
             <h1>Adicionar receita</h1>
+            <p>
+                Registre a previsão e informe o recebimento quando ele já tiver
+                acontecido.
+            </p>
             <Link href={`/spaces/${spaceId}/incomes`}>Voltar às receitas</Link>
             {(options.isPending || options.isFetching) && (
-                <p role="status">Carregando opções…</p>
+                <FinancialLoading label="Carregando opções…" />
             )}
             {options.isError && (
                 <div>
                     <p role="alert">
                         Não foi possível carregar as opções da receita.
                     </p>
-                    <button
+                    <Button
+                        variant="outline"
                         type="button"
                         onClick={() => void options.refetch()}
                     >
                         Tentar novamente
-                    </button>
+                    </Button>
                 </div>
             )}
             {o && !o.canCreate && (
@@ -338,7 +368,7 @@ function Composer({
                     <fieldset disabled={busy || options.isFetching}>
                         <legend>Receita e recebimento</legend>
                         <label htmlFor="income-description">Descrição</label>
-                        <input
+                        <Input
                             id="income-description"
                             name="description"
                             value={description}
@@ -347,9 +377,13 @@ function Composer({
                                 change();
                                 setDescription(e.target.value);
                             }}
+                            aria-invalid={
+                                command.fields.includes('description') ||
+                                undefined
+                            }
                         />
                         <label htmlFor="income-amount">Valor total (R$)</label>
-                        <input
+                        <Input
                             id="income-amount"
                             name="amountInCents"
                             inputMode="decimal"
@@ -358,11 +392,15 @@ function Composer({
                                 change();
                                 setAmount(e.target.value);
                             }}
+                            aria-invalid={
+                                command.fields.includes('amountInCents') ||
+                                undefined
+                            }
                         />
                         <label htmlFor="income-expected-date">
                             Data prevista para recebimento
                         </label>
-                        <input
+                        <Input
                             id="income-expected-date"
                             name="expectedReceiptDate"
                             type="date"
@@ -371,6 +409,11 @@ function Composer({
                                 change();
                                 setExpectedDate(e.target.value);
                             }}
+                            aria-invalid={
+                                command.fields.includes(
+                                    'expectedReceiptDate',
+                                ) || undefined
+                            }
                         />
                         {o.spaceType === 'SHARED' && (
                             <>
@@ -402,7 +445,7 @@ function Composer({
                                             ? '%'
                                             : 'R$'}
                                         )
-                                        <input
+                                        <Input
                                             name="participationSplit"
                                             inputMode="decimal"
                                             value={
@@ -423,6 +466,11 @@ function Composer({
                                                         e.target.value,
                                                 });
                                             }}
+                                            aria-invalid={
+                                                command.fields.includes(
+                                                    'participationSplit',
+                                                ) || undefined
+                                            }
                                         />
                                     </label>
                                 ))}
@@ -482,7 +530,7 @@ function Composer({
                                 <label htmlFor="income-received-amount">
                                     Valor recebido agora (R$)
                                 </label>
-                                <input
+                                <Input
                                     id="income-received-amount"
                                     name="receipt.amountInCents"
                                     inputMode="decimal"
@@ -491,11 +539,16 @@ function Composer({
                                         change();
                                         setReceivedAmount(e.target.value);
                                     }}
+                                    aria-invalid={
+                                        command.fields.includes(
+                                            'receipt.amountInCents',
+                                        ) || undefined
+                                    }
                                 />
                                 <label htmlFor="income-fact-date">
                                     Data do recebimento efetivo
                                 </label>
-                                <input
+                                <Input
                                     id="income-fact-date"
                                     name="factDate"
                                     type="date"
@@ -505,6 +558,10 @@ function Composer({
                                         change();
                                         setFactDate(e.target.value);
                                     }}
+                                    aria-invalid={
+                                        command.fields.includes('factDate') ||
+                                        undefined
+                                    }
                                 />
                                 {o.spaceType === 'SHARED' && (
                                     <>
@@ -571,7 +628,7 @@ function Composer({
                                         {settlementMode === 'DATE' && (
                                             <label>
                                                 Data-alvo do acerto
-                                                <input
+                                                <Input
                                                     name="targetDate"
                                                     type="date"
                                                     min={o.referenceDate}
@@ -582,6 +639,11 @@ function Composer({
                                                             e.target.value,
                                                         );
                                                     }}
+                                                    aria-invalid={
+                                                        command.fields.includes(
+                                                            'targetDate',
+                                                        ) || undefined
+                                                    }
                                                 />
                                             </label>
                                         )}
@@ -619,31 +681,41 @@ function Composer({
                     </fieldset>
                     {validation && <p role="alert">{validation}</p>}
                     {command.error && <p role="alert">{command.error}</p>}
-                    <button type="submit" disabled={busy}>
+                    <Button type="submit" disabled={busy}>
                         Revisar receita
-                    </button>
+                    </Button>
                     {review && (
                         <div role="group" aria-label="Confirmar receita">
                             <h2>Confirme os dados</h2>
-                            <p>
-                                {review.description}:{' '}
-                                {formatMoney(review.amountInCents)}. Previsão:{' '}
-                                {review.expectedReceiptDate}.
-                            </p>
+                            <p>{review.description}</p>
+                            <dl>
+                                <dt>Valor da receita</dt>
+                                <dd>{formatMoney(review.amountInCents)}</dd>
+                                <dt>Recebimento previsto</dt>
+                                <dd>
+                                    {formatDate(review.expectedReceiptDate)}
+                                </dd>
+                                <dt>Recebido agora</dt>
+                                <dd>
+                                    {formatMoney(
+                                        review.receipt?.amountInCents ?? 0,
+                                    )}
+                                </dd>
+                                <dt>Falta receber</dt>
+                                <dd>
+                                    {formatMoney(
+                                        review.amountInCents -
+                                            (review.receipt?.amountInCents ??
+                                                0),
+                                    )}
+                                </dd>
+                            </dl>
                             <p>
                                 {review.receipt
-                                    ? `Recebimento de ${formatMoney(review.receipt.amountInCents!)} em ${review.receipt.factDate}.`
+                                    ? `Recebimento de ${formatMoney(review.receipt.amountInCents!)} em ${formatDate(review.receipt.factDate)}.`
                                     : 'Recebimento pendente.'}
                             </p>
-                            <p>
-                                Falta receber:{' '}
-                                {formatMoney(
-                                    review.amountInCents -
-                                        (review.receipt?.amountInCents ?? 0),
-                                )}
-                                .
-                            </p>
-                            <button
+                            <Button
                                 type="button"
                                 disabled={busy}
                                 onClick={() =>
@@ -654,20 +726,25 @@ function Composer({
                                 }
                             >
                                 Confirmar receita
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="outline"
                                 type="button"
                                 disabled={busy}
                                 onClick={() => setReview(null)}
                             >
                                 Editar
-                            </button>
+                            </Button>
                         </div>
                     )}
                     {command.canRetry && (
-                        <button type="button" onClick={command.retry}>
+                        <Button
+                            variant="outline"
+                            type="button"
+                            onClick={command.retry}
+                        >
                             Reenviar a mesma tentativa
-                        </button>
+                        </Button>
                     )}
                     {command.isPending && (
                         <p role="status">Registrando receita…</p>

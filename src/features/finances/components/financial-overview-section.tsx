@@ -89,7 +89,48 @@ function Metrics({
                             label="Transferências internas recebidas"
                             value={value.internalTransfersReceivedAmountInCents}
                         />
+                        {value.internalTransfersSentReversedAmountInCents !==
+                            undefined && (
+                            <Metric
+                                label="Transferências enviadas revertidas"
+                                value={
+                                    value.internalTransfersSentReversedAmountInCents
+                                }
+                            />
+                        )}
+                        {value.internalTransfersReceivedReversedAmountInCents !==
+                            undefined && (
+                            <Metric
+                                label="Transferências recebidas revertidas"
+                                value={
+                                    value.internalTransfersReceivedReversedAmountInCents
+                                }
+                            />
+                        )}
+                        {value.internalTransfersSentEffectiveAmountInCents !==
+                            undefined && (
+                            <Metric
+                                label="Transferências enviadas efetivas"
+                                value={
+                                    value.internalTransfersSentEffectiveAmountInCents
+                                }
+                            />
+                        )}
+                        {value.internalTransfersReceivedEffectiveAmountInCents !==
+                            undefined && (
+                            <Metric
+                                label="Transferências recebidas efetivas"
+                                value={
+                                    value.internalTransfersReceivedEffectiveAmountInCents
+                                }
+                            />
+                        )}
                     </dl>
+                    <p>
+                        O histórico preserva as transferências registradas. Os
+                        valores efetivos consideram as reversões desses
+                        registros.
+                    </p>
                 </>
             )}
         </>

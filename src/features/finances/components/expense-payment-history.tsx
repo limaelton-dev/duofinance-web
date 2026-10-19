@@ -1,3 +1,4 @@
+import styles from './financial-records.module.css';
 import type { PersonalExpenseDetail } from '../types/personal-expense';
 import type { ExpenseView, Member } from '../types/shared-expense';
 import { formatDate, formatMoney } from '../utils/expense-money';
@@ -34,6 +35,7 @@ export function ExpensePaymentHistory({
     );
     return (
         <section
+            className={styles.stack}
             aria-label={
                 value.externalLiabilities?.length
                     ? 'Histórico de realizações'
@@ -45,6 +47,12 @@ export function ExpensePaymentHistory({
                     ? 'Histórico de realizações'
                     : 'Pagamentos realizados'}
             </h3>
+            {facts.length === 0 && (
+                <p className={styles.empty}>
+                    Nenhum pagamento realizado. Os próximos registros aparecerão
+                    aqui.
+                </p>
+            )}
             <ol>
                 {facts.map((fact) => (
                     <li key={fact.id}>

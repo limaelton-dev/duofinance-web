@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import { FinancialLoading } from './financial-loading';
 import Link from 'next/link';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -108,34 +110,38 @@ export function InterMemberPositionSection({
                 A posição líquida é informativa. Consultar este resumo não
                 resolve nem compensa pendências.
             </p>
-            <div className={styles.actions}>
-                <label htmlFor="position-direction">Mostrar pendências</label>
-                <select
-                    id="position-direction"
-                    value={selection.direction}
-                    onChange={(event) =>
-                        setSelection({
-                            direction: event.target.value as PositionDirection,
-                            cursor: null,
-                        })
-                    }
-                >
-                    <option value="ALL">Todas as direções</option>
-                    <option value="PAYABLE">A pagar</option>
-                    <option value="RECEIVABLE">A receber</option>
-                </select>
-                <button
+            <div className={styles.filters}>
+                <div className={styles.filter}>
+                    <label htmlFor="position-direction">
+                        Mostrar pendências
+                    </label>
+                    <select
+                        id="position-direction"
+                        value={selection.direction}
+                        onChange={(event) =>
+                            setSelection({
+                                direction: event.target
+                                    .value as PositionDirection,
+                                cursor: null,
+                            })
+                        }
+                    >
+                        <option value="ALL">Todas as direções</option>
+                        <option value="PAYABLE">A pagar</option>
+                        <option value="RECEIVABLE">A receber</option>
+                    </select>
+                </div>
+                <Button
+                    variant="outline"
                     type="button"
                     onClick={refresh}
                     aria-disabled={query.isFetching}
                 >
                     Atualizar / Voltar ao início
-                </button>
+                </Button>
             </div>
             {(query.isPending || query.isFetching) && (
-                <p role="status" aria-busy="true">
-                    Carregando posição entre vocês…
-                </p>
+                <FinancialLoading label="Carregando posição entre vocês…" />
             )}
             {query.isError && (
                 <div>
@@ -145,9 +151,13 @@ export function InterMemberPositionSection({
                             ? 'Este espaço não possui resumo entre membros.'
                             : 'Não foi possível consultar a posição entre vocês.'}
                     </p>
-                    <button type="button" onClick={() => void query.refetch()}>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => void query.refetch()}
+                    >
                         Tentar novamente a posição
-                    </button>
+                    </Button>
                 </div>
             )}
             {value && (
@@ -295,7 +305,8 @@ export function InterMemberPositionSection({
                     )}
                     {!empty &&
                         (value.page.nextCursor ? (
-                            <button
+                            <Button
+                                variant="outline"
                                 type="button"
                                 onClick={() =>
                                     setSelection({
@@ -305,7 +316,7 @@ export function InterMemberPositionSection({
                                 }
                             >
                                 Próximas pendências
-                            </button>
+                            </Button>
                         ) : (
                             <p role="status">
                                 Fim das pendências para este filtro.

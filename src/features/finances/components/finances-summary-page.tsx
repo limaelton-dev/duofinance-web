@@ -1,7 +1,9 @@
 'use client';
 
+import { FinancialLoading } from './financial-loading';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useAuthenticatedContext } from '@/features/auth/hooks/use-authenticated-context';
 import { useSpaceContext } from '@/features/spaces/hooks/use-space-context';
@@ -78,7 +80,13 @@ function FinancialReviewPage({
     }, []);
     return (
         <section className={styles.stack}>
-            <h1>Finanças</h1>
+            <div className={styles.intro}>
+                <h1>Finanças</h1>
+                <p>
+                    Confira o que foi registrado, o que já aconteceu e o que
+                    ainda está previsto neste espaço.
+                </p>
+            </div>
             <nav className={styles.actions} aria-label="Navegação financeira">
                 <Button
                     variant="outline"
@@ -102,7 +110,14 @@ function FinancialReviewPage({
                     </Link>
                 )}
                 <Link href={`/spaces/${spaceId}/incomes`}>Receitas</Link>
-                <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
+                <Link href={`/spaces/${spaceId}/finances/planning`}>
+                    Planejar compromisso
+                </Link>
+                {shared && (
+                    <Link href={`/spaces/${spaceId}/finances/changes`}>
+                        Alterações
+                    </Link>
+                )}
             </nav>
             <FinancialReviewContent
                 key={referenceDate}
@@ -180,29 +195,31 @@ function FinancialReviewContent({
         !overview.isFetching && !overview.isError ? overview.data : undefined;
     return (
         <>
-            <div className={styles.actions}>
-                <label htmlFor="financial-month">Mês calendário</label>
-                <input
-                    id="financial-month"
-                    type="month"
-                    required
-                    min="0001-01"
-                    max="9999-12"
-                    value={selection.month}
-                    onChange={(event) => {
-                        if (
-                            /^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(
-                                event.target.value,
+            <div className={styles.filters}>
+                <label htmlFor="financial-month">
+                    Mês calendário
+                    <Input
+                        id="financial-month"
+                        type="month"
+                        required
+                        min="0001-01"
+                        max="9999-12"
+                        value={selection.month}
+                        onChange={(event) => {
+                            if (
+                                /^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(
+                                    event.target.value,
+                                )
                             )
-                        )
-                            onSelection({
-                                ...selection,
-                                month: event.target.value,
-                            });
-                    }}
-                />
+                                onSelection({
+                                    ...selection,
+                                    month: event.target.value,
+                                });
+                        }}
+                    />
+                </label>
                 {shared && (
-                    <>
+                    <div className={styles.filter}>
                         <label htmlFor="financial-member">
                             Valores por membro
                         </label>
@@ -227,7 +244,7 @@ function FinancialReviewContent({
                                 </option>
                             ))}
                         </select>
-                    </>
+                    </div>
                 )}
                 <Button
                     variant="outline"
@@ -244,9 +261,7 @@ function FinancialReviewContent({
                 significados.
             </p>
             {(overview.isPending || overview.isFetching) && (
-                <p role="status" aria-busy="true">
-                    Carregando resumo financeiro…
-                </p>
+                <FinancialLoading label="Carregando resumo financeiro…" />
             )}
             {overview.isError && (
                 <div>
