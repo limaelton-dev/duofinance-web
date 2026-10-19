@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
     testDir: './e2e',
-    testMatch: ['interface.spec.ts', 'access-interface.spec.ts'],
+    testMatch: ['interface.spec.ts', '*-interface.spec.ts'],
     fullyParallel: false,
     forbidOnly: true,
     retries: 0,
@@ -21,6 +21,9 @@ export default defineConfig({
         url: 'http://localhost:3200/login',
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
-        env: { NEXT_PUBLIC_API_URL: 'http://localhost:3101/v2' },
+        env: {
+            NEXT_PUBLIC_API_URL: 'http://localhost:3101/v2',
+            NEXT_DIST_DIR: '.next-interface',
+        },
     },
 });
