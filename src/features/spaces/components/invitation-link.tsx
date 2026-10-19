@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Copy } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
+import { Button } from '@/components/ui/button';
 import styles from './spaces.module.css';
 
 type InvitationLinkProps = {
@@ -63,7 +67,10 @@ export function InvitationLink({ inviteUrl, expiresAt }: InvitationLinkProps) {
         >
             <h2 id="invitation-link-title">Convite gerado</h2>
 
-            <p>Aguardando outra pessoa.</p>
+            <p>Aguardando outra pessoa entrar.</p>
+            <p className={styles.muted}>
+                Copie o link e compartilhe com quem você quer convidar.
+            </p>
 
             <p>
                 Válido até{' '}
@@ -76,9 +83,9 @@ export function InvitationLink({ inviteUrl, expiresAt }: InvitationLinkProps) {
                 .
             </p>
 
-            <label htmlFor="invitation-link">Link do convite</label>
+            <Label htmlFor="invitation-link">Link do convite</Label>
 
-            <input
+            <Input
                 ref={input}
                 id="invitation-link"
                 type="text"
@@ -90,24 +97,21 @@ export function InvitationLink({ inviteUrl, expiresAt }: InvitationLinkProps) {
                 onFocus={(event) => event.currentTarget.select()}
             />
 
-            <button
+            <Button
                 type="button"
                 className={styles.button}
                 disabled={copying}
                 onClick={() => void copy()}
             >
+                <Copy size={18} aria-hidden="true" />
                 {copying ? 'Copiando...' : 'Copiar link'}
-            </button>
+            </Button>
 
             {message && <p role="status">{message}</p>}
 
             <p className={styles.muted}>
                 Guarde o link agora. Ao sair desta tela, você poderá consultar o
                 convite e gerar outro link.
-            </p>
-
-            <p className={styles.muted}>
-                A entrada da pessoa convidada ainda não está disponível.
             </p>
         </section>
     );

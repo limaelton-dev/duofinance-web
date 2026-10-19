@@ -6,8 +6,8 @@
 
 .bar {
     height: 1rem;
-    border-radius: 0.375rem;
-    background: #e2e8f0;
+    border-radius: 0.5rem;
+    background: var(--muted);
 }
 
 .bar:first-child {

@@ -243,17 +243,27 @@ test('A01: apenas pessoal oferece contexto validado e entrada de criação', asy
     await authenticate(context, personalOnly);
     await page.goto('/');
     await selected(page, { id: personalOnly.personalId, name: 'Meu espaço' });
-    await expect(region(page)).toContainText('Meu espaço · Pessoal · Ativo');
+    await expect(trigger(page)).toHaveAttribute(
+        'aria-describedby',
+        'active-space-status',
+    );
+    await expect(region(page).locator('#active-space-status')).toHaveText(
+        'Pessoal · Ativo',
+    );
     await trigger(page).focus();
     await expect(trigger(page).locator('option')).toHaveCount(1);
+    const manage = region(page).getByRole('button', {
+        name: 'Gerenciar espaços',
+    });
+    await manage.click();
     await expect(
-        region(page).getByRole('link', {
+        page.getByRole('menuitem', {
             name: 'Criar espaço compartilhado',
             exact: true,
         }),
     ).toBeVisible();
     await page.keyboard.press('Escape');
-    await expect(trigger(page)).toBeFocused();
+    await expect(manage).toBeFocused();
 });
 
 for (const viewport of [
@@ -291,16 +301,22 @@ for (const viewport of [
         await page.keyboard.press('End');
         await page.keyboard.press('Enter');
         await selected(page, s3);
-        await expect(region(page)).toContainText(
-            `${s3.name} · Compartilhado · Ativo`,
+        await expect(trigger(page)).toHaveAttribute(
+            'aria-describedby',
+            'active-space-status',
+        );
+        await expect(region(page).locator('#active-space-status')).toHaveText(
+            'Compartilhado · Ativo',
         );
         await expect(page).toHaveURL('/');
-        await expect(page.getByRole('main')).toContainText(s3.name);
         await expect(
-            page.getByText('Seu espaço pessoal está pronto.', { exact: true }),
-        ).toHaveCount(0);
+            page.getByRole('heading', { name: 'Hoje', exact: true }),
+        ).toBeVisible();
+        await region(page)
+            .getByRole('button', { name: 'Gerenciar espaços' })
+            .click();
         await page
-            .getByRole('link', { name: 'Ver espaços', exact: true })
+            .getByRole('menuitem', { name: 'Meus espaços', exact: true })
             .click();
         await choose(page, s2.id);
         await selected(page, s2);
@@ -361,16 +377,16 @@ test('A05/A08: destino e refresh aguardam validação sem conteúdo anterior ou 
     await page.reload();
     await list.started;
     await expect(
-        page.getByText('Seu espaço pessoal está pronto.', { exact: true }),
-    ).toHaveCount(0);
+        page.getByRole('heading', { name: 'Hoje', exact: true }),
+    ).not.toBeVisible();
     await expect(
         page.getByRole('main').getByText(s3.name, { exact: true }),
     ).toHaveCount(0);
     list.release();
     await restored.started;
     await expect(
-        page.getByText('Seu espaço pessoal está pronto.', { exact: true }),
-    ).toHaveCount(0);
+        page.getByRole('heading', { name: 'Hoje', exact: true }),
+    ).not.toBeVisible();
     await expect(
         page.getByRole('main').getByText(s3.name, { exact: true }),
     ).toHaveCount(0);
@@ -535,8 +551,8 @@ for (const failure of [500, 429]) {
         await choose(page, s3.id);
         await expect(region(page).getByRole('alert')).toBeVisible();
         await expect(
-            page.getByText('Seu espaço pessoal está pronto.', { exact: true }),
-        ).toHaveCount(0);
+            page.getByRole('heading', { name: 'Hoje', exact: true }),
+        ).not.toBeVisible();
         expect(reads).toBe(1);
         expect(await preference(page, a)).toBe(a.personalId);
         await region(page)
@@ -544,7 +560,9 @@ for (const failure of [500, 429]) {
             .click();
         await selected(page, s3);
         expect(reads).toBeGreaterThanOrEqual(2);
-        await expect(page.getByRole('main')).toContainText(s3.name);
+        await expect(
+            page.getByRole('heading', { name: 'Hoje', exact: true }),
+        ).toBeVisible();
     });
 }
 
@@ -569,7 +587,7 @@ test('A17: criação e aceite sincronizam contexto; preview e recusa não conced
     }
     await page.goto(rejected.inviteUrl);
     await expect(
-        page.getByRole('button', { name: 'Entrar no espaço', exact: true }),
+        page.getByRole('button', { name: 'Aceitar convite', exact: true }),
     ).toBeVisible();
     expect(await preference(page, b)).toBe(b.personalId);
     await page.getByRole('button', { name: 'Recusar', exact: true }).click();
@@ -585,7 +603,7 @@ test('A17: criação e aceite sincronizam contexto; preview e recusa não conced
     ).toHaveCount(0);
     await page.goto(accepted.inviteUrl);
     await page
-        .getByRole('button', { name: 'Entrar no espaço', exact: true })
+        .getByRole('button', { name: 'Aceitar convite', exact: true })
         .click();
     await expect(page).toHaveURL(`/spaces/${accepted.id}`);
     await selected(page, accepted);

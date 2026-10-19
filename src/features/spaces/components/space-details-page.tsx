@@ -12,9 +12,12 @@ import { useSpaceDetails } from '../hooks/use-space-details';
 import type { InvitationCommandResponse } from '../types/spaces-responses';
 import { getSpacesErrorMessage } from '../utils/get-spaces-error-message';
 import { InvitationLink } from './invitation-link';
+import { Button } from '@/components/ui/button';
+import { Plus, RefreshCw } from 'lucide-react';
 import styles from './spaces.module.css';
 import { useSpaceContextInstance } from '../context/space-context-provider';
 import { isSpaceAccessDenied } from '../state/space-context';
+import { useSpaceContext } from '../hooks/use-space-context';
 
 const spaceStatuses = {
     ACTIVE: 'Ativo',
@@ -38,8 +41,14 @@ type SpaceDetailsPageProps = {
 
 export function SpaceDetailsPage({ spaceId }: SpaceDetailsPageProps) {
     const auth = useAuthenticatedContext({ enabled: false });
+    const context = useSpaceContext();
 
-    if (!auth.data) {
+    if (
+        !auth.data ||
+        context.phase !== 'ready' ||
+        context.activeSpaceId !== spaceId ||
+        context.routeIssue?.spaceId === spaceId
+    ) {
         return null;
     }
 
@@ -190,14 +199,15 @@ function SpaceDetails({
                     {getSpacesErrorMessage(query.error)}
                 </p>
 
-                <button
+                <Button
                     type="button"
+                    variant="outline"
                     className={styles.secondary}
                     disabled={query.isFetching}
                     onClick={() => void query.refetch()}
                 >
                     Tentar novamente
-                </button>
+                </Button>
             </section>
         );
     }
@@ -221,24 +231,51 @@ function SpaceDetails({
 
     return (
         <section className={styles.stack}>
-            <h1 className={styles.title}>{data.space.label}</h1>
+            <header className={styles.header}>
+                <div className={styles.stack}>
+                    <h1 className={styles.title}>{data.space.label}</h1>
+                    <p className={styles.muted}>
+                        {data.space.type === 'PERSONAL'
+                            ? 'Espaço pessoal'
+                            : 'Espaço compartilhado'}
+                        {' · '}
+                        {spaceStatuses[data.space.status]}
+                    </p>
+                </div>
 
-            <p className={styles.muted}>
-                {data.space.type === 'PERSONAL'
-                    ? 'Espaço pessoal'
-                    : 'Espaço compartilhado'}
-                {' · '}
-                {spaceStatuses[data.space.status]}
-            </p>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    className={styles.secondary}
+                    disabled={command.isPending || query.isFetching}
+                    onClick={() => void query.refetch()}
+                >
+                    <RefreshCw size={18} aria-hidden="true" />
+                    Atualizar espaço
+                </Button>
+            </header>
 
-            <button
-                type="button"
-                className={styles.secondary}
-                disabled={command.isPending || query.isFetching}
-                onClick={() => void query.refetch()}
-            >
-                Atualizar espaço
-            </button>
+            <div className={styles.actions}>
+                {data.space.status === 'ACTIVE' && (
+                    <Button asChild>
+                        <Link href={`/spaces/${spaceId}/expenses/new`}>
+                            <Plus size={18} aria-hidden="true" />
+                            Adicionar despesa
+                        </Link>
+                    </Button>
+                )}
+                <Button asChild variant="outline">
+                    <Link href={`/spaces/${spaceId}/finances`}>Finanças</Link>
+                </Button>
+                {data.space.type === 'SHARED' && (
+                    <Link
+                        className={styles.link}
+                        href={`/spaces/${spaceId}/settings`}
+                    >
+                        Configurações do espaço
+                    </Link>
+                )}
+            </div>
 
             {query.isError && (
                 <p role="alert" className={styles.error}>
@@ -257,13 +294,6 @@ function SpaceDetails({
                             : 'Duas pessoas participam deste espaço.'}
                     </p>
 
-                    <Link href={`/spaces/${spaceId}/settings`}>
-                        Configurações do espaço
-                    </Link>
-                    <Link href={`/spaces/${spaceId}/finances`}>Finanças</Link>
-                    <Link href={`/spaces/${spaceId}/expenses/new`}>
-                        Adicionar despesa
-                    </Link>
                     {data.invitation ? (
                         <section
                             className={styles.panel}
@@ -296,18 +326,18 @@ function SpaceDetails({
                                 )}
 
                             {data.invitation.canReplace && (
-                                <button
+                                <Button
                                     type="button"
                                     className={styles.button}
                                     disabled={busy}
                                     onClick={askReplacement}
                                 >
                                     Gerar outro link
-                                </button>
+                                </Button>
                             )}
 
                             {data.invitation.canIssue && (
-                                <button
+                                <Button
                                     type="button"
                                     className={styles.button}
                                     disabled={busy}
@@ -320,7 +350,7 @@ function SpaceDetails({
                                     }
                                 >
                                     Gerar novo convite
-                                </button>
+                                </Button>
                             )}
                         </section>
                     ) : (
@@ -351,14 +381,14 @@ function SpaceDetails({
             )}
 
             {command.canRetry && (
-                <button
+                <Button
                     type="button"
                     className={styles.button}
                     disabled={command.isPending}
                     onClick={command.retry}
                 >
                     Tentar novamente
-                </button>
+                </Button>
             )}
 
             {issued?.replayed && !command.isPending && (
@@ -395,22 +425,23 @@ function SpaceDetails({
                     </p>
 
                     <div className={styles.actions}>
-                        <button
+                        <Button
                             ref={cancelButton}
                             type="button"
+                            variant="outline"
                             className={styles.secondary}
                             onClick={() => dialog.current?.close()}
                         >
                             Cancelar
-                        </button>
+                        </Button>
 
-                        <button
+                        <Button
                             type="button"
                             className={styles.button}
                             onClick={confirmReplacement}
                         >
                             Confirmar substituição
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </dialog>

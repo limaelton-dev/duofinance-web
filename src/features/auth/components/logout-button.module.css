@@ -1,6 +1,9 @@
 .actions {
     display: grid;
-    gap: 1rem;
+    gap: 0.5rem;
     justify-items: start;
-    margin-top: 1.5rem;
+}
+
+.button {
+    justify-content: flex-start;
 }

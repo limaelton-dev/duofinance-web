@@ -10,8 +10,10 @@ import { getAuthenticatedPersonId } from '../cache/spaces-session';
 import { spacesQueryKeys } from '../cache/spaces-query-keys';
 import { useInvitationFlowContext } from '../context/invitation-flow-provider';
 import { useInvitationFlow } from '../hooks/use-invitation-flow';
+import { Button } from '@/components/ui/button';
 import styles from './spaces.module.css';
 import pageStyles from './invitation-review-page.module.css';
+import { Brand } from '@/components/patterns/brand';
 
 export function InvitationReviewPage() {
     const flow = useInvitationFlowContext();
@@ -99,8 +101,9 @@ export function InvitationReviewPage() {
 
     return (
         <main className={pageStyles.page}>
+            <Brand className={pageStyles.brand} />
             <section
-                className={styles.panel}
+                className={styles.stack}
                 aria-busy={busy}
                 aria-labelledby="invitation-title"
             >
@@ -130,12 +133,12 @@ export function InvitationReviewPage() {
                     </p>
                 )}
                 {snapshot.phase === 'captured' && auth.isError && (
-                    <button
+                    <Button
                         className={styles.button}
                         onClick={() => void auth.refetch()}
                     >
                         Tentar novamente
-                    </button>
+                    </Button>
                 )}
                 {snapshot.phase === 'loading' && (
                     <p role="status">Consultando convite...</p>
@@ -161,24 +164,32 @@ export function InvitationReviewPage() {
                             {auth.data?.person.displayName} (
                             {auth.data?.person.email}).
                         </p>
+                        {preview.canRespond && (
+                            <p>
+                                Ao aceitar, você passa a participar deste espaço
+                                e pode acessar seus registros compartilhados.
+                                Seu espaço pessoal continua separado.
+                            </p>
+                        )}
                         {preview.canRespond ? (
                             <div className={styles.actions}>
-                                <button
+                                <Button
+                                    variant="outline"
                                     className={styles.secondary}
                                     onClick={() =>
                                         void invitation.decide('REJECT')
                                     }
                                 >
                                     Recusar
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     className={styles.button}
                                     onClick={() =>
                                         void invitation.decide('ACCEPT')
                                     }
                                 >
-                                    Entrar no espaço
-                                </button>
+                                    Aceitar convite
+                                </Button>
                             </div>
                         ) : (
                             <p role="status">
@@ -200,12 +211,12 @@ export function InvitationReviewPage() {
                     </Link>
                 )}
                 {snapshot.phase === 'conflict' && (
-                    <button
+                    <Button
                         className={styles.button}
                         onClick={() => void invitation.loadPreview()}
                     >
                         Atualizar convite
-                    </button>
+                    </Button>
                 )}
                 {snapshot.phase === 'retry' && (
                     <>
@@ -214,7 +225,7 @@ export function InvitationReviewPage() {
                                 Aguarde {retrySeconds} segundos.
                             </p>
                         )}
-                        <button
+                        <Button
                             className={styles.button}
                             disabled={retrySeconds > 0 || !personId}
                             onClick={() =>
@@ -226,7 +237,7 @@ export function InvitationReviewPage() {
                             {snapshot.hasAttempt
                                 ? 'Repetir tentativa'
                                 : 'Tentar novamente'}
-                        </button>
+                        </Button>
                     </>
                 )}
                 {snapshot.phase === 'rejected' && (
@@ -237,6 +248,7 @@ export function InvitationReviewPage() {
                 {!busy && (
                     <Link
                         href="/spaces"
+                        className={styles.link}
                         prefetch={false}
                         onClick={() => flow.clear()}
                     >

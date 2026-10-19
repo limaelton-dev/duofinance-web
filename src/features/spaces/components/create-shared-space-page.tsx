@@ -5,11 +5,15 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 
 import { useAuthenticatedContext } from '@/features/auth/hooks/use-authenticated-context';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { CircleCheck } from 'lucide-react';
 
 import { useSpaceCommand } from '../hooks/use-space-command';
 import type { InvitationCommandResponse } from '../types/spaces-responses';
 import { validateSpaceName } from '../utils/validate-space-name';
 import { InvitationLink } from './invitation-link';
+import { Button } from '@/components/ui/button';
 import styles from './spaces.module.css';
 import { useSpaceContext } from '../hooks/use-space-context';
 import { useSpaceContextInstance } from '../context/space-context-provider';
@@ -63,6 +67,10 @@ export function CreateSharedSpacePage() {
     if (result) {
         return (
             <section className={styles.stack}>
+                <p className={styles.success} role="status">
+                    <CircleCheck size={18} aria-hidden="true" />
+                    Espaço criado
+                </p>
                 <h1 className={styles.title}>{result.space.label}</h1>
 
                 {result.linkAvailable ? (
@@ -79,16 +87,23 @@ export function CreateSharedSpacePage() {
                     </p>
                 )}
 
-                <Link href={`/spaces/${result.space.id}`}>Abrir espaço</Link>
+                <Button asChild variant="outline" className={styles.secondary}>
+                    <Link href={`/spaces/${result.space.id}`}>
+                        Abrir espaço
+                    </Link>
+                </Button>
             </section>
         );
     }
 
     return (
-        <section className={styles.stack}>
+        <section className={`${styles.stack} ${styles.formColumn}`}>
             <h1 className={styles.title}>Criar espaço compartilhado</h1>
 
-            <p>Ao criar, você receberá um link para convidar outra pessoa.</p>
+            <p className={styles.muted}>
+                Organize registros com outra pessoa, separados do seu espaço
+                pessoal. Ao criar, você receberá um link de convite.
+            </p>
 
             <form
                 noValidate
@@ -96,10 +111,10 @@ export function CreateSharedSpacePage() {
                 aria-busy={command.isPending}
                 onSubmit={submit}
             >
-                <div className={styles.stack}>
-                    <label htmlFor="space-name">Nome do espaço</label>
+                <div className={styles.field}>
+                    <Label htmlFor="space-name">Nome do espaço</Label>
 
-                    <input
+                    <Input
                         ref={nameInput}
                         id="space-name"
                         name="name"
@@ -143,32 +158,33 @@ export function CreateSharedSpacePage() {
                 )}
 
                 <div className={styles.actions}>
-                    <button
+                    <Button
                         type="button"
+                        variant="outline"
                         className={styles.secondary}
                         disabled={command.isPending}
                         onClick={() => router.push('/spaces')}
                     >
                         Cancelar
-                    </button>
+                    </Button>
 
                     {command.canRetry ? (
-                        <button
+                        <Button
                             type="button"
                             className={styles.button}
                             disabled={command.isPending || contextBusy}
                             onClick={command.retry}
                         >
                             Tentar novamente
-                        </button>
+                        </Button>
                     ) : (
-                        <button
+                        <Button
                             type="submit"
                             className={styles.button}
                             disabled={command.isPending || contextBusy}
                         >
                             {command.isPending ? 'Criando...' : 'Criar espaço'}
-                        </button>
+                        </Button>
                     )}
                 </div>
             </form>

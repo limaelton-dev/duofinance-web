@@ -520,7 +520,7 @@ test('logout e outra conta não recuperam os dados nem o link anteriores', async
 
     await page.goto('/spaces');
     await expect(
-        page.getByRole('heading', { name: 'Espaços', exact: true }),
+        page.getByRole('heading', { name: 'Meus espaços', exact: true }),
     ).toBeVisible();
 
     const name = `Privado ${randomUUID()}`;
@@ -556,7 +556,7 @@ test('logout e outra conta não recuperam os dados nem o link anteriores', async
 
     await page
         .getByRole('link', {
-            name: 'Ver espaços',
+            name: 'Meus espaços',
             exact: true,
         })
         .click();

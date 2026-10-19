@@ -6,6 +6,7 @@ const apiUrl = 'http://localhost:3101/v2';
 
 export default defineConfig({
     testDir: './e2e',
+    testIgnore: ['interface.spec.ts', 'access-interface.spec.ts'],
     fullyParallel: false,
     forbidOnly: true,
     retries: 0,

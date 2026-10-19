@@ -15,12 +15,13 @@ function waitForAuthResponse(
 
 async function expectPersonalSpace(page: Page) {
     await expect(page).toHaveURL('/');
-    await expect(page.getByText('Meu espaço', { exact: true })).toBeVisible();
     await expect(
-        page.getByRole('heading', { name: 'Olá, Elton.', exact: true }),
-    ).toBeVisible();
+        page
+            .getByRole('combobox', { name: 'Espaço atual', exact: true })
+            .locator('option:checked'),
+    ).toContainText('Meu espaço');
     await expect(
-        page.getByText('Seu espaço pessoal está pronto.', { exact: true }),
+        page.getByRole('heading', { name: 'Hoje', exact: true }),
     ).toBeVisible();
 }
 
@@ -69,7 +70,10 @@ test('CARD-001: cadastro, restauração da sessão, logout e login', async ({
         expect(response.status()).toBe(204);
         await expect(page).toHaveURL('/login');
         await expect(
-            page.getByRole('heading', { name: 'Entrar', exact: true }),
+            page.getByRole('heading', {
+                name: 'Entre na sua conta',
+                exact: true,
+            }),
         ).toBeVisible();
 
         await page.goto('/');
