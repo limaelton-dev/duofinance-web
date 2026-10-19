@@ -592,10 +592,11 @@ test('A02/A18: virada diária refaz consultas, leitura móvel não transborda e 
     page,
     context,
 }) => {
-    await page.clock.install({ time: new Date('2026-10-15T02:59:59.500Z') });
+    await page.clock.install({ time: new Date('2026-10-15T02:58:00.000Z') });
     await page.setViewportSize({ width: 360, height: 780 });
     await open(page, context);
     await month(page, '2026-01');
+    await page.clock.pauseAt(new Date('2026-10-15T02:59:59.500Z'));
     let requests = 0;
     page.on('request', (request) => {
         if (request.url().includes('/financial-overview?')) requests++;
@@ -606,6 +607,7 @@ test('A02/A18: virada diária refaz consultas, leitura móvel não transborda e 
     );
     await page.clock.fastForward(1000);
     await refreshed;
+    await page.clock.resume();
     expect(requests).toBeGreaterThan(0);
     await expect(overview(page)).toBeVisible();
     expect(
@@ -664,7 +666,10 @@ test('A16: recebimento já suportado atualiza o resumo pelo comando existente', 
     await page
         .getByRole('link', { name: 'Voltar às receitas', exact: true })
         .click();
-    await page.getByRole('link', { name: 'Finanças', exact: true }).click();
+    await page
+        .getByRole('navigation', { name: 'Navegação principal', exact: true })
+        .getByRole('link', { name: 'Finanças', exact: true })
+        .click();
     await month(page, value.referenceDate.slice(0, 7));
     const formatted = formatReviewMoney(
         (BigInt(before.totals.realizedIncomeAmountInCents) + 12345n).toString(),

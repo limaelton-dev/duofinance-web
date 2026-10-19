@@ -3,6 +3,14 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLayoutEffect, useRef } from 'react';
+import { Settings2, Plus, UsersRound, UserRound } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuthenticatedContext } from '@/features/auth/hooks/use-authenticated-context';
 import { useSpaceContextInstance } from '../context/space-context-provider';
 import { useSpaceContext } from '../hooks/use-space-context';
@@ -39,9 +47,7 @@ export function SpaceSwitcher() {
             return;
         const selected = context.getSnapshot().activeSpaceId;
         if (
-            /^\/spaces\/(?!new$)[^/]+(?:\/settings|\/finances(?:\/settlements(?:\/[^/]+)?)?|\/expenses\/[^/]+)?$/.test(
-                currentPath.current,
-            ) &&
+            /^\/spaces\/(?!new$)[^/]+(?:\/.*)?$/.test(currentPath.current) &&
             selected
         ) {
             const settings =
@@ -49,12 +55,17 @@ export function SpaceSwitcher() {
                 context.getSnapshot().currentSpace?.type === 'SHARED';
             const composer = currentPath.current.endsWith('/expenses/new');
             const finances = currentPath.current.endsWith('/finances');
+            const incomes = currentPath.current.endsWith('/incomes');
+            const transferComposer =
+                currentPath.current.endsWith(
+                    '/finances/settlements/transfers/new',
+                ) && context.getSnapshot().currentSpace?.type === 'SHARED';
             const settlements =
                 /\/finances\/settlements(?:\/[^/]+)?$/.test(
                     currentPath.current,
                 ) && context.getSnapshot().currentSpace?.type === 'SHARED';
             router.replace(
-                `/spaces/${selected}${settings ? '/settings' : composer ? '/expenses/new' : settlements ? '/finances/settlements' : finances ? '/finances' : ''}`,
+                `/spaces/${selected}${settings ? '/settings' : composer ? '/expenses/new' : transferComposer ? '/finances/settlements/transfers/new' : settlements ? '/finances/settlements' : finances ? '/finances' : incomes ? '/incomes' : ''}`,
             );
         }
     }
@@ -62,56 +73,93 @@ export function SpaceSwitcher() {
         space.phase === 'initializing' || space.phase === 'switching';
     return (
         <section aria-label="Contexto do espaço" className={styles.context}>
-            <label htmlFor="active-space">Espaço atual</label>
-            <select
-                id="active-space"
-                value={space.activeSpaceId ?? ''}
-                className={styles.select}
-                disabled={
-                    space.switchBlocked ||
-                    space.items.length === 0 ||
-                    space.phase === 'session'
-                }
-                onChange={(event) =>
-                    void finishSelection(context.select(event.target.value))
-                }
-            >
-                {!space.activeSpaceId && (
-                    <option value="" disabled>
-                        {space.phase === 'initializing'
-                            ? 'Carregando espaços…'
-                            : space.phase === 'switching'
-                              ? 'Trocando espaço…'
-                              : 'Selecione um espaço'}
-                    </option>
-                )}
-                {[...space.items]
-                    .sort((left, right) =>
-                        left.type === right.type
-                            ? 0
-                            : left.type === 'PERSONAL'
-                              ? -1
-                              : 1,
-                    )
-                    .map((item) => (
-                        <option value={item.id} key={item.id}>
-                            {item.label} ·{' '}
-                            {item.type === 'PERSONAL'
-                                ? 'Pessoal'
-                                : 'Compartilhado'}{' '}
-                            · {statuses[item.status]}
+            <div className={styles.selection}>
+                <label htmlFor="active-space" className={styles.label}>
+                    Espaço atual
+                </label>
+                <select
+                    id="active-space"
+                    aria-describedby={
+                        space.currentSpace ? 'active-space-status' : undefined
+                    }
+                    value={space.activeSpaceId ?? ''}
+                    className={styles.select}
+                    disabled={
+                        space.switchBlocked ||
+                        space.items.length === 0 ||
+                        space.phase === 'session'
+                    }
+                    onChange={(event) =>
+                        void finishSelection(context.select(event.target.value))
+                    }
+                >
+                    {!space.activeSpaceId && (
+                        <option value="" disabled>
+                            {space.phase === 'initializing'
+                                ? 'Carregando espaços…'
+                                : space.phase === 'switching'
+                                  ? 'Trocando espaço…'
+                                  : 'Selecione um espaço'}
                         </option>
-                    ))}
-            </select>
+                    )}
+                    {[...space.items]
+                        .sort((left, right) =>
+                            left.type === right.type
+                                ? 0
+                                : left.type === 'PERSONAL'
+                                  ? -1
+                                  : 1,
+                        )
+                        .map((item) => (
+                            <option value={item.id} key={item.id}>
+                                {item.id === space.activeSpaceId
+                                    ? item.label
+                                    : `${item.label} · ${item.type === 'PERSONAL' ? 'Pessoal' : 'Compartilhado'} · ${statuses[item.status]}`}
+                            </option>
+                        ))}
+                </select>
+            </div>
             {space.currentSpace && (
-                <p className={styles.current}>
-                    {space.currentSpace.label} ·{' '}
+                <p id="active-space-status" className={styles.current}>
+                    {space.currentSpace.type === 'PERSONAL' ? (
+                        <UserRound size={14} aria-hidden="true" />
+                    ) : (
+                        <UsersRound size={14} aria-hidden="true" />
+                    )}
                     {space.currentSpace.type === 'PERSONAL'
                         ? 'Pessoal'
                         : 'Compartilhado'}{' '}
                     · {statuses[space.currentSpace.status]}
                 </p>
             )}
+            <div className={styles.manage}>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Gerenciar espaços"
+                            disabled={space.switchBlocked}
+                        >
+                            <Settings2 aria-hidden="true" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                            <Link href="/spaces">
+                                <UsersRound aria-hidden="true" />
+                                Meus espaços
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href="/spaces/new">
+                                <Plus aria-hidden="true" />
+                                Criar espaço compartilhado
+                            </Link>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
             {loading && (
                 <p role="status" aria-busy="true">
                     {space.phase === 'initializing'
@@ -122,12 +170,13 @@ export function SpaceSwitcher() {
             {space.phase === 'error' && (
                 <>
                     <p role="alert">{space.message}</p>
-                    <button
+                    <Button
+                        variant="outline"
                         type="button"
                         onClick={() => void finishSelection(context.retry())}
                     >
                         Tentar novamente o espaço
-                    </button>
+                    </Button>
                 </>
             )}
             {space.phase === 'ready' && space.message && (
@@ -142,20 +191,15 @@ export function SpaceSwitcher() {
             {list.isError && space.phase === 'ready' && (
                 <>
                     <p role="alert">Não foi possível atualizar os espaços.</p>
-                    <button type="button" onClick={() => void list.refetch()}>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => void list.refetch()}
+                    >
                         Tentar novamente a lista de espaços
-                    </button>
+                    </Button>
                 </>
             )}
-            <Link
-                href="/spaces/new"
-                onClick={(event) => {
-                    if (space.switchBlocked) event.preventDefault();
-                }}
-                aria-disabled={space.switchBlocked}
-            >
-                Criar espaço compartilhado
-            </Link>
         </section>
     );
 }

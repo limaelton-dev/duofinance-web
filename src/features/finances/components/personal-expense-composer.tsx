@@ -1,5 +1,8 @@
 'use client';
 import Link from 'next/link';
+import { CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSpaceContext } from '@/features/spaces/hooks/use-space-context';
@@ -30,8 +33,8 @@ export function PersonalExpenseComposer({
         context = useSpaceContextInstance(),
         router = useRouter();
     const [method, setMethod] = useState<
-        'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
-    >('PIX');
+        '' | 'PIX' | 'DEBIT' | 'CASH' | 'CREDIT_CARD'
+    >('');
     const creditCard = method === 'CREDIT_CARD';
     const supportAmountField = creditCard
         ? 'externalLiability.amountInCents'
@@ -125,6 +128,11 @@ export function PersonalExpenseComposer({
                 'amountInCents',
                 'Informe um valor positivo com até duas casas decimais.',
             );
+        if (!method)
+            return reject(
+                'disbursement.method',
+                'Escolha como a despesa foi realizada.',
+            );
         if (paid === null || paid <= 0 || paid > total)
             return reject(
                 supportAmountField,
@@ -170,44 +178,58 @@ export function PersonalExpenseComposer({
     if (result)
         return (
             <section className={styles.stack}>
-                <h1 ref={heading} tabIndex={-1}>
-                    Despesa registrada
-                </h1>
+                <div className={styles.success}>
+                    <CheckCircle2 aria-hidden="true" size={24} />
+                    <h1 ref={heading} tabIndex={-1}>
+                        Despesa registrada
+                    </h1>
+                </div>
                 <p>{space.currentSpace?.label}</p>
                 <PersonalExpenseSummary value={result} />
                 {result.replayed && <p>A tentativa original foi recuperada.</p>}
                 <div className={styles.actions}>
-                    <Link
-                        href={`/spaces/${spaceId}/expenses/${result.commitment.id}`}
-                    >
-                        Ver despesa
-                    </Link>
+                    <Button asChild>
+                        <Link
+                            href={`/spaces/${spaceId}/expenses/${result.commitment.id}`}
+                        >
+                            Ver despesa
+                        </Link>
+                    </Button>
                     <Link href={`/spaces/${spaceId}/finances`}>
                         Ver histórico de despesas
                     </Link>
-                    <button
+                    <Button
                         type="button"
+                        variant="outline"
                         onClick={() => {
                             setResult(null);
                             setDescription('');
                             setAmount('');
                             setPaidAmount(null);
                             setDate(null);
-                            setMethod('PIX');
+                            setMethod('');
                             setDirty(false);
                             void options.refetch();
                         }}
                     >
                         Adicionar outra
-                    </button>
+                    </Button>
                     <Link href={`/spaces/${spaceId}`}>Voltar</Link>
                 </div>
             </section>
         );
     return (
         <section className={styles.stack}>
-            <h1>Adicionar despesa</h1>
-            <p>{space.currentSpace?.label} · Pessoal</p>
+            <header className={styles.heading}>
+                <h1>Adicionar despesa</h1>
+                <p className={styles.context}>
+                    {space.currentSpace?.label} · Pessoal
+                </p>
+                <p className={styles.help}>
+                    Registre o que aconteceu e confira os valores antes de
+                    salvar.
+                </p>
+            </header>
             {options.isPending || options.isFetching ? (
                 <p role="status" aria-busy="true">
                     Carregando opções da despesa…
@@ -219,227 +241,307 @@ export function PersonalExpenseComposer({
                         Não foi possível consultar as opções da despesa. Seus
                         campos foram preservados.
                     </p>
-                    <button
+                    <Button
                         type="button"
+                        variant="outline"
                         disabled={busy || options.isFetching}
                         onClick={() => void options.refetch()}
                     >
                         Tentar novamente as opções
-                    </button>
+                    </Button>
                 </div>
             )}
             <div className={styles.columns}>
                 <form
                     ref={form}
-                    className={styles.stack}
+                    className={styles.form}
                     noValidate
                     onSubmit={(event) => {
                         event.preventDefault();
                         save();
                     }}
                 >
-                    <fieldset
-                        disabled={
-                            busy ||
-                            !options.data ||
-                            options.isError ||
-                            options.isFetching
-                        }
-                    >
-                        <legend>
-                            {creditCard
-                                ? 'Despesa realizada no cartão'
-                                : 'Despesa já paga'}
-                        </legend>
-                        <label>
-                            Descrição
-                            <input
-                                name="description"
-                                maxLength={160}
-                                value={description}
-                                aria-invalid={invalid('description')}
-                                aria-describedby={
-                                    invalid('description')
-                                        ? 'personal-expense-error'
-                                        : undefined
-                                }
-                                onChange={(event) => {
-                                    mark();
-                                    setDescription(event.target.value);
-                                }}
-                            />
-                        </label>
-                        <label>
-                            Valor (R$)
-                            <input
-                                name="amountInCents"
-                                inputMode="decimal"
-                                value={amount}
-                                aria-invalid={invalid('amountInCents')}
-                                aria-describedby={
-                                    invalid('amountInCents')
-                                        ? 'personal-expense-error'
-                                        : undefined
-                                }
-                                onChange={(event) => {
-                                    mark();
-                                    setAmount(event.target.value);
-                                }}
-                            />
-                        </label>
-                        <label>
-                            {creditCard
-                                ? 'Valor assumido no cartão (R$)'
-                                : 'Valor pago agora (R$)'}
-                            <input
-                                name={supportAmountField}
-                                inputMode="decimal"
-                                value={paidAmount ?? amount}
-                                aria-invalid={invalid(supportAmountField)}
-                                onChange={(event) => {
-                                    mark();
-                                    setPaidAmount(event.target.value);
-                                }}
-                            />
-                        </label>
-                        <label>
-                            {creditCard
-                                ? 'Data da compra'
-                                : 'Data do pagamento'}
-                            <input
-                                name="factDate"
-                                type="date"
-                                value={factDate}
-                                max={options.data?.referenceDate}
-                                aria-invalid={invalid('factDate')}
-                                aria-describedby={
-                                    invalid('factDate')
-                                        ? 'personal-expense-error'
-                                        : undefined
-                                }
-                                onChange={(event) => {
-                                    mark();
-                                    setDate(event.target.value);
-                                }}
-                            />
-                        </label>
-                        <label>
-                            Forma de pagamento
-                            <select
-                                name="disbursement.method"
-                                aria-label="Forma de pagamento"
-                                value={method}
-                                aria-invalid={invalid('disbursement.method')}
-                                aria-describedby={
-                                    invalid('disbursement.method')
-                                        ? 'personal-expense-error'
-                                        : undefined
-                                }
-                                onChange={(event) => {
-                                    mark();
-                                    setMethod(
-                                        event.target.value as typeof method,
-                                    );
-                                }}
-                            >
-                                <option value="CREDIT_CARD">
-                                    Cartão de crédito
-                                </option>
-                                {(
-                                    options.data?.disbursementMethods ??
-                                    (['PIX', 'DEBIT', 'CASH'] as const)
-                                ).map((value) => (
-                                    <option key={value} value={value}>
-                                        {disbursementMethodLabels[value]}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                    </fieldset>
-                    {(fieldError || command.error) && (
-                        <p id="personal-expense-error" role="alert">
-                            {fieldError?.message ?? command.error}
-                        </p>
-                    )}
-                    {command.isPending && (
-                        <p role="status">Salvando despesa…</p>
-                    )}
-                    {command.canRetry && (
-                        <div>
-                            <p>
-                                O resultado ainda precisa ser confirmado. A
-                                tentativa e os campos foram preservados.
+                    <div className={styles.fields}>
+                        <fieldset
+                            disabled={
+                                busy ||
+                                !options.data ||
+                                options.isError ||
+                                options.isFetching
+                            }
+                        >
+                            <legend>O que aconteceu?</legend>
+                            <label>
+                                Descrição
+                                <Input
+                                    name="description"
+                                    placeholder="Ex.: Mercado"
+                                    maxLength={160}
+                                    value={description}
+                                    aria-invalid={invalid('description')}
+                                    aria-describedby={
+                                        invalid('description')
+                                            ? 'personal-expense-error'
+                                            : undefined
+                                    }
+                                    onChange={(event) => {
+                                        mark();
+                                        setDescription(event.target.value);
+                                    }}
+                                />
+                            </label>
+                            <label>
+                                Valor (R$)
+                                <Input
+                                    name="amountInCents"
+                                    placeholder="0,00"
+                                    inputMode="decimal"
+                                    value={amount}
+                                    aria-invalid={invalid('amountInCents')}
+                                    aria-describedby={
+                                        invalid('amountInCents')
+                                            ? 'personal-expense-error'
+                                            : undefined
+                                    }
+                                    onChange={(event) => {
+                                        mark();
+                                        setAmount(event.target.value);
+                                    }}
+                                />
+                            </label>
+                        </fieldset>
+                        <fieldset
+                            disabled={
+                                busy ||
+                                !options.data ||
+                                options.isError ||
+                                options.isFetching
+                            }
+                        >
+                            <legend>O pagamento já aconteceu?</legend>
+                            <p className={styles.help}>
+                                Escolha a forma de um pagamento ocorrido ou de
+                                uma compra no cartão. O registro de despesa
+                                ainda não paga não está disponível nesta tela.
                             </p>
-                            <button
-                                type="button"
-                                disabled={command.isPending}
-                                onClick={command.retry}
-                            >
-                                Tentar novamente o envio
-                            </button>
-                        </div>
-                    )}
-                    <button
-                        type="submit"
-                        disabled={
-                            busy ||
-                            !options.data ||
-                            options.isError ||
-                            options.isFetching
-                        }
+                            <label>
+                                Forma de pagamento
+                                <select
+                                    name="disbursement.method"
+                                    aria-label="Forma de pagamento"
+                                    value={method}
+                                    aria-invalid={invalid(
+                                        'disbursement.method',
+                                    )}
+                                    aria-describedby={
+                                        invalid('disbursement.method')
+                                            ? 'personal-expense-error'
+                                            : undefined
+                                    }
+                                    onChange={(event) => {
+                                        mark();
+                                        setMethod(
+                                            event.target.value as typeof method,
+                                        );
+                                    }}
+                                >
+                                    <option value="">Escolha uma forma</option>
+                                    <option value="CREDIT_CARD">
+                                        Cartão de crédito
+                                    </option>
+                                    {(
+                                        options.data?.disbursementMethods ??
+                                        (['PIX', 'DEBIT', 'CASH'] as const)
+                                    ).map((value) => (
+                                        <option key={value} value={value}>
+                                            {disbursementMethodLabels[value]}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            {method && (
+                                <>
+                                    <label>
+                                        {creditCard
+                                            ? 'Valor assumido no cartão (R$)'
+                                            : 'Valor pago agora (R$)'}
+                                        <Input
+                                            name={supportAmountField}
+                                            aria-describedby={
+                                                invalid(supportAmountField)
+                                                    ? 'personal-expense-error'
+                                                    : undefined
+                                            }
+                                            inputMode="decimal"
+                                            value={paidAmount ?? amount}
+                                            aria-invalid={invalid(
+                                                supportAmountField,
+                                            )}
+                                            onChange={(event) => {
+                                                mark();
+                                                setPaidAmount(
+                                                    event.target.value,
+                                                );
+                                            }}
+                                        />
+                                    </label>
+                                    <label>
+                                        {creditCard
+                                            ? 'Data da compra'
+                                            : 'Data do pagamento'}
+                                        <Input
+                                            name="factDate"
+                                            type="date"
+                                            value={factDate}
+                                            max={options.data?.referenceDate}
+                                            aria-invalid={invalid('factDate')}
+                                            aria-describedby={
+                                                invalid('factDate')
+                                                    ? 'personal-expense-error'
+                                                    : undefined
+                                            }
+                                            onChange={(event) => {
+                                                mark();
+                                                setDate(event.target.value);
+                                            }}
+                                        />
+                                    </label>
+                                </>
+                            )}
+                        </fieldset>
+                    </div>
+                    <aside
+                        className={styles.summary}
+                        aria-label="Resumo da despesa"
                     >
-                        Salvar despesa
-                    </button>
-                    <Link href={`/spaces/${spaceId}/finances`}>Cancelar</Link>
-                </form>
-                <aside
-                    className={styles.summary}
-                    aria-label="Resumo da despesa"
-                >
-                    <h2>Resumo</h2>
-                    <p>{description.trim() || 'Sua despesa'}</p>
-                    <dl>
-                        <dt>Valor da despesa</dt>
-                        <dd>
+                        <h2>Confira sua despesa</h2>
+                        <p>{description.trim() || 'Sua despesa'}</p>
+                        <p className={styles.amount}>
                             {total !== null && total > 0
                                 ? formatMoney(total)
-                                : 'Informe o valor'}
-                        </dd>
-                        <dt>
-                            {creditCard
-                                ? 'No seu cartão'
-                                : 'Valor desembolsado'}
-                        </dt>
-                        <dd>
-                            {paid !== null && paid > 0
-                                ? formatMoney(paid)
-                                : 'Informe o valor'}
-                        </dd>
-                        <dt>Forma de pagamento</dt>
-                        <dd>
-                            {creditCard
-                                ? 'Cartão de crédito'
-                                : disbursementMethodLabels[
-                                      method as 'PIX' | 'DEBIT' | 'CASH'
-                                  ]}
-                        </dd>
-                    </dl>
-                    {creditCard &&
-                        total !== null &&
-                        paid !== null &&
-                        paid > 0 &&
-                        paid <= total && (
-                            <p>
-                                Restante a realizar: {formatMoney(total - paid)}
-                                .
+                                : 'R$ 0,00'}
+                        </p>
+                        <p className={styles.context}>
+                            {space.currentSpace?.label} · Pessoal
+                        </p>
+                        <div className={styles.receiptSection}>
+                            {!method ? (
+                                <p className={styles.help}>
+                                    Escolha como a despesa foi realizada para
+                                    conferir os valores.
+                                </p>
+                            ) : (
+                                <>
+                                    <dl>
+                                        <dt>
+                                            {creditCard
+                                                ? 'No seu cartão'
+                                                : 'Valor desembolsado'}
+                                        </dt>
+                                        <dd>
+                                            {paid !== null && paid > 0
+                                                ? formatMoney(paid)
+                                                : 'Informe o valor'}
+                                        </dd>
+                                        <dt>Forma de pagamento</dt>
+                                        <dd>
+                                            {creditCard
+                                                ? 'Cartão de crédito'
+                                                : disbursementMethodLabels[
+                                                      method as
+                                                          | 'PIX'
+                                                          | 'DEBIT'
+                                                          | 'CASH'
+                                                  ]}
+                                        </dd>
+                                        {total !== null &&
+                                            paid !== null &&
+                                            paid > 0 &&
+                                            paid < total && (
+                                                <>
+                                                    <dt>
+                                                        {creditCard
+                                                            ? 'Restante a realizar'
+                                                            : 'Falta pagar'}
+                                                    </dt>
+                                                    <dd>
+                                                        {formatMoney(
+                                                            total - paid,
+                                                        )}
+                                                    </dd>
+                                                </>
+                                            )}
+                                    </dl>
+                                    {paid !== null &&
+                                        paid > 0 &&
+                                        paid === total && (
+                                            <p>
+                                                {creditCard
+                                                    ? 'O valor informado no cartão cobre o total da despesa.'
+                                                    : 'O pagamento informado cobre o total da despesa.'}
+                                            </p>
+                                        )}
+                                    {creditCard && (
+                                        <p>
+                                            Saiu da conta agora:{' '}
+                                            {formatMoney(0)}.
+                                        </p>
+                                    )}
+                                    <p className={styles.help}>
+                                        Esta despesa pertence apenas a você e
+                                        não gera acerto entre pessoas.
+                                    </p>
+                                </>
+                            )}
+                        </div>
+                        <p className={styles.preview}>
+                            Esta é uma prévia. Ao salvar, confira o resultado
+                            confirmado da despesa.
+                        </p>
+                    </aside>
+                    <div className={styles.confirmation}>
+                        {(fieldError || command.error) && (
+                            <p id="personal-expense-error" role="alert">
+                                {fieldError?.message ?? command.error}
                             </p>
                         )}
-                    <p>
-                        {creditCard
-                            ? `Cartão do próprio titular. Saiu da conta agora: ${formatMoney(0)}. A obrigação externa permanece aberta.`
-                            : 'O valor pago agora será registrado junto com esta despesa.'}
-                    </p>
-                </aside>
+                        {command.isPending && (
+                            <p role="status">Salvando despesa…</p>
+                        )}
+                        {command.canRetry && (
+                            <div>
+                                <p>
+                                    O resultado ainda precisa ser confirmado. A
+                                    tentativa e os campos foram preservados.
+                                </p>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={command.isPending}
+                                    onClick={command.retry}
+                                >
+                                    Recuperar esta tentativa
+                                </Button>
+                            </div>
+                        )}
+                        <Button
+                            type="submit"
+                            disabled={
+                                busy ||
+                                !options.data ||
+                                options.isError ||
+                                options.isFetching
+                            }
+                        >
+                            {command.isPending
+                                ? 'Salvando despesa…'
+                                : 'Salvar despesa'}
+                        </Button>
+                        <Link href={`/spaces/${spaceId}/finances`}>
+                            Cancelar
+                        </Link>
+                    </div>
+                </form>
             </div>
         </section>
     );

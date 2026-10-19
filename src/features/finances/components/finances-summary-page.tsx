@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useAuthenticatedContext } from '@/features/auth/hooks/use-authenticated-context';
 import { useSpaceContext } from '@/features/spaces/hooks/use-space-context';
@@ -79,20 +80,22 @@ function FinancialReviewPage({
         <section className={styles.stack}>
             <h1>Finanças</h1>
             <nav className={styles.actions} aria-label="Navegação financeira">
-                <button
+                <Button
+                    variant="outline"
                     type="button"
                     aria-current={tab === 'SUMMARY' ? 'page' : undefined}
                     onClick={() => setTab('SUMMARY')}
                 >
                     Resumo
-                </button>
-                <button
+                </Button>
+                <Button
+                    variant="outline"
                     type="button"
                     aria-current={tab === 'COMMITMENTS' ? 'page' : undefined}
                     onClick={() => setTab('COMMITMENTS')}
                 >
                     Compromissos
-                </button>
+                </Button>
                 {shared && (
                     <Link href={`/spaces/${spaceId}/finances/settlements`}>
                         Acertos
@@ -226,13 +229,14 @@ function FinancialReviewContent({
                         </select>
                     </>
                 )}
-                <button
+                <Button
+                    variant="outline"
                     type="button"
                     disabled={overview.isFetching}
                     onClick={() => void overview.refetch()}
                 >
                     Atualizar resumo
-                </button>
+                </Button>
             </div>
             <p>
                 O mês usa a data real de cada fato. Previsões usam a data
@@ -249,12 +253,13 @@ function FinancialReviewContent({
                     <p role="alert">
                         Não foi possível consultar o resumo financeiro.
                     </p>
-                    <button
+                    <Button
+                        variant="outline"
                         type="button"
                         onClick={() => void overview.refetch()}
                     >
                         Tentar novamente o resumo
-                    </button>
+                    </Button>
                 </div>
             )}
             {tab === 'SUMMARY' ? (

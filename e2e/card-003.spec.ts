@@ -113,7 +113,7 @@ for (const viewport of [
             'no-referrer',
         );
         await expect(
-            page.getByRole('button', { name: 'Entrar no espaço', exact: true }),
+            page.getByRole('button', { name: 'Aceitar convite', exact: true }),
         ).toBeVisible();
         expect(new URL(page.url()).hash).toBe('');
         expect(writes).toBe(0);
@@ -138,7 +138,7 @@ for (const viewport of [
             ),
         ).toBe(true);
         await page
-            .getByRole('button', { name: 'Entrar no espaço', exact: true })
+            .getByRole('button', { name: 'Aceitar convite', exact: true })
             .focus();
         await page.keyboard.press('Enter');
         await expect(page).toHaveURL(`${webOrigin}/spaces/${invite.space.id}`);
@@ -212,7 +212,7 @@ test('cadastro pelo convite cria espaço pessoal e retorna sem aceitar automatic
         .click();
     await expect(page).toHaveURL(`${webOrigin}/invitations`);
     await expect(
-        page.getByRole('button', { name: 'Entrar no espaço', exact: true }),
+        page.getByRole('button', { name: 'Aceitar convite', exact: true }),
     ).toBeVisible();
     await page
         .getByRole('link', { name: 'Voltar para meus espaços', exact: true })
@@ -282,7 +282,7 @@ for (const decision of ['ACCEPT', 'REJECT'] as const) {
         await page.goto(invite.inviteUrl);
         await page
             .getByRole('button', {
-                name: decision === 'ACCEPT' ? 'Entrar no espaço' : 'Recusar',
+                name: decision === 'ACCEPT' ? 'Aceitar convite' : 'Recusar',
                 exact: true,
             })
             .click();
@@ -330,7 +330,7 @@ test('criador não responde, link substituído fica indisponível e erros não m
             page.getByText('Você já participa deste espaço', { exact: false }),
         ).toBeVisible();
         await expect(
-            page.getByRole('button', { name: 'Entrar no espaço' }),
+            page.getByRole('button', { name: 'Aceitar convite' }),
         ).toHaveCount(0);
         const replaced = await api.post(
             `${apiUrl}/spaces/${invite.space.id}/invitations/${invite.invitation.id}/replace`,

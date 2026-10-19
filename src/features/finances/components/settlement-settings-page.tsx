@@ -9,7 +9,9 @@ import { useSpaceContextInstance } from '@/features/spaces/context/space-context
 import { useSpaceContext } from '@/features/spaces/hooks/use-space-context';
 import { useSpaceDetails } from '@/features/spaces/hooks/use-space-details';
 import type { SpaceContextCapture } from '@/features/spaces/state/space-context';
-import styles from '@/features/spaces/components/spaces.module.css';
+import styles from './expenses.module.css';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ApiError } from '@/lib/api/api-error';
 import { useDefaultSettlementRule } from '../hooks/use-default-settlement-rule';
 import { useSettlementRuleCommand } from '../hooks/use-settlement-rule-command';
@@ -170,9 +172,9 @@ function Settings({
         );
     }
     return (
-        <section className={styles.stack}>
-            <h1 className={styles.title}>Configurações do espaço</h1>
-            <p className={styles.muted}>
+        <section className={`${styles.stack} ${styles.settings}`}>
+            <h1>Configurações do espaço</h1>
+            <p className={styles.context}>
                 {space.currentSpace?.label} ·{' '}
                 {shared ? 'Espaço compartilhado' : 'Espaço pessoal'}
             </p>
@@ -189,7 +191,7 @@ function Settings({
                 <p>A regra padrão de acerto não se aplica ao espaço pessoal.</p>
             ) : (
                 <section
-                    className={styles.panel}
+                    className={styles.receipt}
                     aria-labelledby="financial-rules-title"
                 >
                     <h2 id="financial-rules-title">Regras financeiras</h2>
@@ -215,19 +217,19 @@ function Settings({
                     )}
                     {readError && (
                         <>
-                            <p role="alert" className={styles.error}>
+                            <p role="alert">
                                 {readError instanceof ApiError
                                     ? readError.message
                                     : 'Não foi possível consultar a regra de acerto.'}
                             </p>
-                            <button
+                            <Button
                                 type="button"
-                                className={styles.secondary}
+                                variant="outline"
                                 disabled={query.isFetching || busy}
                                 onClick={() => void query.refetch()}
                             >
                                 Tentar novamente a regra
-                            </button>
+                            </Button>
                         </>
                     )}
                     {!writable && details.data && (
@@ -237,16 +239,16 @@ function Settings({
                         </p>
                     )}
                     {query.data && !draft && (
-                        <button
+                        <Button
                             type="button"
-                            className={styles.button}
+                            variant="outline"
                             disabled={
                                 !writable || query.isFetching || query.isError
                             }
                             onClick={open}
                         >
                             {query.data.rule ? 'Gerenciar' : 'Definir regra'}
-                        </button>
+                        </Button>
                     )}
                     {draft && (
                         <form
@@ -260,9 +262,8 @@ function Settings({
                             <label htmlFor="settlement-day">
                                 Dia do acerto
                             </label>
-                            <input
+                            <Input
                                 ref={input}
-                                className={styles.input}
                                 id="settlement-day"
                                 type="number"
                                 min="1"
@@ -285,24 +286,19 @@ function Settings({
                                 }
                             />
                             {fieldError && (
-                                <p
-                                    id="settlement-day-error"
-                                    role="alert"
-                                    className={styles.error}
-                                >
+                                <p id="settlement-day-error" role="alert">
                                     {fieldError}
                                 </p>
                             )}
                             {conflict && (
-                                <p role="alert" className={styles.error}>
+                                <p role="alert">
                                     A regra foi alterada por outra pessoa.
                                     Confira a regra atual acima e confirme
                                     novamente para salvar seu dia.
                                 </p>
                             )}
                             <div className={styles.actions}>
-                                <button
-                                    className={styles.button}
+                                <Button
                                     type="submit"
                                     disabled={
                                         busy ||
@@ -314,10 +310,10 @@ function Settings({
                                     {conflict
                                         ? 'Confirmar nova tentativa'
                                         : 'Salvar'}
-                                </button>
-                                <button
-                                    className={styles.secondary}
+                                </Button>
+                                <Button
                                     type="button"
+                                    variant="outline"
                                     disabled={busy}
                                     onClick={() => {
                                         setDraft(null);
@@ -327,7 +323,7 @@ function Settings({
                                     }}
                                 >
                                     Cancelar
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     )}
@@ -336,20 +332,16 @@ function Settings({
                             Salvando regra de acerto…
                         </p>
                     )}
-                    {command.error && (
-                        <p role="alert" className={styles.error}>
-                            {command.error}
-                        </p>
-                    )}
+                    {command.error && <p role="alert">{command.error}</p>}
                     {command.canRetry && (
-                        <button
+                        <Button
                             type="button"
-                            className={styles.button}
+                            variant="outline"
                             onClick={command.retry}
                             disabled={command.isPending}
                         >
-                            Tentar novamente o envio
-                        </button>
+                            Recuperar esta tentativa
+                        </Button>
                     )}
                     {success && (
                         <p role="status">

@@ -198,7 +198,10 @@ test('A03/A24: personal card is economic fulfillment without cash or shared cont
     await expect(page.getByLabel('Divisão', { exact: true })).toHaveCount(0);
     await expect(page.getByLabel('Acerto', { exact: true })).toHaveCount(0);
     await expect(
-        page.getByText('Cartão do próprio titular.', { exact: false }),
+        page.getByRole('complementary', {
+            name: 'Resumo da despesa',
+            exact: true,
+        }),
     ).toContainText('Saiu da conta agora: R$ 0,00');
     const result = await saveCard(page);
     expect(result.disbursement).toBeNull();
@@ -351,15 +354,23 @@ test('A05/A06/A08/A12: partial card then cash then card preserves ordered facts,
     await expect(history.nth(0)).toContainText('01/01/2020');
     await expect(history.nth(1)).toContainText('R$ 200,00');
     await expect(history.nth(2)).toContainText('R$ 500,00');
-    await expect(page.getByRole('definition')).toContainText([
+    const summary = page.getByRole('region', {
+        name: 'Resumo da despesa',
+        exact: true,
+    });
+    await expect(summary.getByRole('definition')).toContainText([
         'R$ 1.000,00',
         'R$ 200,00',
         'R$ 800,00',
-        'R$ 200,00',
-        'R$ 800,00',
-        'R$ 1.000,00',
         'R$ 0,00',
+        'R$ 800,00',
+        'R$ 1.000,00',
     ]);
+    await expect(summary).toContainText(
+        /Pago ao credor do cartão\s*R\$\s*0,00/,
+    );
+    await expect(summary.getByText('Restante a realizar')).toHaveCount(0);
+    await expect(summary).toContainText('Realizada integralmente');
     await expect(
         page.getByRole('region', { name: 'Nova compra no cartão' }),
     ).toHaveCount(0);
@@ -376,6 +387,9 @@ test('A07: existing cash expense accepts card support without creating another e
         .getByLabel('Descrição', { exact: true })
         .fill(`Caixa seguido de cartão ${randomUUID()}`);
     await page.getByLabel('Valor (R$)', { exact: true }).fill('200,00');
+    await page
+        .getByLabel('Forma de pagamento', { exact: true })
+        .selectOption('PIX');
     await page
         .getByLabel('Valor pago agora (R$)', { exact: true })
         .fill('50,00');
@@ -460,7 +474,7 @@ test('A16/A25: lost card response locks fields and switching, retries immutable 
         .dblclick();
     await expect(
         page.getByRole('button', {
-            name: 'Tentar novamente o envio',
+            name: 'Recuperar esta tentativa',
             exact: true,
         }),
     ).toBeVisible();
@@ -469,7 +483,7 @@ test('A16/A25: lost card response locks fields and switching, retries immutable 
         page.getByRole('combobox', { name: 'Espaço atual', exact: true }),
     ).toBeDisabled();
     await page
-        .getByRole('button', { name: 'Tentar novamente o envio', exact: true })
+        .getByRole('button', { name: 'Recuperar esta tentativa', exact: true })
         .click();
     await expect(
         page.getByRole('heading', { name: 'Despesa registrada', exact: true }),
@@ -569,6 +583,9 @@ test('A09/A10/A22: transfer before card support preserves allocation and the sam
         .getByLabel('Descrição', { exact: true })
         .fill(`Suporte após transferência ${randomUUID()}`);
     await page.getByLabel('Valor (R$)', { exact: true }).fill('500,00');
+    await page
+        .getByLabel('Forma de pagamento', { exact: true })
+        .selectOption('DEBIT');
     await page
         .getByLabel('Valor pago agora (R$)', { exact: true })
         .fill('400,00');

@@ -135,11 +135,16 @@ async function open(
     await context.addCookies(account.state.cookies);
     await page.goto(composer(space.id));
     await expect(trigger(page)).toHaveValue(space.id);
-    await expect(page.getByLabel('Quem pagou?', { exact: true })).toBeVisible();
+    await expect(
+        page.getByLabel('Forma de pagamento', { exact: true }),
+    ).toBeVisible();
 }
 async function fill(page: Page, amount = '500,00') {
     await page.getByLabel('Descrição', { exact: true }).fill('Mercado');
     await page.getByLabel('Valor (R$)', { exact: true }).fill(amount);
+    const method = page.getByLabel('Forma de pagamento', { exact: true });
+    if ((await method.isVisible()) && (await method.inputValue()) === '')
+        await method.selectOption('DEBIT');
 }
 const planningToggle = (page: Page) =>
     page.getByRole('button', {
@@ -489,6 +494,9 @@ test('A22: falha de participantes bloqueia envio até reconsulta sem inventar me
             exact: true,
         })
         .click();
+    await page
+        .getByLabel('Forma de pagamento', { exact: true })
+        .selectOption('DEBIT');
     await expect(page.getByLabel('Quem pagou?', { exact: true })).toBeVisible();
     await expect(page.getByLabel('Descrição', { exact: true })).toHaveValue(
         'Mercado',
@@ -625,7 +633,7 @@ test('A21: resposta perdida após commit mantém tentativa e bloqueia navegaçã
     await save(page);
     await expect(
         page.getByRole('button', {
-            name: 'Tentar novamente o envio',
+            name: 'Recuperar esta tentativa',
             exact: true,
         }),
     ).toBeVisible();
@@ -636,10 +644,15 @@ test('A21: resposta perdida após commit mantém tentativa e bloqueia navegaçã
     await expect(
         page.getByRole('button', { name: 'Sair', exact: true }),
     ).toBeDisabled();
-    await page.getByRole('link', { name: 'Meus espaços', exact: true }).click();
+    const blockedNavigation = page.getByRole('link', {
+        name: 'Meus espaços',
+        exact: true,
+    });
+    await expect(blockedNavigation).toBeDisabled();
+    await blockedNavigation.click({ force: true });
     await expect(page).toHaveURL(composer(s1.id));
     await page
-        .getByRole('button', { name: 'Tentar novamente o envio', exact: true })
+        .getByRole('button', { name: 'Recuperar esta tentativa', exact: true })
         .click();
     await recorded(page);
     await expect(page.getByText(/^Responsável previsto:/)).toHaveCount(0);
@@ -686,7 +699,7 @@ for (const scenario of [
         await save(page);
         await expect(
             page.getByRole('button', {
-                name: 'Tentar novamente o envio',
+                name: 'Recuperar esta tentativa',
                 exact: true,
             }),
         ).toBeVisible();
@@ -694,7 +707,7 @@ for (const scenario of [
         expect(attempts).toHaveLength(1);
         await page
             .getByRole('button', {
-                name: 'Tentar novamente o envio',
+                name: 'Recuperar esta tentativa',
                 exact: true,
             })
             .click();
@@ -950,8 +963,11 @@ test('A20: detalhe tardio da sessão anterior mesma pessoa não publica dado nov
     await expect(page.getByText(/Descrição antiga atrasada/)).toHaveCount(0);
     await page.goto(detailUrl);
     await expect(
-        page.getByText('Mercado · R$ 500,00', { exact: true }),
+        page.getByRole('heading', { name: 'Mercado', exact: true }),
     ).toBeVisible();
+    await expect(
+        page.getByRole('region', { name: 'Resumo da despesa', exact: true }),
+    ).toContainText('R$ 500,00');
     await expect(page.getByText(/Descrição antiga atrasada/)).toHaveCount(0);
 });
 test('A22: erro HTTP de parte específica foca membro correto e mantém entrada', async ({
@@ -1013,8 +1029,11 @@ test('A23: checagens responsivas desktop/mobile e detalhe sem segredos', async (
     await recorded(page);
     await page.getByRole('link', { name: 'Ver despesa', exact: true }).click();
     await expect(
-        page.getByText('Mercado · R$ 500,00', { exact: true }),
+        page.getByRole('heading', { name: 'Mercado', exact: true }),
     ).toBeVisible();
+    await expect(
+        page.getByRole('region', { name: 'Resumo da despesa', exact: true }),
+    ).toContainText('R$ 500,00');
     expect(
         await page.evaluate(
             () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -1022,8 +1041,11 @@ test('A23: checagens responsivas desktop/mobile e detalhe sem segredos', async (
     ).toBe(true);
     await page.setViewportSize({ width: 1280, height: 900 });
     await expect(
-        page.getByText('Mercado · R$ 500,00', { exact: true }),
+        page.getByRole('heading', { name: 'Mercado', exact: true }),
     ).toBeVisible();
+    await expect(
+        page.getByRole('region', { name: 'Resumo da despesa', exact: true }),
+    ).toContainText('R$ 500,00');
     expect(
         await page.evaluate(
             () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -1105,8 +1127,11 @@ test('A20: detalhe cacheado que perde acesso no refetch limpa dados e volta ao p
     await recorded(page);
     await page.getByRole('link', { name: 'Ver despesa', exact: true }).click();
     await expect(
-        page.getByText('Mercado · R$ 500,00', { exact: true }),
+        page.getByRole('heading', { name: 'Mercado', exact: true }),
     ).toBeVisible();
+    await expect(
+        page.getByRole('region', { name: 'Resumo da despesa', exact: true }),
+    ).toContainText('R$ 500,00');
     await page
         .getByRole('link', { name: 'Voltar ao espaço', exact: true })
         .click();
@@ -1126,7 +1151,7 @@ test('A20: detalhe cacheado que perde acesso no refetch limpa dados e volta ao p
     await expect(trigger(page)).toHaveValue(a.personalId);
     await expect(page).toHaveURL(`/spaces/${a.personalId}`);
     await expect(
-        page.getByText('Mercado · R$ 500,00', { exact: true }),
+        page.getByRole('heading', { name: 'Mercado', exact: true }),
     ).toHaveCount(0);
 });
 
@@ -1184,7 +1209,7 @@ test('A22: fallback sem Navigation API restaura Back/Forward e múltiplas entrad
     await save(page);
     await expect(
         page.getByRole('button', {
-            name: 'Tentar novamente o envio',
+            name: 'Recuperar esta tentativa',
             exact: true,
         }),
     ).toBeVisible();

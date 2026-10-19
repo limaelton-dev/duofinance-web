@@ -1,7 +1,46 @@
 .stack {
     display: grid;
-    gap: 1rem;
+    gap: 1.5rem;
     overflow-wrap: anywhere;
+    min-width: 0;
+}
+.stack h1,
+.stack h2,
+.stack h3,
+.stack p {
+    margin: 0;
+}
+.stack h1 {
+    font-size: 1.75rem;
+    line-height: 1.22;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+}
+.stack h2 {
+    font-size: 1.25rem;
+    font-weight: 650;
+}
+.stack h3 {
+    font-size: 1rem;
+    font-weight: 650;
+}
+.heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.intro {
+    display: grid;
+    gap: 0.5rem;
+    max-width: 70ch;
+}
+.intro p,
+.help {
+    color: var(--muted-foreground, #595959);
+    font-size: 0.875rem;
+    line-height: 1.5;
 }
 .actions {
     display: flex;
@@ -9,65 +48,190 @@
     gap: 0.75rem;
     align-items: center;
 }
-.stack button,
+.stack nav {
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--border, #dedede);
+    padding-bottom: 0.75rem;
+}
+.stack nav > a,
+.stack nav > span,
+.stack nav > button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 3rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    text-decoration: none;
+}
+.stack nav > a:not([aria-current]):hover,
+.stack nav > button:not([aria-current]):hover:not(:disabled) {
+    background: var(--accent, #eee);
+}
+.stack nav > [aria-current] {
+    background: var(--primary, #171717);
+    color: var(--primary-foreground, #fff);
+    font-weight: 600;
+}
+.stack button:not([data-slot]),
 .stack select,
 .stack input {
-    min-height: 2.8rem;
+    min-height: 3rem;
     max-width: 100%;
-    border: 1px solid #205d49;
-    border-radius: 0.4rem;
-    padding: 0.6rem 0.9rem;
-    background: white;
-    color: #205d49;
+    border: 1px solid var(--input, #858585);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--card, #fff);
+    color: var(--foreground, #171717);
+    font: inherit;
 }
-.stack button:focus-visible,
-.stack input:focus-visible,
-.stack select:focus-visible,
-.stack a:focus-visible {
-    outline: 3px solid #2b7760;
-    outline-offset: 3px;
-}
-.stack [aria-current='page'] {
-    font-weight: 700;
-    background: #edf5ef;
-}
-.stack button {
+.stack button:not([data-slot]) {
     cursor: pointer;
     justify-self: start;
+    font-weight: 600;
+}
+.stack button:not([data-slot]):hover:not(:disabled) {
+    background: var(--accent, #eee);
 }
 .stack button:disabled,
 .stack button[aria-disabled='true'] {
     opacity: 0.5;
     cursor: default;
 }
+.stack a:focus-visible,
+.stack button:focus-visible,
+.stack input:focus-visible,
+.stack select:focus-visible {
+    outline: 2px solid var(--ring, #171717);
+    outline-offset: 3px;
+}
+.stack [role='alert'] {
+    padding: 1rem;
+    border: 1px solid var(--destructive, #ba3035);
+    border-radius: 0.5rem;
+    color: var(--destructive, #ba3035);
+    background: var(--card, #fff);
+}
+.stack [role='status'] {
+    color: var(--muted-foreground, #595959);
+    font-size: 0.875rem;
+}
 .totals {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem;
     margin: 0;
+    background: var(--card, #fff);
+    border: 1px solid var(--border, #dedede);
+    border-radius: 0.5rem;
 }
-.totals div,
-.list li {
+.totals > div {
     padding: 1.25rem;
-    border-radius: 0.8rem;
-    background: #edf5ef;
+}
+.totals > div + div {
+    border-top: 1px solid var(--border, #dedede);
+}
+.totals dt {
+    font-size: 0.875rem;
+    color: var(--muted-foreground, #595959);
 }
 .totals dd {
-    margin: 0.7rem 0 0;
-    font-weight: 700;
+    margin: 0.5rem 0 0;
+    font-weight: 650;
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.025em;
 }
 .list {
     display: grid;
-    gap: 1rem;
     padding: 0;
     margin: 0;
     list-style: none;
+    background: var(--card, #fff);
+    border: 1px solid var(--border, #dedede);
+    border-radius: 0.5rem;
 }
-.list h3 {
-    margin-top: 0;
+.list > li {
+    display: grid;
+    gap: 0.625rem;
+    padding: 1.25rem;
+    min-width: 0;
 }
-@media (max-width: 700px) {
+.list > li + li {
+    border-top: 1px solid var(--border, #dedede);
+}
+.list p {
+    font-size: 0.875rem;
+    color: var(--muted-foreground, #595959);
+}
+.list > li > a {
+    justify-self: start;
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    font-weight: 600;
+    text-underline-offset: 0.25em;
+}
+.list details {
+    font-size: 0.875rem;
+    color: var(--muted-foreground, #595959);
+}
+.list summary {
+    cursor: pointer;
+    min-height: 2.75rem;
+    align-content: center;
+}
+.list details p {
+    margin-top: 0.5rem;
+}
+.list .balance {
+    font-size: 1.125rem;
+    font-weight: 650;
+    color: var(--foreground, #171717);
+    font-variant-numeric: tabular-nums;
+}
+.empty {
+    padding: 2rem 1.5rem;
+    background: var(--card, #fff);
+    border: 1px solid var(--border, #dedede);
+    border-radius: 0.5rem;
+    display: grid;
+    gap: 0.75rem;
+}
+@media (min-width: 768px) {
     .totals {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .totals > div + div {
+        border-top: 0;
+        border-left: 1px solid var(--border, #dedede);
+    }
+}
+
+.list dl:not(.totals) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem 1rem;
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+}
+.list dl:not(.totals) dt {
+    color: var(--muted-foreground, #595959);
+}
+.list dl:not(.totals) dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.list .totals {
+    border: 0;
+    border-radius: 0;
+}
+@media (max-width: 359px) {
+    .list dl:not(.totals) {
         grid-template-columns: 1fr;
+    }
+    .list dl:not(.totals) dd {
+        text-align: left;
+        margin-bottom: 0.5rem;
     }
 }
