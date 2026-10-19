@@ -486,10 +486,10 @@ for (const viewport of [
                                 navigation.getBoundingClientRect().height > 0
                                     ? navigation.getBoundingClientRect().top
                                     : window.innerHeight;
-                            return (
+                            const visible =
                                 rect.top >= headerBottom + 4 &&
-                                rect.bottom <= navigationTop - 4
-                            );
+                                rect.bottom <= navigationTop - 4;
+                            return visible;
                         }),
                     )
                     .toBe(true);
@@ -608,4 +608,177 @@ test('interface: conta mobile alcança Sair com as setas do menu', async ({
     ).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(trigger).toBeFocused();
+});
+
+test('Hoje integra as quatro áreas e mantém as prévias navegáveis mesmo com Finanças indisponível', async ({
+    page,
+}) => {
+    const taskId = '80000000-0000-4000-8000-000000000001';
+    const listId = '90000000-0000-4000-8000-000000000001';
+    const task = {
+        id: taskId,
+        spaceId,
+        kind: 'ONE_OFF' as const,
+        description: 'Levar os documentos',
+        creator: { personId: actorId, memberId },
+        assignee: { personId: actorId, memberId },
+        deadline: { date: '2026-10-18', time: '15:00' },
+        urgency: 'URGENT' as const,
+        status: 'PENDING' as const,
+        version: 1,
+        createdAt: '2026-10-18T12:00:00Z',
+        completion: null,
+        allowedActions: ['COMPLETE'],
+        conditions: {
+            today: false,
+            overdue: true,
+            urgent: true,
+            upcoming: false,
+            noDeadline: false,
+            group: 'OVERDUE' as const,
+        },
+    };
+    const list = {
+        id: listId,
+        name: 'Mercado',
+        status: 'ACTIVE' as const,
+        summary: {
+            activeItemCount: 2,
+            actionableItemCount: 1,
+            isComplete: false,
+        },
+        pendingItems: {
+            items: [
+                {
+                    id: 'rice',
+                    description: 'Arroz',
+                    unit: 'kg',
+                    desiredQuantity: '2.5',
+                    purchasedQuantity: '1',
+                    remainingQuantity: '1.5',
+                    status: 'PARTIALLY_PURCHASED' as const,
+                },
+            ],
+            totalCount: 1,
+            hasMore: false,
+        },
+    };
+    const closure = {
+        spaceId,
+        spaceStatus: 'CLOSING' as const,
+        processId: 'closure',
+        cutoffDate: '2026-10-31',
+        actorNextAction: 'REVIEW_PLAN' as const,
+    };
+    const taskPreview = {
+        type: 'TASK' as const,
+        reference: {
+            type: 'TASK' as const,
+            taskId,
+            kind: 'ONE_OFF' as const,
+            recurrenceId: null,
+            scheduledDate: null,
+        },
+        label: task.description,
+        date: task.deadline.date,
+        details: task,
+    };
+    const response: Today = {
+        ...today,
+        finance: {
+            status: 'UNAVAILABLE',
+            error: {
+                code: 'FINANCE_TODAY_UNAVAILABLE',
+                message: 'Indisponível.',
+            },
+        },
+        closure: { status: 'AVAILABLE', data: closure },
+        blocks: [
+            {
+                ...block('ATTENTION', [
+                    taskPreview,
+                    {
+                        type: 'SPACE_CLOSURE',
+                        reference: {
+                            type: 'SPACE_CLOSURE',
+                            processId: 'closure',
+                        },
+                        label: 'Revisar encerramento',
+                        date: null,
+                        details: closure,
+                    },
+                ]),
+                status: 'PARTIAL',
+                totalCount: null,
+                hasMore: null,
+            },
+            block('TODAY'),
+            block('NEXT_SETTLEMENT'),
+            block('UPCOMING'),
+            block('TASKS', [taskPreview]),
+            block('SHOPPING', [
+                {
+                    type: 'SHOPPING_LIST',
+                    reference: { type: 'SHOPPING_LIST', listId },
+                    label: 'Mercado',
+                    date: null,
+                    details: list,
+                },
+            ]),
+        ],
+    };
+    await setup(page, response);
+    await page.goto('/');
+    await expect(
+        page.getByRole('heading', { name: 'Hoje', exact: true }),
+    ).toBeVisible();
+    await expect(
+        page.getByText('Algumas informações não puderam ser carregadas.', {
+            exact: false,
+        }),
+    ).toBeVisible();
+    await expect(
+        page.getByRole('link', { name: task.description }).first(),
+    ).toHaveAttribute('href', `/spaces/${spaceId}/routine/tasks/${taskId}`);
+    await expect(
+        page.getByRole('link', { name: 'Mercado', exact: true }),
+    ).toHaveAttribute('href', `/spaces/${spaceId}/shopping/lists/${listId}`);
+    await expect(page.getByText('Arroz: faltam 1,5 kg')).toBeVisible();
+    await expect(
+        page.getByText('Prazo vencido · Urgente').first(),
+    ).toBeVisible();
+    await expect(
+        page.getByRole('link', { name: 'Revisar encerramento', exact: true }),
+    ).toHaveAttribute('href', `/spaces/${spaceId}/closure`);
+    await expect(
+        page.getByText('Revise o plano para aprovar ou recusar.', {
+            exact: false,
+        }),
+    ).toBeVisible();
+    for (const width of [320, 390, 768, 1280]) {
+        await page.setViewportSize({ width, height: 844 });
+        // The labels remain present at every viewport; hidden navigation has the same destinations.
+        const visibleNav = page.locator('nav:visible').filter({
+            has: page.getByRole('link', { name: 'Rotina', exact: true }),
+        });
+        await expect(visibleNav.getByRole('link')).toHaveCount(4);
+        await expect(
+            visibleNav.getByRole('link', { name: 'Rotina', exact: true }),
+        ).toHaveAttribute('href', `/spaces/${spaceId}/routine`);
+        await expect(
+            visibleNav.getByRole('link', { name: 'Compras', exact: true }),
+        ).toHaveAttribute('href', `/spaces/${spaceId}/shopping`);
+        await noOverflow(page);
+    }
+    await page.getByRole('button', { name: 'Adicionar', exact: true }).click();
+    await expect(
+        page.getByRole('menuitem', { name: 'Adicionar tarefa', exact: true }),
+    ).toHaveAttribute('href', `/spaces/${spaceId}/routine/new`);
+    await expect(
+        page.getByRole('menuitem', {
+            name: 'Criar lista de compras',
+            exact: true,
+        }),
+    ).toHaveAttribute('href', `/spaces/${spaceId}/shopping?new=1`);
+    await page.keyboard.press('Escape');
 });

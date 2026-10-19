@@ -34,6 +34,18 @@ export function todayItemHref(
     if (item.type === 'SETTLEMENT_CYCLE')
         return `${base}/finances/settlements/${encodeURIComponent(item.reference.cycleId)}`;
     if (item.type === 'CHANGE_PROPOSAL') return `${base}/finances/changes`;
+    if (item.type === 'SHOPPING_LIST')
+        return `${base}/shopping/lists/${encodeURIComponent(item.reference.listId)}`;
+    if (item.type === 'SPACE_CLOSURE') return `${base}/closure`;
+    if (item.type === 'TASK') {
+        if (
+            item.reference.kind === 'OCCURRENCE' &&
+            item.reference.recurrenceId &&
+            item.reference.scheduledDate
+        )
+            return `${base}/routine/recurrences/${encodeURIComponent(item.reference.recurrenceId)}/occurrences/${encodeURIComponent(item.reference.scheduledDate)}`;
+        return `${base}/routine/tasks/${encodeURIComponent(item.reference.taskId)}`;
+    }
     if (item.type !== 'FINANCIAL_COMMITMENT') return null;
     if (item.reference.modality === 'RECURRING')
         return `${base}/recurring-commitments/${encodeURIComponent(item.reference.commitmentId)}?month=${encodeURIComponent(item.reference.expectedDate.slice(0, 7))}`;

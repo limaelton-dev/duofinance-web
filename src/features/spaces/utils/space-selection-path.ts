@@ -9,6 +9,10 @@ export function spaceSelectionPath(
     const shared = target.type === 'SHARED';
     let destination = '';
     if (section === '/settings') destination = shared ? '/settings' : '';
+    else if (/^\/routine(?:\/|$)/.test(section)) destination = '/routine';
+    else if (/^\/shopping(?:\/|$)/.test(section)) destination = '/shopping';
+    else if (/^\/closure(?:\/|$)/.test(section))
+        destination = shared ? '/closure' : '';
     else if (section === '/expenses/new') destination = '/expenses/new';
     else if (/^\/recurring-commitments(?:\/|$)/.test(section))
         destination =

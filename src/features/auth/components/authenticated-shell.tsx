@@ -9,7 +9,14 @@ import {
 } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { CalendarDays, Wallet, Settings2, UserRound } from 'lucide-react';
+import {
+    CalendarDays,
+    Wallet,
+    Settings2,
+    UserRound,
+    ListChecks,
+    ShoppingBasket,
+} from 'lucide-react';
 import { Brand } from '@/components/patterns/brand';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -150,6 +157,18 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
                           /\/(finances|expenses|incomes|recurring-commitments|installment-commitments)(?:\/|$)/.test(
                               pathname,
                           ),
+                  },
+                  {
+                      href: `/spaces/${space.activeSpaceId}/routine`,
+                      label: 'Rotina',
+                      icon: ListChecks,
+                      current: /\/routine(?:\/|$)/.test(pathname),
+                  },
+                  {
+                      href: `/spaces/${space.activeSpaceId}/shopping`,
+                      label: 'Compras',
+                      icon: ShoppingBasket,
+                      current: /\/shopping(?:\/|$)/.test(pathname),
                   },
               ]
             : []),

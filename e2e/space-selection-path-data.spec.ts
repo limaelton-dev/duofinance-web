@@ -22,6 +22,14 @@ const sections = [
     ['/finances', '/finances'],
     ['/expenses/new', '/expenses/new'],
     ['/incomes', '/incomes'],
+    ['/routine', '/routine'],
+    [`/routine/tasks/${oldEntity}`, '/routine'],
+    [
+        `/routine/recurrences/${oldEntity}/occurrences/2026-10-19?from=attention`,
+        '/routine',
+    ],
+    [`/shopping/lists/${oldEntity}/items/${oldEntity}`, '/shopping'],
+    ['/shopping?status=ARCHIVED', '/shopping'],
 ] as const;
 for (const type of ['PERSONAL', 'SHARED'] as const) {
     test(`troca para ${type}: preserva seção financeira sem transportar IDs ou parâmetros anteriores`, () => {
@@ -67,6 +75,7 @@ test('troca compartilhada: mantém acertos, transferências e compensações sem
             '/finances/settlements/transfers/new',
         ],
         ['/settings', '/settings'],
+        ['/closure?processId=old', '/closure'],
     ]) {
         const result = spaceSelectionPath(`/spaces/${oldSpace}${source}`, {
             id: newSpace,
@@ -94,6 +103,12 @@ test('troca para pessoal: propostas e acertos compartilhados retornam a Finança
     }
     expect(
         spaceSelectionPath(`/spaces/${oldSpace}/settings`, {
+            id: newSpace,
+            type: 'PERSONAL',
+        }),
+    ).toBe(`/spaces/${newSpace}`);
+    expect(
+        spaceSelectionPath(`/spaces/${oldSpace}/closure`, {
             id: newSpace,
             type: 'PERSONAL',
         }),

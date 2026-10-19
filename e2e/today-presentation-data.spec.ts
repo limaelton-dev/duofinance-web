@@ -179,7 +179,7 @@ test('planned expenses and recurring occurrences open their compatible operation
     );
 });
 
-test('shopping quantity stays a quantity and has no invented route', () => {
+test('shopping quantity stays a quantity and opens its list in the selected space', () => {
     const shopping: Extract<TodayPreviewItem, { type: 'SHOPPING_LIST' }> = {
         type: 'SHOPPING_LIST',
         reference: { type: 'SHOPPING_LIST', listId: 'list-a' },
@@ -211,7 +211,9 @@ test('shopping quantity stays a quantity and has no invented route', () => {
             },
         },
     };
-    expect(todayItemHref(shopping, context)).toBeNull();
+    expect(todayItemHref(shopping, context)).toBe(
+        '/spaces/space-a/shopping/lists/list-a',
+    );
     expect(shopping.details.pendingItems.items[0].remainingQuantity).toBe(
         '1.5',
     );
