@@ -1,0 +1,76 @@
+.form {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 46rem;
+    min-width: 0;
+}
+.form fieldset {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+    margin: 0;
+    padding: 1.5rem 0 0;
+    border: 0;
+    border-top: 1px solid var(--border);
+}
+.form legend {
+    font-size: 1.125rem;
+    font-weight: 650;
+    padding-right: 0.75rem;
+}
+.field {
+    display: grid;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.check {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    min-height: 3rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+.check input[type='checkbox'] {
+    width: 1.25rem;
+    height: 1.25rem;
+    min-height: 1.25rem;
+    flex: 0 0 1.25rem;
+    padding: 0;
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+.receipt {
+    display: grid;
+    gap: 1rem;
+    padding: 1.5rem;
+    border: 1px solid var(--success);
+    border-radius: 0.5rem;
+    color: var(--success);
+    background: var(--success-surface);
+}
+.receipt a {
+    color: inherit;
+}
+.note {
+    display: grid;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--card);
+}
+.money {
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+}
+.pair {
+    display: grid;
+    gap: 1rem;
+}
+@media (min-width: 640px) {
+    .pair {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
