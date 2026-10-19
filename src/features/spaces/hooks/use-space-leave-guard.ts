@@ -17,12 +17,13 @@ export function useSpaceLeaveGuard(
             const value = state.current;
             if (value.busy) return false;
             if (!value.dirty) return true;
-            if (!window.confirm('Sair sem salvar?')) return false;
-            value.discard();
-            state.current.dirty = false;
-            return true;
+            return window.confirm('Sair sem salvar?');
         };
-        const unregister = context.registerLeaveGuard(allow);
+        const unregister = context.registerLeaveGuard(allow, () => {
+            if (!state.current.dirty) return;
+            state.current.discard();
+            state.current.dirty = false;
+        });
         const unload = (event: BeforeUnloadEvent) => {
             if (state.current.dirty || state.current.busy) {
                 event.preventDefault();
@@ -38,12 +39,13 @@ export function useSpaceLeaveGuard(
             if (
                 traversal.navigationType === 'traverse' &&
                 event.cancelable &&
-                !allow()
+                !event.defaultPrevented &&
+                !context.canLeave()
             )
                 event.preventDefault();
         };
         navigation?.addEventListener('navigate', navigate);
-        const unguard = registerTraversalGuard(allow);
+        const unguard = registerTraversalGuard(() => context.canLeave());
         return () => {
             unregister();
             unguard();

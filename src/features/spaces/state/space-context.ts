@@ -80,20 +80,25 @@ export class SpaceContext {
     private retryRoute = false;
     private lastSpace: SpaceSummary | null = null;
     private discardedDraft = false;
-    private leaveGuards = new Set<() => boolean>();
+    private leaveGuards = new Map<() => boolean, (() => void) | undefined>();
 
-    registerLeaveGuard(guard: () => boolean): () => void {
-        this.leaveGuards.add(guard);
+    registerLeaveGuard(
+        guard: () => boolean,
+        afterLeave?: () => void,
+    ): () => void {
+        this.leaveGuards.set(guard, afterLeave);
         return () => {
             this.leaveGuards.delete(guard);
         };
     }
 
     canLeave(): boolean {
-        return (
-            this.locks.size === 0 &&
-            [...this.leaveGuards].every((guard) => guard())
-        );
+        if (this.locks.size > 0) return false;
+        const guards = [...this.leaveGuards.entries()];
+        if (!guards.every(([guard]) => guard())) return false;
+        // A later refusal must leave every form intact, including earlier approvals.
+        for (const [, afterLeave] of guards) afterLeave?.();
+        return true;
     }
 
     notifyDraftDiscarded(): void {
