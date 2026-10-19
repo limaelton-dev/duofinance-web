@@ -39,7 +39,7 @@ Hoje, Finanças, Rotina e Compras são a navegação vigente; espaço pessoal/co
 - Comando financeiro precisa tratar duplicação, conflito e resultado incerto. Não afirmar falha ou sucesso sem confirmação; repetir explicitamente a mesma tentativa quando o contrato permitir.
 - Alterações onerosas, correções, reversões e encerramento preservam concordâncias e histórico conforme domínio. Ocultar um botão não substitui autorização.
 - Acesso por e-mail e senha. Login social, verificação automática de e-mail e recuperação automática de senha não pertencem ao MVP atual. Procedimento operacional de perda de acesso e canal real de suporte seguem pendentes.
-- A Web já tem telas, clientes e testes. A interface de Hoje foi reconciliada com o contrato ampliado da API, incluindo seis blocos e fontes parcialmente indisponíveis. As telas de operação de Rotina e Compras continuam no backlog Web. Não assumir que API concluída significa Web concluída.
+- A Web tem telas, clientes e testes para Hoje, Finanças, Rotina e Compras. A extensão dos cards 033–049 implementa operações de tarefas, recorrências, listas, compras e vínculos, além do encerramento pelo gerenciamento do espaço. Hoje usa os seis blocos do contrato ampliado, trata fontes parcialmente indisponíveis e conduz às tarefas, listas e ao encerramento. Implementação, integração e validação com pessoas permanecem evidências distintas.
 - Tratamento de resultado incerto após recarga/fechamento, política operacional de privacidade e retenção permanecem decisões abertas na documentação oficial.
 
 ## Brand Commitments
