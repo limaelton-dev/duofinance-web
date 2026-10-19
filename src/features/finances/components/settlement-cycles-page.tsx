@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthenticatedContext } from '@/features/auth/hooks/use-authenticated-context';
@@ -330,13 +331,14 @@ function SettlementRead({
                         </select>
                     </>
                 )}
-                <button
+                <Button
+                    variant="outline"
                     type="button"
                     aria-disabled={query.isFetching}
                     onClick={refresh}
                 >
                     Atualizar / Voltar ao início
-                </button>
+                </Button>
             </div>
             {(query.isPending || query.isFetching) && (
                 <p role="status" aria-busy="true">
@@ -354,7 +356,8 @@ function SettlementRead({
                               ? 'Este acerto não está disponível.'
                               : 'Não foi possível consultar os acertos.'}
                     </p>
-                    <button
+                    <Button
+                        variant="outline"
                         type="button"
                         onClick={() =>
                             cursorError
@@ -365,7 +368,7 @@ function SettlementRead({
                         {cursorError
                             ? 'Reiniciar lista de acertos'
                             : 'Tentar novamente os acertos'}
-                    </button>
+                    </Button>
                 </div>
             )}
             {value && (
@@ -545,7 +548,8 @@ function SettlementRead({
             )}
             {value &&
                 (value.page.nextCursor ? (
-                    <button
+                    <Button
+                        variant="outline"
                         type="button"
                         onClick={() =>
                             select({
@@ -557,7 +561,7 @@ function SettlementRead({
                         {cycleId
                             ? 'Próximas pendências do acerto'
                             : 'Próximos acertos'}
-                    </button>
+                    </Button>
                 ) : (
                     <p role="status">
                         {cycleId

@@ -1,5 +1,7 @@
 import type { ExpenseView, Member } from '../types/shared-expense';
 import { formatMoney, formatDate } from '../utils/expense-money';
+import styles from './expenses.module.css';
+
 export function ExpenseSummary({
     value,
     members,
@@ -15,107 +17,140 @@ export function ExpenseSummary({
     const first = value.disbursements[0];
     const card = !!value.externalLiabilities?.length;
     const own = members.find((m) => m.personId === personId)?.memberId;
+    const openObligations = value.obligations.filter(
+        (item) => item.remainingAmountInCents > 0,
+    );
+    const condition = card
+        ? value.remainingAmountInCents > 0
+            ? 'Parcialmente realizada'
+            : 'Realizada integralmente'
+        : value.status === 'PARTIALLY_PAID'
+          ? 'Parcialmente paga'
+          : 'Paga integralmente';
     return (
-        <section aria-label="Resumo da despesa">
-            <h2>Resumo</h2>
-            <p>
-                {value.commitment.description} ·{' '}
+        <section className={styles.receipt} aria-label="Resumo da despesa">
+            <h2>{value.commitment.description}</h2>
+            <p className={styles.amount}>
                 {formatMoney(value.commitment.amountInCents)}
             </p>
-            <p>
-                {card ? 'Desembolso acumulado' : 'Pago acumulado'}:{' '}
-                {formatMoney(value.paidAmountInCents)}
+            <p className={styles.status}>{condition}</p>
+            <p className={styles.help}>
+                {card ? 'Data do fato' : 'Data do pagamento'}:{' '}
+                <time dateTime={value.commitment.factDate}>
+                    {formatDate(value.commitment.factDate)}
+                </time>
             </p>
-            <p>
-                {card ? 'Restante a realizar' : 'Falta pagar'}:{' '}
-                {formatMoney(value.remainingAmountInCents)}
-            </p>
-            {card && (
-                <>
-                    <p>
-                        Saiu da conta agora:{' '}
-                        {formatMoney(value.paidAmountInCents)}
-                    </p>
-                    {value.externalLiabilities?.map((fact) => (
-                        <p key={fact.id}>
-                            No cartão de {label(fact.holderMemberId ?? '')}:{' '}
-                            {formatMoney(fact.amountInCents)}
+            <div className={styles.receiptSection}>
+                <h3>Divisão da despesa</h3>
+                <p>
+                    Sua parte:{' '}
+                    <strong>
+                        {formatMoney(
+                            value.commitment.responsibilitySplit.calculatedShares.find(
+                                (s) => s.memberId === own,
+                            )?.amountInCents ?? 0,
+                        )}
+                    </strong>
+                </p>
+                {value.commitment.responsibilitySplit.calculatedShares
+                    .filter((s) => s.memberId !== own)
+                    .map((s) => (
+                        <p key={s.memberId}>
+                            {label(s.memberId)}:{' '}
+                            <strong>{formatMoney(s.amountInCents)}</strong>
                         </p>
                     ))}
-                    <p>
-                        Obrigação externa aberta:{' '}
-                        {formatMoney(
-                            value.externalOutstandingAmountInCents ?? 0,
-                        )}
+                {value.commitment.expectedPayerMemberId && (
+                    <p className={styles.help}>
+                        Responsável previsto:{' '}
+                        {label(value.commitment.expectedPayerMemberId)}
                     </p>
-                    <p>
-                        Suporte acumulado:{' '}
-                        {formatMoney(value.supportedAmountInCents ?? 0)}
-                    </p>
-                </>
-            )}
-            <p>
-                {card
-                    ? value.remainingAmountInCents > 0
-                        ? 'Parcialmente realizada'
-                        : 'Realizada integralmente'
-                    : value.status === 'PARTIALLY_PAID'
-                      ? 'Parcialmente paga'
-                      : 'Paga integralmente'}
-            </p>
-            <p>
-                Sua parte:{' '}
-                {formatMoney(
-                    value.commitment.responsibilitySplit.calculatedShares.find(
-                        (s) => s.memberId === own,
-                    )?.amountInCents ?? 0,
                 )}
-            </p>
-            {value.commitment.responsibilitySplit.calculatedShares.map((s) => (
-                <p key={s.memberId}>
-                    {label(s.memberId)}: {formatMoney(s.amountInCents)}
-                </p>
-            ))}
-            {value.commitment.expectedPayerMemberId && (
+            </div>
+            <div className={styles.receiptSection}>
+                <h3>{card ? 'Cartão e pagamentos' : 'Pagamento'}</h3>
                 <p>
-                    Responsável previsto:{' '}
-                    {label(value.commitment.expectedPayerMemberId)}
+                    {card ? 'Pagamentos diretos da despesa' : 'Pago acumulado'}:{' '}
+                    <strong>{formatMoney(value.paidAmountInCents)}</strong>
                 </p>
-            )}
-            {first && (
-                <>
+                {value.remainingAmountInCents > 0 && (
                     <p>
-                        Primeiro pagamento por: {label(first.payerMemberId)} ·{' '}
-                        {formatMoney(first.amountInCents)}
+                        {card ? 'Restante a realizar' : 'Falta pagar'}:{' '}
+                        <strong>
+                            {formatMoney(value.remainingAmountInCents)}
+                        </strong>
                     </p>
-                    <p>
-                        Forma:{' '}
-                        {
-                            { PIX: 'PIX', DEBIT: 'Débito', CASH: 'Dinheiro' }[
-                                first.method
-                            ]
-                        }
-                    </p>
-                </>
-            )}
-            {value.obligation && value.obligation.remainingAmountInCents > 0 ? (
-                <p>
-                    Falta acertar: {label(value.obligation.debtorMemberId)} deve{' '}
-                    {formatMoney(value.obligation.remainingAmountInCents)} a{' '}
-                    {label(value.obligation.creditorMemberId)}
+                )}
+                {card && (
+                    <>
+                        <p>
+                            Pago ao credor do cartão:{' '}
+                            {formatMoney(
+                                value.externalSettledAmountInCents ?? 0,
+                            )}
+                        </p>
+                        {value.externalLiabilities?.map((fact) => (
+                            <p key={fact.id}>
+                                No cartão de {label(fact.holderMemberId ?? '')}:{' '}
+                                {formatMoney(fact.amountInCents)}
+                            </p>
+                        ))}
+                        <p>
+                            Obrigação externa aberta:{' '}
+                            {formatMoney(
+                                value.externalOutstandingAmountInCents ?? 0,
+                            )}
+                        </p>
+                        <p>
+                            Suporte acumulado:{' '}
+                            {formatMoney(value.supportedAmountInCents ?? 0)}
+                        </p>
+                    </>
+                )}
+                {first && (
+                    <>
+                        <p>
+                            Primeiro pagamento por: {label(first.payerMemberId)}{' '}
+                            · {formatMoney(first.amountInCents)}
+                        </p>
+                        <p className={styles.help}>
+                            Forma:{' '}
+                            {
+                                {
+                                    PIX: 'PIX',
+                                    DEBIT: 'Débito',
+                                    CASH: 'Dinheiro',
+                                }[first.method]
+                            }
+                        </p>
+                    </>
+                )}
+            </div>
+            <div className={styles.receiptSection}>
+                <h3>Acerto entre vocês</h3>
+                {openObligations.length > 0 ? (
+                    openObligations.map((item) => (
+                        <p key={item.id}>
+                            Falta acertar: {label(item.debtorMemberId)} deve{' '}
+                            <strong>
+                                {formatMoney(item.remainingAmountInCents)}
+                            </strong>{' '}
+                            a {label(item.creditorMemberId)}
+                        </p>
+                    ))
+                ) : (
+                    <p>Não há valor a acertar</p>
+                )}
+                <p className={styles.help}>
+                    Acerto:{' '}
+                    {value.settlementCycle
+                        ? formatDate(value.settlementCycle.targetDate)
+                        : 'Sem data de acerto'}
                 </p>
-            ) : (
-                <p>Não há valor a acertar</p>
-            )}
-            <p>
-                Acerto:{' '}
-                {value.settlementCycle
-                    ? formatDate(value.settlementCycle.targetDate)
-                    : 'Sem data de acerto'}
-            </p>
-            {value.settlementCycle?.status === 'FINALIZED' && (
-                <p>Acerto finalizado</p>
-            )}
+                {value.settlementCycle?.status === 'FINALIZED' && (
+                    <p>Acerto finalizado</p>
+                )}
+            </div>
         </section>
     );
 }

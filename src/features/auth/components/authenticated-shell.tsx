@@ -123,6 +123,8 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
     const routeIssue =
         space.routeIssue?.spaceId === routeSpaceId ? space.routeIssue : null;
     const globalPage = pathname === '/spaces' || pathname === '/spaces/new';
+    const canMountPage =
+        space.initialized && (!routeSpaceId || validatedPath === pathname);
     const showPage =
         space.initialized &&
         (globalPage ||
@@ -287,7 +289,7 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
                     </div>
                 )}
                 <div hidden={!showPage} inert={!showPage}>
-                    {space.initialized ? children : null}
+                    {canMountPage ? children : null}
                 </div>
             </main>
             <nav

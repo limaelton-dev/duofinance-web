@@ -1,15 +1,16 @@
 'use client';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
 import { ApiError } from '@/lib/api/api-error';
+import styles from './expenses.module.css';
 import { useAuthenticatedContext } from '@/features/auth/hooks/use-authenticated-context';
 import { useSpaceContext } from '@/features/spaces/hooks/use-space-context';
 import { useExpenseQuery } from '../hooks/use-expense-query';
 import { getExpenseDetail } from '@/lib/api/shared-expense';
 import { ExpenseSummary } from './expense-summary';
-import { formatDate } from '../utils/expense-money';
 import { settlementReturnPath } from '../utils/settlement-return';
 import { PersonalExpenseDetailPage } from './personal-expense-detail-page';
 import { ExternalLiabilityForm } from './external-liability-form';
@@ -106,15 +107,19 @@ function Detail({
             accessLost();
     });
     return (
-        <section>
+        <section className={styles.stack}>
             <h1>Despesa</h1>
             {query.isPending && <p role="status">Carregando despesa…</p>}
             {query.isError && (
                 <>
                     <p role="alert">Não foi possível consultar esta despesa.</p>
-                    <button type="button" onClick={() => void query.refetch()}>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => void query.refetch()}
+                    >
                         Tentar novamente a despesa
-                    </button>
+                    </Button>
                 </>
             )}
             {query.data && !query.isError && (
@@ -124,12 +129,7 @@ function Detail({
                         members={query.data.members}
                         personId={personId}
                     />
-                    <p>
-                        {query.data.externalLiabilities?.length
-                            ? 'Data do fato'
-                            : 'Data do pagamento'}
-                        : {formatDate(query.data.commitment.factDate)}
-                    </p>
+
                     <p>
                         Registrada em:{' '}
                         {new Intl.DateTimeFormat('pt-BR', {
@@ -144,10 +144,13 @@ function Detail({
                             ? `dia ${query.data.commitment.settlementRuleSnapshot.dayOfMonth}`
                             : 'Sem regra padrão'}
                     </p>
-                    <p>Registro: {query.data.commitment.id}</p>
-                    {query.data.disbursements[0] && (
-                        <p>Desembolso: {query.data.disbursements[0].id}</p>
-                    )}
+                    <details className={styles.details}>
+                        <summary>Identificação do registro</summary>
+                        <p>Registro: {query.data.commitment.id}</p>
+                        {query.data.disbursements[0] && (
+                            <p>Desembolso: {query.data.disbursements[0].id}</p>
+                        )}
+                    </details>
                     <ExpensePaymentHistory
                         value={query.data}
                         personId={personId}

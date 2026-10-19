@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthenticatedContext } from '@/features/auth/hooks/use-authenticated-context';
@@ -117,7 +118,16 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
     }
     return (
         <section className={styles.stack}>
-            <h1>Finanças</h1>
+            <div className={styles.heading}>
+                <h1>Finanças</h1>
+                {value?.spaceStatus === 'ACTIVE' && (
+                    <Button asChild>
+                        <Link href={`/spaces/${spaceId}/expenses/new`}>
+                            Adicionar despesa
+                        </Link>
+                    </Button>
+                )}
+            </div>
             <nav aria-label="Navegação financeira" className={styles.actions}>
                 <Link href={`/spaces/${spaceId}/finances/external-liabilities`}>
                     Obrigações externas em meu nome
@@ -129,21 +139,31 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                 <Link href={`/spaces/${spaceId}/incomes`}>Receitas</Link>
                 <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
             </nav>
-            <h2>Entre vocês</h2>
-            <Link href={`/spaces/${spaceId}/finances/settlements`}>
-                Ver acertos
-            </Link>
-            <Link href={`/spaces/${spaceId}/finances/settlements/transfers`}>
-                Histórico de transferências
-            </Link>
-            <p>
-                Todas as pendências abertas deste espaço, de qualquer data, com
-                ou sem acerto associado.
-            </p>
-            <p>
-                A posição líquida é informativa. Consultar este resumo não
-                resolve nem compensa pendências.
-            </p>
+            <div className={styles.intro}>
+                <h2>Entre vocês</h2>
+                <p>
+                    Todas as pendências abertas deste espaço, de qualquer data,
+                    com ou sem acerto associado.
+                </p>
+                <p>
+                    A posição líquida é informativa. Consultar este resumo não
+                    resolve nem compensa pendências.
+                </p>
+            </div>
+            <div className={styles.actions}>
+                <Button variant="outline" asChild>
+                    <Link href={`/spaces/${spaceId}/finances/settlements`}>
+                        Ver acertos
+                    </Link>
+                </Button>
+                <Button variant="ghost" asChild>
+                    <Link
+                        href={`/spaces/${spaceId}/finances/settlements/transfers`}
+                    >
+                        Histórico de transferências
+                    </Link>
+                </Button>
+            </div>
             <div className={styles.actions}>
                 <label htmlFor="position-direction">Mostrar pendências</label>
                 <select
@@ -160,13 +180,14 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                     <option value="PAYABLE">A pagar</option>
                     <option value="RECEIVABLE">A receber</option>
                 </select>
-                <button
+                <Button
+                    variant="outline"
                     type="button"
                     onClick={refresh}
                     aria-disabled={query.isFetching}
                 >
                     Atualizar / Voltar ao início
-                </button>
+                </Button>
             </div>
             {(query.isPending || query.isFetching) && (
                 <p role="status" aria-busy="true">
@@ -181,9 +202,13 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                             ? 'Este espaço não possui resumo entre membros.'
                             : 'Não foi possível consultar a posição entre vocês.'}
                     </p>
-                    <button type="button" onClick={() => void query.refetch()}>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => void query.refetch()}
+                    >
                         Tentar novamente a posição
-                    </button>
+                    </Button>
                 </div>
             )}
             {value && (
@@ -241,7 +266,10 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                         independentemente do filtro e da página.
                     </p>
                     {empty ? (
-                        <p>Não há valores a acertar.</p>
+                        <div className={styles.empty}>
+                            <h3>Nenhum valor em aberto</h3>
+                            <p>Não há valores a acertar.</p>
+                        </div>
                     ) : value.items.length === 0 ? (
                         <p>
                             Nenhuma pendência nesta página para o filtro
@@ -261,7 +289,7 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                                             ? `Você precisa acertar com ${memberName(item.creditorMemberId)}`
                                             : `${memberName(item.debtorMemberId)} precisa acertar com você`}
                                     </p>
-                                    <p>
+                                    <p className={styles.balance}>
                                         Em aberto:{' '}
                                         {formatMoney(
                                             item.remainingAmountInCents,
@@ -331,7 +359,8 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                     )}
                     {!empty &&
                         (value.page.nextCursor ? (
-                            <button
+                            <Button
+                                variant="outline"
                                 type="button"
                                 onClick={() =>
                                     setSelection({
@@ -341,7 +370,7 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                                 }
                             >
                                 Próximas pendências
-                            </button>
+                            </Button>
                         ) : (
                             <p role="status">
                                 Fim das pendências para este filtro.
@@ -353,9 +382,6 @@ function Summary({ personId, spaceId }: { personId: string; spaceId: string }) {
                     </p>
                     {value.spaceStatus === 'ACTIVE' && (
                         <>
-                            <Link href={`/spaces/${spaceId}/expenses/new`}>
-                                Adicionar despesa
-                            </Link>
                             <Link href={`/spaces/${spaceId}/incomes/new`}>
                                 Adicionar receita
                             </Link>

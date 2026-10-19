@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
@@ -79,9 +80,13 @@ export function PersonalExpenseDetailPage({
             {query.isError && (
                 <div>
                     <p role="alert">Não foi possível consultar esta despesa.</p>
-                    <button type="button" onClick={() => void query.refetch()}>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => void query.refetch()}
+                    >
                         Tentar novamente a despesa
-                    </button>
+                    </Button>
                 </div>
             )}
             {value && (
@@ -119,10 +124,13 @@ export function PersonalExpenseDetailPage({
                             }).format(new Date(value.commitment.registeredAt))}
                         </time>
                     </p>
-                    <p>Registro: {value.commitment.id}</p>
-                    {value.disbursements[0] && (
-                        <p>Desembolso: {value.disbursements[0].id}</p>
-                    )}
+                    <details className={styles.details}>
+                        <summary>Identificação do registro</summary>
+                        <p>Registro: {value.commitment.id}</p>
+                        {value.disbursements[0] && (
+                            <p>Desembolso: {value.disbursements[0].id}</p>
+                        )}
+                    </details>
                 </>
             )}
             <Link href={`/spaces/${spaceId}/finances`}>Voltar às Finanças</Link>

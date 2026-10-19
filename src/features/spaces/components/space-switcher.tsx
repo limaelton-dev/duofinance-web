@@ -56,12 +56,16 @@ export function SpaceSwitcher() {
             const composer = currentPath.current.endsWith('/expenses/new');
             const finances = currentPath.current.endsWith('/finances');
             const incomes = currentPath.current.endsWith('/incomes');
+            const transferComposer =
+                currentPath.current.endsWith(
+                    '/finances/settlements/transfers/new',
+                ) && context.getSnapshot().currentSpace?.type === 'SHARED';
             const settlements =
                 /\/finances\/settlements(?:\/[^/]+)?$/.test(
                     currentPath.current,
                 ) && context.getSnapshot().currentSpace?.type === 'SHARED';
             router.replace(
-                `/spaces/${selected}${settings ? '/settings' : composer ? '/expenses/new' : settlements ? '/finances/settlements' : finances ? '/finances' : incomes ? '/incomes' : ''}`,
+                `/spaces/${selected}${settings ? '/settings' : composer ? '/expenses/new' : transferComposer ? '/finances/settlements/transfers/new' : settlements ? '/finances/settlements' : finances ? '/finances' : incomes ? '/incomes' : ''}`,
             );
         }
     }
