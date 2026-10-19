@@ -1,0 +1,179 @@
+.page {
+    display: grid;
+    gap: 2rem;
+    min-width: 0;
+    max-width: 54rem;
+}
+.heading {
+    display: grid;
+    gap: 0.75rem;
+}
+.heading h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.22;
+    letter-spacing: -0.035em;
+}
+.help {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    max-width: 70ch;
+}
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+.filters {
+    display: grid;
+    gap: 1rem;
+}
+.filters label,
+.form label {
+    display: grid;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.filters select,
+.form select {
+    width: 100%;
+    min-height: 3rem;
+    border: 1px solid var(--input);
+    border-radius: 0.75rem;
+    background: var(--card);
+    color: var(--foreground);
+    padding: 0.75rem;
+    font: inherit;
+}
+.filters select:focus-visible,
+.form select:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+}
+.list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--card);
+    min-width: 0;
+}
+.row {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    overflow-wrap: anywhere;
+}
+.row + .row {
+    border-top: 1px solid var(--border);
+}
+.row h2,
+.row h3 {
+    font-size: 1rem;
+    font-weight: 650;
+}
+.row a,
+.heading a {
+    text-underline-offset: 0.25em;
+}
+.meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+}
+.notice {
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--card);
+}
+.form {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 35rem;
+    min-width: 0;
+}
+.form fieldset {
+    display: grid;
+    gap: 1.25rem;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+.form legend {
+    font-size: 1.25rem;
+    font-weight: 650;
+    margin-bottom: 1rem;
+}
+.form textarea {
+    width: 100%;
+    min-height: 7rem;
+    resize: vertical;
+    border: 1px solid var(--input);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    background: var(--card);
+    color: var(--foreground);
+    font: inherit;
+}
+.form textarea:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+}
+.check {
+    display: flex !important;
+    gap: 0.75rem !important;
+    align-items: center;
+    min-height: 3rem;
+    font-weight: 400 !important;
+}
+.check input {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--primary);
+    flex: 0 0 auto;
+}
+.section {
+    display: grid;
+    gap: 1.25rem;
+    min-width: 0;
+}
+.section > h2 {
+    font-size: 1.25rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+}
+.details {
+    display: grid;
+    gap: 0.75rem;
+}
+.details > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.75rem;
+}
+.details dt {
+    color: var(--muted-foreground);
+}
+.details dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+@media (min-width: 640px) {
+    .filters {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .dates {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+}
