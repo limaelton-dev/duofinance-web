@@ -43,6 +43,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /test-results/
-/.impeccable/review/
-/.impeccable/config.local.json
+/.impeccable/
 /debug.log
