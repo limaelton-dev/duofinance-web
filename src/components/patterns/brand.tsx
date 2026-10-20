@@ -8,7 +8,7 @@ export function Brand({ className }: { className?: string }) {
                 className,
             )}
         >
-            DuoFinance
+            Junelo
         </span>
     );
 }

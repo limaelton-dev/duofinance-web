@@ -9,8 +9,8 @@ import './globals.css';
 
 export const metadata: Metadata = {
     title: {
-        default: 'DuoFinance',
-        template: '%s | DuoFinance',
+        default: 'Junelo',
+        template: '%s | Junelo',
     },
     description: 'Seu espaço de organização financeira.',
     referrer: 'no-referrer',

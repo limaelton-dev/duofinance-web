@@ -126,7 +126,7 @@ async function dbQuery(sql: string, params: string[] = []) {
         expect(
             (await db.query('SELECT current_database() AS database')).rows[0]
                 .database,
-        ).toBe('duofinance_test');
+        ).toBe('junelo_test');
         return await db.query(sql, params);
     } finally {
         await db.end();
@@ -735,7 +735,7 @@ test('A18: logout/401/nova pessoa limpam composição financeira', async ({
     ).toHaveCount(0);
     expect(
         await page.evaluate(
-            (id) => sessionStorage.getItem(`duofinance:space-context:v1:${id}`),
+            (id) => sessionStorage.getItem(`junelo:space-context:v1:${id}`),
             a.id,
         ),
     ).toBeNull();

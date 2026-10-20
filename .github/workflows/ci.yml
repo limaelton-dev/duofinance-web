@@ -80,39 +80,39 @@ jobs:
             matrix:
                 group: [0, 1, 2]
         env:
-            API_SHA: ${{ inputs.api_sha || '0cdbfb05aac3c327cdf98fd35d3eb47691a87e62' }}
+            API_SHA: ${{ inputs.api_sha || 'a16de1e2ac9de7a9d38a52acf46259a6814390ea' }}
             E2E_PREBUILT: '1'
         defaults:
             run:
-                working-directory: duofinance-web
+                working-directory: junelo-web
         steps:
             - name: Obter Web
               uses: actions/checkout@v7
               with:
-                  path: duofinance-web
+                  path: junelo-web
                   persist-credentials: false
             - name: Validar referência imutável da API
               run: test "${#API_SHA}" -eq 40 && [[ "$API_SHA" =~ ^[0-9a-f]{40}$ ]]
             - name: Obter API
               uses: actions/checkout@v7
               with:
-                  repository: limaelton-dev/duofinance-api
+                  repository: limaelton-dev/junelo-api
                   ref: ${{ env.API_SHA }}
-                  path: duofinance-api
+                  path: junelo-api
                   persist-credentials: false
             - name: Conferir versão da API
-              run: test "$(git -C ../duofinance-api rev-parse HEAD)" = "$API_SHA"
+              run: test "$(git -C ../junelo-api rev-parse HEAD)" = "$API_SHA"
             - uses: actions/setup-node@v7
               with:
-                  node-version-file: duofinance-web/.nvmrc
+                  node-version-file: junelo-web/.nvmrc
                   cache: npm
                   cache-dependency-path: |
-                      duofinance-web/package-lock.json
-                      duofinance-api/package-lock.json
+                      junelo-web/package-lock.json
+                      junelo-api/package-lock.json
             - name: Instalar Web
               run: npm ci
             - name: Instalar e compilar API
-              working-directory: duofinance-api
+              working-directory: junelo-api
               run: npm ci && npm run build
             - name: Compilar Web para as jornadas
               env:
@@ -121,7 +121,7 @@ jobs:
               run: npm run build
             - run: npx playwright install --with-deps chromium
             - name: Iniciar PostgreSQL descartável
-              working-directory: duofinance-api
+              working-directory: junelo-api
               run: docker compose -f compose.test.yaml up -d --wait
             - name: Executar todas as jornadas, com API isolada por suíte
               env:
@@ -137,7 +137,7 @@ jobs:
                   exit "$result"
             - name: Encerrar PostgreSQL descartável
               if: always()
-              working-directory: duofinance-api
+              working-directory: junelo-api
               run: docker compose -f compose.test.yaml down
 
     checks:
