@@ -80,7 +80,7 @@ jobs:
             matrix:
                 group: [0, 1, 2]
         env:
-            API_SHA: ${{ inputs.api_sha || 'd73c388e49ba972c526073b4533ac379a7be5049' }}
+            API_SHA: ${{ inputs.api_sha || '46f3895b3b9451cf3a46c74aeec7b0e641556ca9' }}
             E2E_PREBUILT: '1'
         defaults:
             run:
