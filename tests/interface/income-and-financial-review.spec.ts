@@ -1,3 +1,4 @@
+import { mkdir } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 
 const actorId = '10000000-0000-4000-8000-000000000011';
@@ -255,6 +256,87 @@ async function noOverflow(page: Page) {
         );
     expect(controls.every((height) => height >= 48)).toBe(true);
 }
+
+for (const width of [320, 768, 1280]) {
+    test(`seletor de mês personalizado preserva ano e consulta em ${width}px`, async ({
+        page,
+    }) => {
+        await page.setViewportSize({ width, height: 844 });
+        await page.clock.setFixedTime(new Date('2026-10-19T15:00:00Z'));
+        await fixture(page);
+        await page.goto(`/spaces/${spaceId}/finances`);
+        const input = page.getByLabel('Mês calendário', { exact: true });
+        await expect(input).toHaveValue('2026-10');
+        await page
+            .getByRole('button', { name: 'Escolher mês', exact: true })
+            .click();
+        const picker = page.getByRole('dialog', { name: 'Escolher mês' });
+        await expect(picker).toBeVisible();
+        await mkdir('test-results/controls-review', { recursive: true });
+        await page.screenshot({
+            path: `test-results/controls-review/${test.info().project.name}-month-${width}.png`,
+        });
+        const request = page.waitForRequest(
+            (request) =>
+                request.url().includes('/financial-overview?') &&
+                request.url().includes('month=2026-09'),
+        );
+        await picker.getByRole('button', { name: 'set.', exact: true }).click();
+        await request;
+        await expect(input).toHaveValue('2026-09');
+        await expect(input).toBeFocused();
+        await input.fill('0099-12');
+        await input.press('Alt+ArrowDown');
+        await picker
+            .getByRole('button', { name: 'Próximo ano', exact: true })
+            .click();
+        await picker.getByRole('button', { name: 'jan.', exact: true }).click();
+        await expect(input).toHaveValue('0100-01');
+        await input.fill('0001-01');
+        await input.press('Alt+ArrowDown');
+        await expect(
+            picker.getByRole('button', { name: 'Ano anterior' }),
+        ).toBeDisabled();
+        await page.keyboard.press('Escape');
+        await expect(input).toBeFocused();
+        await noOverflow(page);
+    });
+}
+
+test('seletor de mês personalizado: texto 200% sem colisões e required preservado', async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 320, height: 844 });
+    await fixture(page);
+    await page.goto(`/spaces/${spaceId}/finances`);
+    await page.addStyleTag({ content: 'html { font-size: 200% }' });
+    const input = page.getByLabel('Mês calendário', { exact: true });
+    await input.scrollIntoViewIfNeeded();
+    await input.press('Alt+ArrowDown');
+    const picker = page.getByRole('dialog', { name: 'Escolher mês' });
+    await expect(picker).toBeVisible();
+    await mkdir('test-results/controls-review', { recursive: true });
+    await page.screenshot({
+        path: `test-results/controls-review/${test.info().project.name}-month-320-200.png`,
+    });
+    expect(
+        await picker.evaluate(
+            (element) => element.scrollWidth <= element.clientWidth,
+        ),
+    ).toBe(true);
+    await expect(
+        picker.getByRole('button', { name: 'Limpar', exact: true }),
+    ).toBeDisabled();
+    await picker
+        .getByRole('button', { name: 'dez.', exact: true })
+        .scrollIntoViewIfNeeded();
+    await page.screenshot({
+        path: `test-results/controls-review/${test.info().project.name}-month-320-200-months.png`,
+    });
+    await picker.getByRole('button', { name: 'dez.', exact: true }).click();
+    await expect(input).toHaveValue(/-12$/);
+    await expect(input).toBeFocused();
+});
 
 for (const width of [320, 390, 768, 1280]) {
     test(`receita parcial, confirmação e detalhe em ${width}px`, async ({

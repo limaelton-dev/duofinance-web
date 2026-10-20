@@ -32,7 +32,7 @@ export function DropdownMenuItem({
     return (
         <Primitive.Item
             className={cn(
-                'relative flex min-h-12 cursor-default items-center gap-3 rounded-lg px-3 py-2 text-sm outline-none select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
+                'relative flex min-h-12 cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm outline-none select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
                 className,
             )}
             {...props}

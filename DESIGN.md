@@ -227,11 +227,13 @@ O shell tem conteúdo central de até (70rem). No mobile, o cabeçalho participa
 
 A partir de (768px), a navegação passa para uma barra lateral sólida e fixa de (14rem); o cabeçalho torna-se aderente ao topo. A margem interna do conteúdo passa para (2.5rem 2rem 4rem). O contexto continua podendo ocupar duas linhas até (1100px), quando seletor, estado e gerenciamento cabem em três colunas. A partir de (1280px), o conteúdo usa margem interna superior e lateral de (3rem).
 
-A navegação inferior fica centralizada, com largura de até (22rem), afastamento inferior de (0.75rem) mais a área segura e largura máxima disponível descontando (2.5rem). Com quatro destinos, o conteúdo e a rolagem reservam espaço inferior de (10rem) mais a área segura, mantendo o foco visível com texto ampliado. Essa reserva é uma extensão do layout do shell, sem ampliar a escala de tokens.
+A navegação inferior fica centralizada, com largura de até (22rem), afastamento inferior de (0.75rem) mais a área segura e largura máxima disponível descontando (1rem). Os quatro destinos mantêm palavras inteiras e se reorganizam em duas linhas quando o texto ampliado exige. O conteúdo e a rolagem reservam espaço inferior de (10rem) mais a área segura, mantendo o foco visível. Essa reserva é uma extensão do layout do shell, sem ampliar a escala de tokens.
 
-Listas de Hoje alinham texto e valor em colunas a partir de (640px). Antes disso, o valor fica abaixo, alinhado ao texto após o ícone. Os totais de Finanças formam três colunas a partir de (768px). Na despesa, a partir de (1024px), campos e confirmação ocupam a primeira coluna e o resumo ocupa a segunda, aderente ao topo em (6.5rem). Abaixo disso, a ordem do documento mantém resumo antes da confirmação. Em larguras de até (359px), pares de rótulo e valor passam a uma coluna. As ações de espaços se empilham até (36rem).
+Listas de Hoje alinham texto e valor em colunas a partir de (640px). Antes disso, o valor fica abaixo, alinhado ao texto após o ícone. Os totais de Finanças formam três colunas a partir de (1024px); um total único ocupa a linha inteira. Os filtros de Finanças e Rotina se distribuem pela largura útil disponível, incluindo o espaço ocupado pela barra lateral. Na despesa, a partir de (1024px), campos e confirmação ocupam a primeira coluna e o resumo ocupa a segunda, aderente ao topo em (6.5rem). Abaixo disso, a ordem do documento mantém resumo antes da confirmação. Em larguras de até (359px), pares de rótulo e valor passam a uma coluna. As ações de espaços se empilham até (36rem).
 
 O ritmo recorrente usa intervalos de (0.5rem) entre rótulo e campo, (0.75rem) entre ações, (1rem) dentro de blocos, (1.5rem) entre grupos e (2rem) entre seções. Quebra de texto, largura mínima zero e ações flexíveis preservam o conteúdo quando o espaço diminui.
+
+Em Finanças, as ações de navegação têm intervalo de (12px) e respiro antes do divisor. O filtro de mês tem largura flexível limitada a (24rem); Atualizar resumo mantém largura natural e se alinha à base do campo, passando à linha seguinte quando necessário.
 
 ## Elevation & Depth
 
@@ -295,7 +297,9 @@ Campos brancos com contorno visível e rótulo persistente.
 - **Focus:** a primitiva usa contorno de foco de (2px), afastado em (2px); formulários de despesas usam afastamento local de (3px). O foco global e os links usam (4px).
 - **Error / Disabled:** cor de erro no limite inválido, com mensagem associada; a primitiva desabilitada usa opacidade de (60%).
 - **Senha:** alternância vetorial de visibilidade dentro do campo, com espaço reservado à direita; a ação não desloca o texto.
-- **Seletor de espaço:** campo nativo com texto semibold, estado e tipo associados. O rótulo visível no mobile permanece disponível à tecnologia assistiva no desktop.
+- **Seletor de espaço:** campo nativo com texto semibold, estado e tipo associados. Rótulo, campo e estado têm separação de (12px), preservando espaço para o foco. O rótulo visível no mobile permanece disponível à tecnologia assistiva no desktop. Com pouco espaço útil, o gerenciamento passa para outra linha.
+- **Selects:** seleção, validação e navegação de teclado permanecem nativas. Navegadores com `appearance: base-select` exibem menu opaco, contorno, sombra de menu, seta vetorial e opções com altura mínima de (48px), reduzida a (40px) com mouse. Seleção, hover e foco usam cinza suave, texto escuro e marca de seleção, sem bloco preto. Navegadores sem suporte preservam o menu da plataforma.
+- **Datas e meses:** campos editáveis com botão de calendário de (48px). O calendário usa português, superfície opaca, seleção preta, dias indisponíveis e ações Hoje/Mês atual e Limpar (desabilitada em campos obrigatórios). Limites e intervalos seguem o campo; valores continuam como datas civis, sem conversão UTC. Escape e seleção devolvem foco ao campo; clicar fora preserva o destino escolhido. Menus respeitam a área disponível, com rolagem vertical e reorganização para texto ampliado.
 
 ### Navigation
 
@@ -303,7 +307,7 @@ Navegação em caixa natural, com ícone e rótulo. O destino atual usa preto e 
 
 A barra inferior tem destinos com altura mínima de (52px) e ícone sobre o texto. A barra lateral usa altura mínima de (48px), com ícone ao lado do texto. O cabeçalho contém contexto e gerenciamento; não recebe uma sombra adicional.
 
-O menu de ações é opaco, com raio `md`, preenchimento de (0.5rem), largura mínima de (14rem), largura máxima descontando (2rem) da tela e rolagem limitada à altura disponível. Itens têm altura mínima de (48px), raio `lg` e estado de foco tonal.
+O menu de ações é opaco, com raio `md`, preenchimento de (0.5rem), largura mínima de (14rem), largura máxima descontando (2rem) da tela e rolagem limitada à altura disponível. Itens têm altura mínima de (48px), raio `lg`, estado de foco tonal e cursor de ação quando habilitados.
 
 O shell do espaço expõe Hoje, Finanças, Rotina e Compras, preservando ícones, rótulos e estados das mesmas primitivas. O encerramento é acessado pelo gerenciamento do espaço e pela atenção de Hoje.
 

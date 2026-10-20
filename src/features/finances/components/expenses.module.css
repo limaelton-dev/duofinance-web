@@ -119,6 +119,10 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+.stack [data-slot='button'] {
+    max-width: 100%;
+    white-space: normal;
+}
 .stack [role='alert'] {
     padding: 1rem;
     border: 1px solid var(--destructive, #ba3035);

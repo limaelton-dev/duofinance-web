@@ -61,6 +61,7 @@ Os testes têm nomes de comportamento e estão separados pelo ambiente necessár
 
 - `tests/unit`: contratos, valores, datas e isolamento sem API ou navegador. Execute `npm run test:unit`.
 - `tests/interface`: formulários, apresentação, teclado e estados de erro com respostas simuladas. Execute `npm run test:interface`. Os cenários com datas fixas controlam também o relógio.
+- `npm run test:controls`: recorte de datas, meses e selects em Chromium, Firefox e WebKit, incluindo teclado, foco, datas civis e texto a 200%. Instale os motores com `npx playwright install chromium firefox webkit`. Selects usam o menu personalizado onde `appearance: base-select` está disponível e preservam o menu nativo nos demais navegadores.
 - `tests/e2e`: jornadas com API e PostgreSQL reais. Execute uma suíte por processo, por exemplo `npm run test:e2e -- settlement-cycles.spec.ts`.
 - `tests/support`: apoio compartilhado às jornadas.
 

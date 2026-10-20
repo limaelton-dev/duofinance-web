@@ -5,10 +5,15 @@
 }
 .header {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
     padding-bottom: 0.5rem;
+}
+.header > [data-slot='button'] {
+    max-width: 100%;
+    padding-inline: 0.75rem;
 }
 .header h1 {
     margin: 0;
