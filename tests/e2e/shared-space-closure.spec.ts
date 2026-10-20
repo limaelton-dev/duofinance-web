@@ -7,7 +7,7 @@ import {
     type Page,
 } from '@playwright/test';
 import { businessToday } from '../../src/features/finances/utils/expense-money';
-import type { ClosureView } from '../../src/features/spaces/closure/types';
+import type { ClosureDiagnostic } from '../../src/features/spaces/closure/types';
 import type { FinancialContext } from '../../src/features/finances/types/shared-expense';
 import type { OffsetOptions } from '../../src/features/finances/types/settlement-depth';
 
@@ -84,8 +84,16 @@ async function open(
         page.getByRole('combobox', { name: 'Espaço atual', exact: true }),
     ).toHaveValue(spaceId);
 }
+async function readClosure(api: APIRequestContext, spaceId: string) {
+    const diagnostic = await read<ClosureDiagnostic>(
+        api,
+        `/spaces/${spaceId}/closure/diagnostic`,
+    );
+    expect(diagnostic.closure).not.toBeNull();
+    return diagnostic.closure!;
+}
 async function version(api: APIRequestContext, spaceId: string) {
-    const closure = await read<ClosureView>(api, `/spaces/${spaceId}/closure`);
+    const closure = await readClosure(api, spaceId);
     return {
         expectedSpaceVersion: closure.spaceVersion,
         expectedPlanRevision: closure.planRevision,
@@ -228,10 +236,7 @@ test('criador na formação continua futuro pessoal, consente, confirma e preser
                 name: /Iniciar|Salvar destino|Confirmar encerramento/,
             }),
         ).toHaveCount(0);
-        const closed = await read<ClosureView>(
-            api,
-            `/spaces/${spaceId}/closure`,
-        );
+        const closed = await readClosure(api, spaceId);
         expect(closed.spaceStatus).toBe('CLOSED');
         expect(closed.requiredMemberIds).toHaveLength(1);
         expect(closed.confirmations).toHaveLength(1);
@@ -428,10 +433,9 @@ test('rejeição e nova revisão preservam bloqueadores brutos até compensaçã
                 exact: true,
             }),
         ).toBeVisible();
-        expect(
-            (await read<ClosureView>(ownerApi, `/spaces/${spaceId}/closure`))
-                .spaceStatus,
-        ).toBe('CLOSED');
+        expect((await readClosure(ownerApi, spaceId)).spaceStatus).toBe(
+            'CLOSED',
+        );
     } finally {
         await ownerApi.dispose();
         await otherApi.dispose();
@@ -498,10 +502,9 @@ test('após aprovação bilateral, cancelar depende das duas pessoas e não reab
                 exact: false,
             }),
         ).toBeVisible();
-        expect(
-            (await read<ClosureView>(ownerApi, `/spaces/${spaceId}/closure`))
-                .spaceStatus,
-        ).toBe('CLOSING');
+        expect((await readClosure(ownerApi, spaceId)).spaceStatus).toBe(
+            'CLOSING',
+        );
         await open(page, context, other, spaceId);
         await page
             .getByRole('button', {
@@ -526,10 +529,9 @@ test('após aprovação bilateral, cancelar depende das duas pessoas e não reab
                 exact: true,
             }),
         ).toBeVisible();
-        expect(
-            (await read<ClosureView>(ownerApi, `/spaces/${spaceId}/closure`))
-                .processStatus,
-        ).toBe('CANCELLED');
+        expect((await readClosure(ownerApi, spaceId)).processStatus).toBe(
+            'CANCELLED',
+        );
         await post(otherApi, '/invitations/preview', { token }, 404);
     } finally {
         await ownerApi.dispose();
