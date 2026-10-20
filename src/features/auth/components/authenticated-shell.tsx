@@ -207,7 +207,7 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
             <aside className={styles.sidebar}>
                 <Link
                     href="/"
-                    aria-label="Prospera Mais, Hoje"
+                    aria-label="DuoFinance, Hoje"
                     className={styles.brandLink}
                 >
                     <Brand />
@@ -237,7 +237,7 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
                 <div className={styles.headerContent}>
                     <Link
                         href="/"
-                        aria-label="Prospera Mais, Hoje"
+                        aria-label="DuoFinance, Hoje"
                         className={styles.mobileBrand}
                     >
                         <Brand />

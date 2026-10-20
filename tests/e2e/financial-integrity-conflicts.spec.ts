@@ -187,7 +187,7 @@ async function open(
     await page.addInitScript(
         ({ personId, spaceId }) =>
             sessionStorage.setItem(
-                `prospera-mais:space-context:v1:${personId}`,
+                `duofinance:space-context:v1:${personId}`,
                 spaceId,
             ),
         { personId: account.id, spaceId },
@@ -595,11 +595,19 @@ test('alteração onerosa seleciona uma parcela e rejeição mantém a condiçã
                 .getByRole('status')
                 .filter({ hasText: 'Proposta rejeitada' }),
         ).toContainText('A condição anterior foi mantida');
-        const rejected = await read<{ proposal: { status: string } }>(
+        const rejected = await read<{
+            items: { id: string; commitmentId: string; status: string }[];
+        }>(
             owner,
-            `/spaces/${f.spaceId}/financial-commitments/${id}/change-proposals/${proposalId}`,
+            `/spaces/${f.spaceId}/financial-change-proposals?status=REJECTED`,
         );
-        expect(rejected.proposal.status).toBe('REJECTED');
+        expect(
+            rejected.items.find((item) => item.id === proposalId),
+        ).toMatchObject({
+            id: proposalId,
+            commitmentId: id,
+            status: 'REJECTED',
+        });
         const preserved = await read<PlanDetail>(
             owner,
             `/spaces/${f.spaceId}/installment-commitments/${id}`,

@@ -1,4 +1,5 @@
-const prefix = 'prospera-mais:space-context:v1:';
+const prefix = 'duofinance:space-context:v1:';
+const legacyPrefix = 'prospera-mais:space-context:v1:';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function spacePreferenceKey(personId: string): string {
@@ -12,7 +13,18 @@ export function isSpaceId(value: string): boolean {
 export const spacePreference = {
     read(personId: string): string | null {
         try {
-            return window.sessionStorage.getItem(spacePreferenceKey(personId));
+            const current = window.sessionStorage.getItem(
+                spacePreferenceKey(personId),
+            );
+            if (current !== null) return isSpaceId(current) ? current : null;
+
+            const legacy = window.sessionStorage.getItem(
+                legacyPrefix + personId,
+            );
+            if (legacy === null || !isSpaceId(legacy)) return null;
+            // Keep the selected space usable even when storage rejects migration.
+            spacePreference.write(personId, legacy);
+            return legacy;
         } catch {
             return null;
         }
@@ -24,15 +36,21 @@ export const spacePreference = {
                 spacePreferenceKey(personId),
                 spaceId,
             );
+            window.sessionStorage.removeItem(legacyPrefix + personId);
         } catch {
             // Selection remains usable in memory when storage is unavailable.
         }
     },
     clear(personId: string): void {
-        try {
-            window.sessionStorage.removeItem(spacePreferenceKey(personId));
-        } catch {
-            // Storage can be blocked independently of the session.
+        for (const key of [
+            spacePreferenceKey(personId),
+            legacyPrefix + personId,
+        ]) {
+            try {
+                window.sessionStorage.removeItem(key);
+            } catch {
+                // Storage can be blocked independently of the session.
+            }
         }
     },
 };

@@ -141,7 +141,7 @@ async function dbQuery(sql: string) {
         expect(
             (await db.query('SELECT current_database() AS database')).rows[0]
                 .database,
-        ).toBe('prospera_mais_test');
+        ).toBe('duofinance_test');
         return await db.query(sql);
     } finally {
         await db.end();

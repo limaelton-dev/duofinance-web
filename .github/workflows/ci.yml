@@ -80,39 +80,39 @@ jobs:
             matrix:
                 group: [0, 1, 2]
         env:
-            API_SHA: ${{ inputs.api_sha || '46f3895b3b9451cf3a46c74aeec7b0e641556ca9' }}
+            API_SHA: ${{ inputs.api_sha || '0cdbfb05aac3c327cdf98fd35d3eb47691a87e62' }}
             E2E_PREBUILT: '1'
         defaults:
             run:
-                working-directory: prospera-mais-web
+                working-directory: duofinance-web
         steps:
             - name: Obter Web
               uses: actions/checkout@v7
               with:
-                  path: prospera-mais-web
+                  path: duofinance-web
                   persist-credentials: false
             - name: Validar referência imutável da API
               run: test "${#API_SHA}" -eq 40 && [[ "$API_SHA" =~ ^[0-9a-f]{40}$ ]]
             - name: Obter API
               uses: actions/checkout@v7
               with:
-                  repository: limaelton-dev/prospera_mais_api
+                  repository: limaelton-dev/duofinance-api
                   ref: ${{ env.API_SHA }}
-                  path: prospera-mais-api
+                  path: duofinance-api
                   persist-credentials: false
             - name: Conferir versão da API
-              run: test "$(git -C ../prospera-mais-api rev-parse HEAD)" = "$API_SHA"
+              run: test "$(git -C ../duofinance-api rev-parse HEAD)" = "$API_SHA"
             - uses: actions/setup-node@v7
               with:
-                  node-version-file: prospera-mais-web/.nvmrc
+                  node-version-file: duofinance-web/.nvmrc
                   cache: npm
                   cache-dependency-path: |
-                      prospera-mais-web/package-lock.json
-                      prospera-mais-api/package-lock.json
+                      duofinance-web/package-lock.json
+                      duofinance-api/package-lock.json
             - name: Instalar Web
               run: npm ci
             - name: Instalar e compilar API
-              working-directory: prospera-mais-api
+              working-directory: duofinance-api
               run: npm ci && npm run build
             - name: Compilar Web para as jornadas
               env:
@@ -121,7 +121,7 @@ jobs:
               run: npm run build
             - run: npx playwright install --with-deps chromium
             - name: Iniciar PostgreSQL descartável
-              working-directory: prospera-mais-api
+              working-directory: duofinance-api
               run: docker compose -f compose.test.yaml up -d --wait
             - name: Executar todas as jornadas, com API isolada por suíte
               env:
@@ -137,7 +137,7 @@ jobs:
                   exit "$result"
             - name: Encerrar PostgreSQL descartável
               if: always()
-              working-directory: prospera-mais-api
+              working-directory: duofinance-api
               run: docker compose -f compose.test.yaml down
 
     checks:

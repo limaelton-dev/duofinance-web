@@ -228,7 +228,7 @@ async function setup(
     await page.addInitScript(
         ({ actorId, spaceId }) =>
             sessionStorage.setItem(
-                `prospera-mais:space-context:v1:${actorId}`,
+                `duofinance:space-context:v1:${actorId}`,
                 spaceId,
             ),
         { actorId, spaceId },

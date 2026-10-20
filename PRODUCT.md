@@ -44,7 +44,7 @@ Hoje, Finanças, Rotina e Compras são a navegação vigente; espaço pessoal/co
 
 ## Brand Commitments
 
-- Nome público **Prospera Mais**, confirmado por Elton; manter os identificadores técnicos existentes.
+- Nome público **DuoFinance**, definido por Elton em 20/10/2026. Repositórios e pacotes passam a `duofinance-web` e `duofinance-api`; dados e sessões existentes são preservados.
 - Direção **preto e branco**, escolhida após comparação. Elton também expressou preferência pelo efeito de vidro do iPhone. Essa preferência orienta a apresentação, sem transformar o produto Web em aplicativo nativo.
 - **Neo Financial mobile do Canadá** é a referência principal escolhida. Não copiar marca nem introduzir funcionalidades bancárias por semelhança visual.
 - Interface bonita, limpa, intuitiva e com valor prático, sem composição genérica de IA — intenção explícita. Transformar isso em critérios verificáveis, sem tratar preferência estética como prova de usabilidade.

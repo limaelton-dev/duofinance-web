@@ -1,4 +1,3 @@
-import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Brand({ className }: { className?: string }) {
@@ -9,8 +8,7 @@ export function Brand({ className }: { className?: string }) {
                 className,
             )}
         >
-            Prospera Mais
-            <Plus aria-hidden="true" className="size-5" strokeWidth={2.5} />
+            DuoFinance
         </span>
     );
 }

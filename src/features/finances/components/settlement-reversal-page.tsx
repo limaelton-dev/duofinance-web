@@ -176,7 +176,7 @@ function ReversalRead({
                             </p>
                             <p className={styles.help}>
                                 {kind === 'TRANSFER'
-                                    ? 'Esta correção altera o registro no Prospera Mais. Ela não desfaz uma transferência na sua instituição financeira.'
+                                    ? 'Esta correção altera o registro no DuoFinance. Ela não desfaz uma transferência na sua instituição financeira.'
                                     : 'Esta correção desfaz a compensação registrada, sem criar transferência de dinheiro.'}
                             </p>
                             {data.previousReversals.length > 0 && (

@@ -1,5 +1,5 @@
 ---
-name: Prospera Mais
+name: DuoFinance
 description: Sistema visual monocromático para organização financeira pessoal e compartilhada.
 colors:
     primary: '#171717'
@@ -145,13 +145,13 @@ components:
         height: '1.5rem'
 ---
 
-# Design System: Prospera Mais
+# Design System: DuoFinance
 
 ## Overview
 
 **Creative North Star: "Clareza em preto e branco"**
 
-O Prospera Mais usa contraste, espaço e texto para tornar a organização financeira compreensível. A composição é sóbria e próxima: fundo claro, superfícies brancas, Manrope e ação principal preta. A densidade permite ler contexto, valor e consequência sem depender de ornamentação.
+O DuoFinance usa contraste, espaço e texto para tornar a organização financeira compreensível. A composição é sóbria e próxima: fundo claro, superfícies brancas, Manrope e ação principal preta. A densidade permite ler contexto, valor e consequência sem depender de ornamentação.
 
 A materialidade combina conteúdo opaco e navegação com vidro branco discreto. Bordas finas organizam listas e resumos; profundidade identifica elementos sobrepostos. O contexto pessoal ou compartilhado permanece reconhecível, e os estados são nomeados em texto, respeitando os compromissos de clareza e autonomia de PRODUCT.md.
 
@@ -213,7 +213,7 @@ As rampas tonais do sidecar são derivações para a prévia do painel, não nov
 - **Label** (`label`): rótulos e botões; caixa natural e sem espaçamento artificial.
 - **Money** (`money`): valores nas linhas de Hoje e saldos em listas. Totais de Finanças usam destaque local (1.5rem), peso (650) e espaçamento entre letras (-0.025em).
 
-O texto explicativo de Finanças limita-se a (70ch); avisos parciais de Hoje a (65ch). Valores podem quebrar linha em larguras estreitas. O nome Prospera Mais usa a mesma família, com ícone de adição vetorial.
+O texto explicativo de Finanças limita-se a (70ch); avisos parciais de Hoje a (65ch). Valores podem quebrar linha em larguras estreitas. A marca DuoFinance usa a mesma família tipográfica, sem ícone de adição.
 
 ### Named Rules
 
