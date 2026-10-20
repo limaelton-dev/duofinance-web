@@ -29,7 +29,7 @@ const invitationStatuses = {
     PENDING: 'Aguardando outra pessoa',
     ACCEPTED: 'Convite aceito',
     REJECTED: 'Convite recusado',
-    CANCELLED: 'Convite substituído',
+    CANCELLED: 'Convite cancelado',
     EXPIRED: 'Convite expirado',
 } as const;
 
@@ -267,12 +267,28 @@ function SpaceDetails({
                 <Button asChild variant="outline">
                     <Link href={`/spaces/${spaceId}/finances`}>Finanças</Link>
                 </Button>
+                <Button asChild variant="outline">
+                    <Link href={`/spaces/${spaceId}/routine`}>Rotina</Link>
+                </Button>
+                <Button asChild variant="outline">
+                    <Link href={`/spaces/${spaceId}/shopping`}>Compras</Link>
+                </Button>
                 {data.space.type === 'SHARED' && (
                     <Link
                         className={styles.link}
                         href={`/spaces/${spaceId}/settings`}
                     >
                         Configurações do espaço
+                    </Link>
+                )}
+                {data.space.type === 'SHARED' && (
+                    <Link
+                        className={styles.link}
+                        href={`/spaces/${spaceId}/closure`}
+                    >
+                        {data.space.status === 'ACTIVE'
+                            ? 'Encerrar espaço'
+                            : 'Consultar encerramento'}
                     </Link>
                 )}
             </div>

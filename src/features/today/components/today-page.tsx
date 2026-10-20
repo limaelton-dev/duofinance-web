@@ -9,6 +9,8 @@ import {
     CalendarDays,
     Plus,
     TriangleAlert,
+    ListChecks,
+    ShoppingBasket,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -231,23 +233,50 @@ function PreviewItem({
                     {task &&
                         (task.conditions.overdue || task.conditions.urgent) && (
                             <p className={styles.attentionText}>
-                                {task.conditions.overdue
-                                    ? 'Prazo vencido'
-                                    : 'Urgente'}
+                                {[
+                                    task.conditions.overdue && 'Prazo vencido',
+                                    task.conditions.urgent && 'Urgente',
+                                ]
+                                    .filter(Boolean)
+                                    .join(' · ')}
                             </p>
                         )}
                     {item.type === 'SHOPPING_LIST' && (
-                        <p className={styles.meta}>
-                            {item.details.summary.actionableItemCount}{' '}
-                            {item.details.summary.actionableItemCount === 1
-                                ? 'item por comprar'
-                                : 'itens por comprar'}
-                        </p>
+                        <div className={styles.meta}>
+                            <p>
+                                {item.details.summary.actionableItemCount}{' '}
+                                {item.details.summary.actionableItemCount === 1
+                                    ? 'item por comprar'
+                                    : 'itens por comprar'}
+                            </p>
+                            {item.details.pendingItems.items.map((pending) => (
+                                <p key={pending.id}>
+                                    {pending.description}: faltam{' '}
+                                    {pending.remainingQuantity.replace(
+                                        '.',
+                                        ',',
+                                    )}
+                                    {pending.unit ? ` ${pending.unit}` : ''}
+                                </p>
+                            ))}
+                        </div>
                     )}
                     {item.type === 'CHANGE_PROPOSAL' && (
                         <p className={styles.meta}>
                             Vigência proposta:{' '}
                             {formatDate(item.details.effectiveFrom)}.
+                        </p>
+                    )}
+                    {item.type === 'SPACE_CLOSURE' && (
+                        <p className={styles.meta}>
+                            Data de corte: {formatDate(item.details.cutoffDate)}
+                            .{' '}
+                            {
+                                closureActions[
+                                    item.details.actorNextAction ??
+                                        'REVIEW_CLOSURE'
+                                ]
+                            }
                         </p>
                     )}
                     {!href && (
@@ -299,6 +328,16 @@ const blockTitles: Record<TodayBlock['kind'], string> = {
     TASKS: 'Tarefas',
     SHOPPING: 'Compras',
 };
+const closureActions = {
+    PROPOSE_PLAN: 'Defina e proponha o plano.',
+    REVIEW_PLAN: 'Revise o plano para aprovar ou recusar.',
+    WAIT_APPROVAL: 'Aguardando a decisão da outra pessoa.',
+    RESOLVE_FINANCES: 'Consulte as pendências financeiras.',
+    REVIEW_CLOSURE: 'Revise as condições de encerramento.',
+    WAIT_CANCELLATION: 'Aguardando concordância para cancelar.',
+    APPROVE_CANCELLATION: 'Revise a solicitação de cancelamento.',
+    READ_ONLY: 'Histórico disponível para consulta.',
+} as const;
 const emptyMessages: Record<TodayBlock['kind'], string> = {
     ATTENTION: '',
     TODAY: 'Nenhum compromisso para hoje.',
@@ -389,6 +428,24 @@ function TodaySection({
                 <p className={styles.more}>
                     Exibindo {block.items.length} de {block.totalCount} itens.
                 </p>
+            )}
+            {block.kind === 'TASKS' && (
+                <Link
+                    className={styles.textLink}
+                    href={`/spaces/${today.spaceId}/routine`}
+                >
+                    Ver todas as tarefas{' '}
+                    <ArrowRight size={16} aria-hidden="true" />
+                </Link>
+            )}
+            {block.kind === 'SHOPPING' && (
+                <Link
+                    className={styles.textLink}
+                    href={`/spaces/${today.spaceId}/shopping`}
+                >
+                    Ver listas de compras{' '}
+                    <ArrowRight size={16} aria-hidden="true" />
+                </Link>
             )}
             {block.kind === 'UPCOMING' &&
                 today.finance.status === 'AVAILABLE' && (
@@ -491,10 +548,22 @@ function TodayRead({
                                 Planejar compromisso
                             </Link>
                         </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={`/spaces/${spaceId}/routine/new`}>
+                                <ListChecks size={18} aria-hidden="true" />{' '}
+                                Adicionar tarefa
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={`/spaces/${spaceId}/shopping?new=1`}>
+                                <ShoppingBasket size={18} aria-hidden="true" />{' '}
+                                Criar lista de compras
+                            </Link>
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </header>
-            {status !== 'ACTIVE' && (
+            {status && status !== 'ACTIVE' && (
                 <Alert>
                     <AlertTitle>
                         {status === 'CLOSED'
@@ -502,8 +571,18 @@ function TodayRead({
                             : 'Espaço em encerramento'}
                     </AlertTitle>
                     <AlertDescription>
-                        O histórico continua disponível para consulta. Não é
-                        possível adicionar novos registros.
+                        {status === 'CLOSED'
+                            ? 'O histórico continua disponível em somente leitura.'
+                            : 'Consulte o plano, a data de corte e as pendências para continuar o encerramento.'}
+                        {confirmed?.space.type === 'SHARED' && (
+                            <Link
+                                className={styles.textLink}
+                                href={`/spaces/${spaceId}/closure`}
+                            >
+                                Consultar encerramento{' '}
+                                <ArrowRight size={16} aria-hidden="true" />
+                            </Link>
+                        )}
                     </AlertDescription>
                 </Alert>
             )}

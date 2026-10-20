@@ -393,3 +393,38 @@ test('A11 retry de fallback refaz lista falhada ou inconsistente antes de valida
         ]);
     }
 });
+
+test('múltiplos formulários preservam todos os guards ao navegar e desmontar', async () => {
+    const { context } = fixture();
+    await context.initialize();
+    const removeParent = context.registerLeaveGuard(() => false);
+    const removeChild = context.registerLeaveGuard(() => true);
+    expect(context.canLeave()).toBe(false);
+    expect(await context.select(a)).toBe(false);
+    removeChild();
+    expect(context.canLeave()).toBe(false);
+    removeParent();
+    expect(await context.select(a)).toBe(true);
+});
+
+test('recusar o segundo rascunho preserva todos; descarte só ocorre após concordância conjunta', async () => {
+    const { context } = fixture();
+    await context.initialize();
+    let secondAllows = false;
+    const discarded: string[] = [];
+    context.registerLeaveGuard(
+        () => true,
+        () => discarded.push('corte'),
+    );
+    context.registerLeaveGuard(
+        () => secondAllows,
+        () => discarded.push('destino'),
+    );
+    expect(context.canLeave()).toBe(false);
+    expect(discarded).toEqual([]);
+    expect(await context.select(a)).toBe(false);
+    expect(discarded).toEqual([]);
+    secondAllows = true;
+    expect(await context.select(a)).toBe(true);
+    expect(discarded).toEqual(['corte', 'destino']);
+});

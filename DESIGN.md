@@ -227,7 +227,7 @@ O shell tem conteúdo central de até (70rem). No mobile, o cabeçalho participa
 
 A partir de (768px), a navegação passa para uma barra lateral sólida e fixa de (14rem); o cabeçalho torna-se aderente ao topo. A margem interna do conteúdo passa para (2.5rem 2rem 4rem). O contexto continua podendo ocupar duas linhas até (1100px), quando seletor, estado e gerenciamento cabem em três colunas. A partir de (1280px), o conteúdo usa margem interna superior e lateral de (3rem).
 
-A navegação inferior fica centralizada, com largura de até (22rem), afastamento inferior de (0.75rem) mais a área segura e largura máxima disponível descontando (2.5rem). O conteúdo reserva espaço inferior de (7rem) mais a área segura; a rolagem também reserva espaço para foco.
+A navegação inferior fica centralizada, com largura de até (22rem), afastamento inferior de (0.75rem) mais a área segura e largura máxima disponível descontando (2.5rem). Com quatro destinos, o conteúdo e a rolagem reservam espaço inferior de (10rem) mais a área segura, mantendo o foco visível com texto ampliado. Essa reserva é uma extensão do layout do shell, sem ampliar a escala de tokens.
 
 Listas de Hoje alinham texto e valor em colunas a partir de (640px). Antes disso, o valor fica abaixo, alinhado ao texto após o ícone. Os totais de Finanças formam três colunas a partir de (768px). Na despesa, a partir de (1024px), campos e confirmação ocupam a primeira coluna e o resumo ocupa a segunda, aderente ao topo em (6.5rem). Abaixo disso, a ordem do documento mantém resumo antes da confirmação. Em larguras de até (359px), pares de rótulo e valor passam a uma coluna. As ações de espaços se empilham até (36rem).
 
@@ -305,7 +305,7 @@ A barra inferior tem destinos com altura mínima de (52px) e ícone sobre o text
 
 O menu de ações é opaco, com raio `md`, preenchimento de (0.5rem), largura mínima de (14rem), largura máxima descontando (2rem) da tela e rolagem limitada à altura disponível. Itens têm altura mínima de (48px), raio `lg` e estado de foco tonal.
 
-O código atual expõe Hoje e Finanças. Isso descreve o recorte implementado, não fixa o número futuro de destinos nem remove Rotina e Compras do produto.
+O shell do espaço expõe Hoje, Finanças, Rotina e Compras, preservando ícones, rótulos e estados das mesmas primitivas. O encerramento é acessado pelo gerenciamento do espaço e pela atenção de Hoje.
 
 ### Resumo e comprovante financeiro
 

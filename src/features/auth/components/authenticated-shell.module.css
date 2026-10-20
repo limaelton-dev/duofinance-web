@@ -34,7 +34,7 @@
     width: min(100%, 70rem);
     min-width: 0;
     margin-inline: auto;
-    padding: 2rem 1.25rem calc(7rem + env(safe-area-inset-bottom));
+    padding: 2rem 1.25rem calc(10rem + env(safe-area-inset-bottom));
 }
 .content:focus {
     outline: none;
@@ -62,12 +62,13 @@
     gap: 0.25rem;
     min-width: 0;
     min-height: 3.25rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.25rem;
     border-radius: 1rem;
     color: var(--muted-foreground);
     text-decoration: none;
     font-size: 0.875rem;
     font-weight: 600;
+    overflow-wrap: anywhere;
     transition:
         background-color 150ms ease-out,
         color 150ms ease-out;
@@ -136,6 +137,7 @@
         min-height: 3rem;
         border-radius: 0.75rem;
         font-size: 0.875rem;
+        padding-inline: 1rem;
     }
     .sidebarFooter {
         display: grid;

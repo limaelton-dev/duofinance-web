@@ -71,7 +71,7 @@
     }
     html {
         scroll-padding-top: 8rem;
-        scroll-padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+        scroll-padding-bottom: calc(10rem + env(safe-area-inset-bottom));
     }
     body {
         margin: 0;
