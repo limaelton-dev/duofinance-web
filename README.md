@@ -12,11 +12,11 @@ Os links pressupõem o workspace com API, Web e `Docs` lado a lado. Neste ambien
 
 Em 19/10/2026, Elton confirmou **Prospera Mais**, escolheu a direção **preto e branco** e pediu inspiração no vidro do iPhone. O público principal é uma dupla que compartilha despesas e rotina, com espaço pessoal separado. A interface de acesso, espaços, Hoje, Finanças, Rotina, Compras e encerramento aplica essa direção, com vidro restrito à navegação e alternativa opaca.
 
-O [PRODUCT.md](PRODUCT.md) registra o briefing para o Impeccable. O [DESIGN.md](DESIGN.md) documenta os tokens e componentes implementados, com extensão em [.impeccable/design.json](.impeccable/design.json). Tailwind CSS 4, primitivas shadcn/ui sobre Radix, Manrope local e CSS Modules sustentam a interface. A lógica de sessão, contexto, comandos financeiros e consultas continua na arquitetura existente. Cards e critérios oficiais permanecem válidos.
+O [PRODUCT.md](PRODUCT.md) registra o briefing para o Impeccable. O [DESIGN.md](DESIGN.md) documenta os tokens e componentes implementados. Os arquivos auxiliares do Impeccable ficam na pasta local `.impeccable/`, ignorada pelo Git. Tailwind CSS 4, primitivas shadcn/ui sobre Radix, Manrope local e CSS Modules sustentam a interface. A lógica de sessão, contexto, comandos financeiros e consultas continua na arquitetura existente. Cards e critérios oficiais permanecem válidos.
 
 ## Operações financeiras — waves 2 a 5
 
-O recorte dos cards 011–032 amplia as superfícies de Finanças no sistema existente. O [contrato de superfície](.impeccable/surfaces/financial-operations.md) orienta esse trabalho no modo Operate:
+O recorte dos cards 011–032 amplia as superfícies de Finanças no sistema existente. As operações seguem as regras visuais de [DESIGN.md](DESIGN.md) e os critérios de produto da documentação oficial:
 
 - Wave 2: receitas, realizações parciais, cartão, liquidação de obrigações externas, resumo, posição entre membros e compromissos do mês.
 - Wave 3: composição e seleção de acertos, mudança de ciclo, regra específica, compensação, dispensa, finalização e reversão.
@@ -33,7 +33,7 @@ Planejar não registra realização. Prévia e confirmação permanecem etapas d
 
 ## Rotina, Compras e encerramento — waves 6 a 8
 
-Os cards 033–049 estendem o sistema existente conforme o [contrato de superfície](.impeccable/surfaces/domestic-and-closure.md). A navegação do espaço oferece Hoje, Finanças, Rotina e Compras. Hoje mantém os seis blocos, diferencia indisponibilidade parcial de ausência de pendências e leva ao detalhe de tarefas e ocorrências, às listas de compras e ao encerramento.
+Os cards 033–049 estendem o sistema existente conforme as regras visuais de [DESIGN.md](DESIGN.md) e os critérios de produto da documentação oficial. A navegação do espaço oferece Hoje, Finanças, Rotina e Compras. Hoje mantém os seis blocos, diferencia indisponibilidade parcial de ausência de pendências e leva ao detalhe de tarefas e ocorrências, às listas de compras e ao encerramento.
 
 - **Rotina:** consultar e filtrar tarefas, criar tarefas avulsas ou recorrentes, consultar ocorrências e registrar ações com revisão. Prazo e urgência permanecem independentes; responsável, executor e autor do registro mantêm seus significados no detalhe e no histórico.
 - **Compras:** criar e consultar listas, manter itens, registrar quantidades parciais, corrigir compras e consultar o histórico. A interface distingue quantidade desejada, comprada após correções e restante. Quantidades usam representação decimal exata, com até três casas; correções preservam o registro original. O vínculo com uma tarefa pode ser criado ou removido sem concluir automaticamente a tarefa ou a lista.
