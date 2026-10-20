@@ -299,6 +299,7 @@ for (const viewport of [
         ).toContainText(s3.name);
         await page.keyboard.press('Escape');
         await expect(trigger(page)).toBeFocused();
+        await page.keyboard.press('Alt+ArrowDown');
         await page.keyboard.press('End');
         await page.keyboard.press('Enter');
         await selected(page, s3);

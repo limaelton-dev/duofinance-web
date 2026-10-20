@@ -345,6 +345,31 @@ async function capture(page: Page, name: string) {
     });
 }
 
+for (const width of [320, 1280]) {
+    test(`seletor de espaço personalizado: troca por teclado em ${width}px`, async ({
+        page,
+    }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await setup(page);
+        await page.goto('/');
+        const select = page.getByRole('combobox', {
+            name: 'Espaço atual',
+            exact: true,
+        });
+        await select.selectOption(personalId);
+        await expect(select).toHaveValue(personalId);
+        await select.focus();
+        await page.keyboard.press('Alt+ArrowDown');
+        await page.keyboard.press('End');
+        await page.keyboard.press('Enter');
+        await expect(select).toHaveValue(spaceId);
+        await expect(page.locator('#active-space-status')).toHaveText(
+            'Compartilhado · Ativo',
+        );
+        await expect(select).toBeFocused();
+    });
+}
+
 for (const width of [320, 768, 1280]) {
     test(`controles personalizados: calendário, limites e foco em ${width}px`, async ({
         page,
