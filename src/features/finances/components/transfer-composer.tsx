@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
+import { Input } from '@/components/ui/input';
 import { useAuthenticatedContext } from '@/features/auth/hooks/use-authenticated-context';
 import { useSpaceContext } from '@/features/spaces/hooks/use-space-context';
 import { useSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
@@ -487,7 +488,7 @@ function Composer({
                         </label>
                         <label>
                             Data da transferência
-                            <input
+                            <Input
                                 name="factDate"
                                 type="date"
                                 value={factDate}

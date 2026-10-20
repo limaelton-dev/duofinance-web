@@ -345,6 +345,147 @@ async function capture(page: Page, name: string) {
     });
 }
 
+for (const width of [320, 1280]) {
+    test(`seletor de espaço personalizado: troca por teclado em ${width}px`, async ({
+        page,
+    }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await setup(page);
+        await page.goto('/');
+        const select = page.getByRole('combobox', {
+            name: 'Espaço atual',
+            exact: true,
+        });
+        await select.selectOption(personalId);
+        await expect(select).toHaveValue(personalId);
+        await select.focus();
+        await page.keyboard.press('Alt+ArrowDown');
+        await page.keyboard.press('End');
+        await page.keyboard.press('Enter');
+        await expect(select).toHaveValue(spaceId);
+        await expect(page.locator('#active-space-status')).toHaveText(
+            'Compartilhado · Ativo',
+        );
+        await expect(select).toBeFocused();
+    });
+}
+
+for (const width of [320, 768, 1280]) {
+    test(`controles personalizados: calendário, limites e foco em ${width}px`, async ({
+        page,
+    }) => {
+        await page.setViewportSize({ width, height: 844 });
+        const submitted = await setup(page);
+        await page.goto(`/spaces/${spaceId}/expenses/new`);
+        await page.getByLabel('Descrição', { exact: true }).fill('Mercado');
+        await page.getByLabel('Valor (R$)', { exact: true }).fill('100,00');
+        const method = page.getByLabel('Forma de pagamento', { exact: true });
+        await mkdir('test-results/controls-review', { recursive: true });
+        if (
+            await page.evaluate(() => CSS.supports('appearance', 'base-select'))
+        ) {
+            await method.click();
+            await expect(
+                page.getByRole('option', { name: 'Débito', exact: true }),
+            ).toBeVisible();
+            await page.screenshot({
+                path: `test-results/controls-review/${test.info().project.name}-select-${width}.png`,
+            });
+            await page
+                .getByRole('option', { name: 'Débito', exact: true })
+                .click();
+        } else {
+            // Native platform menus are outside the page in fallback engines.
+            await method.selectOption('DEBIT');
+        }
+        await expect(method).toHaveValue('DEBIT');
+        const date = page.getByLabel('Data do pagamento', { exact: true });
+        await date.fill('2026-10-19');
+        await date.press('Alt+ArrowDown');
+        const calendar = page.getByRole('dialog', { name: 'Escolher data' });
+        await expect(calendar).toBeVisible();
+        await expect(
+            calendar.locator('[data-day="2026-10-20"] button'),
+        ).toBeDisabled();
+        await page.screenshot({
+            path: `test-results/controls-review/${test.info().project.name}-date-${width}.png`,
+        });
+        await calendar.locator('[data-day="2026-10-18"] button').click();
+        await expect(date).toHaveValue('2026-10-18');
+        await expect(date).toBeFocused();
+        await expect(calendar).toBeHidden();
+        // Selecting the current day again confirms it instead of unselecting it.
+        await date.press('Alt+ArrowDown');
+        await calendar.locator('[data-day="2026-10-18"] button').click();
+        await expect(calendar).toBeHidden();
+        await date.press('Alt+ArrowDown');
+        await page.keyboard.press('Escape');
+        await expect(date).toBeFocused();
+        // Clicking another field must retain focus in that field.
+        await date.press('Alt+ArrowDown');
+        await page.getByLabel('Valor pago agora (R$)', { exact: true }).click();
+        await expect(
+            page.getByLabel('Valor pago agora (R$)', { exact: true }),
+        ).toBeFocused();
+        await expect(calendar).toBeHidden();
+        await page.getByLabel('Acerto', { exact: true }).selectOption('NONE');
+        await noOverflow(page);
+        await page
+            .getByRole('button', { name: 'Salvar despesa', exact: true })
+            .click();
+        await expect(
+            page.getByRole('heading', { name: 'Despesa registrada' }),
+        ).toBeVisible();
+        expect(submitted).toHaveLength(1);
+        expect(submitted[0]).toMatchObject({ factDate: '2026-10-18' });
+    });
+}
+
+test('controles personalizados: calendário com texto 200%, limpeza e teclado', async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 320, height: 844 });
+    await setup(page);
+    await page.goto(`/spaces/${spaceId}/expenses/new`);
+    await page
+        .getByLabel('Forma de pagamento', { exact: true })
+        .selectOption('DEBIT');
+    await page.addStyleTag({ content: 'html { font-size: 200% }' });
+    const date = page.getByLabel('Data do pagamento', { exact: true });
+    await date.fill('2026-10-18');
+    await date.press('Alt+ArrowDown');
+    const calendar = page.getByRole('dialog', { name: 'Escolher data' });
+    await expect(calendar).toBeVisible();
+    await mkdir('test-results/controls-review', { recursive: true });
+    await page.screenshot({
+        path: `test-results/controls-review/${test.info().project.name}-date-320-200.png`,
+    });
+    expect(
+        await calendar.evaluate(
+            (element) => element.scrollWidth <= element.clientWidth,
+        ),
+    ).toBe(true);
+    const day = calendar.locator('[data-day="2026-10-18"] button');
+    await day.focus();
+    await day.scrollIntoViewIfNeeded();
+    expect(
+        await day.evaluate(
+            (element) => element.scrollWidth <= element.clientWidth,
+        ),
+    ).toBe(true);
+    await page.screenshot({
+        path: `test-results/controls-review/${test.info().project.name}-date-320-200-days.png`,
+    });
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('Enter');
+    await expect(date).toHaveValue('2026-10-17');
+    await date.press('Alt+ArrowDown');
+    await calendar.getByRole('button', { name: 'Limpar', exact: true }).click();
+    await expect(date).toHaveValue('');
+    await expect(date).toBeFocused();
+    await noOverflow(page);
+});
+
 for (const width of [320, 390, 768, 1280]) {
     test(`interface: fluxo compartilhado e reflow em ${width}px`, async ({
         page,
@@ -378,6 +519,9 @@ for (const width of [320, 390, 768, 1280]) {
         await expect(
             page.getByRole('menuitem', { name: 'Adicionar despesa' }),
         ).toBeVisible();
+        await expect(
+            page.getByRole('menuitem', { name: 'Adicionar despesa' }),
+        ).toHaveCSS('cursor', 'pointer');
         await page.keyboard.press('Escape');
         await expect(
             page.getByRole('button', { name: 'Adicionar', exact: true }),
@@ -449,6 +593,7 @@ for (const viewport of [
     { width: 768, height: 844, textScale: 1 },
     { width: 640, height: 422, textScale: 1 },
     { width: 390, height: 844, textScale: 2 },
+    { width: 320, height: 844, textScale: 2 },
 ]) {
     test(`interface: foco visível com Tab e Shift+Tab em ${viewport.width}px e texto ${viewport.textScale * 100}%`, async ({
         page,

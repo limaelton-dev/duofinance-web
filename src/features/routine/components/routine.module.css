@@ -27,12 +27,14 @@
 }
 .filters {
     display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
     gap: 1rem;
 }
 .filters label,
 .form label {
     display: grid;
     gap: 0.5rem;
+    min-width: 0;
     font-size: 0.875rem;
     font-weight: 600;
 }
@@ -168,9 +170,6 @@
     overflow-wrap: anywhere;
 }
 @media (min-width: 640px) {
-    .filters {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
     .dates {
         display: grid;
         grid-template-columns: 1fr 1fr;

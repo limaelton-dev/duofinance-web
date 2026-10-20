@@ -66,8 +66,9 @@ jobs:
                   node-version-file: .nvmrc
                   cache: npm
             - run: npm ci
-            - run: npx playwright install --with-deps chromium
+            - run: npx playwright install --with-deps chromium firefox webkit
             - run: npm run test:interface
+            - run: npm run test:controls
 
     e2e:
         name: Jornadas com API (${{ matrix.group }})

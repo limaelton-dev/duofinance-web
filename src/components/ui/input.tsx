@@ -1,9 +1,11 @@
 import type { ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
+import { DateInput } from './date-input';
 
 export function Input({ className, type, ...props }: ComponentProps<'input'>) {
+    const Component = type === 'date' || type === 'month' ? DateInput : 'input';
     return (
-        <input
+        <Component
             type={type}
             data-slot="input"
             className={cn(

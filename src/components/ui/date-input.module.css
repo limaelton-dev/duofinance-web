@@ -1,0 +1,240 @@
+.field {
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-width: 0;
+}
+
+/* Specificity protects the icon space from form-level input padding. */
+.field input[data-date-field] {
+    padding-inline-end: 52px;
+    min-width: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.field input::-webkit-calendar-picker-indicator {
+    display: none;
+}
+
+.field input::-webkit-date-and-time-value {
+    text-align: start;
+    min-height: 1.5em;
+}
+
+/* Gecko reserves space for its internal date indicator itself. Keep that
+   indicator beneath the opaque calendar trigger, instead of making two slots. */
+@supports (-moz-appearance: none) {
+    .field input[data-date-field] {
+        padding-inline-end: 0.75rem;
+    }
+}
+
+.trigger {
+    position: absolute;
+    inset-inline-end: 0.0625rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    color: var(--muted-foreground);
+}
+
+.trigger:hover:not(:disabled) {
+    color: var(--foreground);
+    background: var(--accent);
+}
+
+.trigger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.popover {
+    container-type: inline-size;
+    z-index: 60;
+    width: min(22rem, calc(100vw - 1rem));
+    max-height: var(--radix-popover-content-available-height);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--popover);
+    color: var(--popover-foreground);
+    padding: clamp(8px, 3vw, 16px);
+    box-shadow:
+        0 4px 6px -1px rgb(0 0 0 / 10%),
+        0 2px 4px -2px rgb(0 0 0 / 10%);
+    font-size: 1rem;
+    font-weight: 400;
+}
+
+.title {
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    font-weight: 600;
+}
+
+.calendar {
+    --rdp-accent-color: var(--primary);
+    --rdp-accent-background-color: var(--accent);
+    --rdp-day_button-border-radius: var(--radius-sm);
+    --rdp-day-width: 100%;
+    --rdp-day-height: 2.75rem;
+    --rdp-day_button-width: 100%;
+    --rdp-day_button-height: 2.75rem;
+    --rdp-nav_button-height: 2.75rem;
+    --rdp-nav_button-width: 2.75rem;
+    --rdp-disabled-opacity: 0.45;
+    --rdp-today-color: var(--foreground);
+    width: 100%;
+    font-variant-numeric: tabular-nums;
+}
+
+.calendar :global(.rdp-months),
+.calendar :global(.rdp-month) {
+    width: 100%;
+    max-width: none;
+}
+
+.calendar :global(.rdp-month_grid) {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.calendar :global(.rdp-month_caption) {
+    padding-inline-end: 5.5rem;
+    min-height: 3rem;
+    font-size: 1rem;
+}
+
+.calendar :global(.rdp-weekday) {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    opacity: 1;
+}
+
+.calendar :global(.rdp-day_button) {
+    font-size: 0.875rem;
+}
+
+.calendar :global(.rdp-disabled) {
+    opacity: 1;
+}
+
+.calendar :global(.rdp-selected) :global(.rdp-day_button) {
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.calendar
+    :global(.rdp-today):not(:global(.rdp-selected))
+    :global(.rdp-day_button) {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+}
+
+.calendar button:hover:not(:disabled),
+.monthGrid button:hover:not(:disabled),
+.monthHeader button:hover:not(:disabled),
+.actions button:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--foreground);
+}
+
+.monthHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.monthHeader button,
+.monthGrid button,
+.actions button {
+    min-height: 2.75rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: inherit;
+    padding: 0.5rem 0.75rem;
+}
+
+.monthHeader button {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    padding: 8px;
+    flex-shrink: 0;
+}
+
+.monthGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.monthGrid button[aria-pressed='true'] {
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.popover button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.popover button:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 1px;
+}
+
+.actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+@container (max-width: 18rem) {
+    .calendar :global(.rdp-month_caption) {
+        padding-inline-end: 0;
+        height: auto;
+    }
+    .calendar :global(.rdp-caption_label) {
+        white-space: normal;
+    }
+    .calendar :global(.rdp-nav) {
+        position: static;
+        justify-content: space-between;
+        width: 100%;
+        height: auto;
+    }
+}
+
+@container (max-width: 12rem) {
+    .monthGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (forced-colors: active) {
+    .calendar :global(.rdp-selected) :global(.rdp-day_button),
+    .monthGrid button[aria-pressed='true'] {
+        outline: 2px solid Highlight;
+        outline-offset: -2px;
+    }
+}

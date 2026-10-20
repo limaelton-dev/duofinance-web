@@ -11,6 +11,7 @@
     border-bottom: 1px solid var(--border);
 }
 .headerContent {
+    container-type: inline-size;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
@@ -45,9 +46,10 @@
     bottom: calc(0.75rem + env(safe-area-inset-bottom));
     left: 50%;
     transform: translateX(-50%);
-    display: flex;
-    gap: 0.5rem;
-    width: min(22rem, calc(100% - 2.5rem));
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 3.75rem), 1fr));
+    gap: 0.25rem;
+    width: min(22rem, calc(100% - 1rem));
     padding: 0.5rem;
     border: 1px solid var(--border);
     border-radius: 1.5rem;
@@ -62,13 +64,13 @@
     gap: 0.25rem;
     min-width: 0;
     min-height: 3.25rem;
-    padding: 0.5rem 0.25rem;
+    padding: 0.5rem 0.125rem;
     border-radius: 1rem;
     color: var(--muted-foreground);
     text-decoration: none;
     font-size: 0.875rem;
     font-weight: 600;
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
     transition:
         background-color 150ms ease-out,
         color 150ms ease-out;
@@ -76,6 +78,9 @@
 .navLink:hover {
     background: var(--accent);
     color: var(--foreground);
+}
+.mobileNavigation .navLink:focus-visible {
+    outline-offset: 2px;
 }
 .navLink[aria-current='page'] {
     background: var(--primary);

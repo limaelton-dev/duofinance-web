@@ -12,7 +12,8 @@
         "format:check": "prettier --check .",
         "test:e2e": "playwright test",
         "test:unit": "playwright test -c playwright.unit.config.ts",
-        "test:interface": "playwright test -c playwright.interface.config.ts"
+        "test:interface": "playwright test -c playwright.interface.config.ts",
+        "test:controls": "playwright test -c playwright.controls.config.ts"
     },
     "dependencies": {
         "@fontsource-variable/manrope": "5.3.0",
@@ -25,6 +26,7 @@
         "postcss": "8.5.31",
         "radix-ui": "1.8.1",
         "react": "19.2.8",
+        "react-day-picker": "9.14.0",
         "react-dom": "19.2.8",
         "tailwind-merge": "3.7.0",
         "tailwindcss": "4.3.3"
