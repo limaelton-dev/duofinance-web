@@ -828,7 +828,12 @@ for (const width of [390, 1280])
         await page
             .getByRole('link', { name: 'Voltar ao espaço', exact: true })
             .click();
-        await page.getByRole('link', { name: 'Finanças', exact: true }).focus();
+        await expect(page).toHaveURL(`/spaces/${shared}`);
+        const financesLink = page
+            .getByRole('main')
+            .getByRole('link', { name: 'Finanças', exact: true });
+        await financesLink.focus();
+        await expect(financesLink).toBeFocused();
         await page.keyboard.press('Enter');
         await expect(page).toHaveURL(path());
         await expect(list(page).getByRole('listitem')).toHaveCount(2);
