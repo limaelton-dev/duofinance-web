@@ -15,7 +15,7 @@ import { useExpenseQuery } from '../hooks/use-expense-query';
 import { useFinancialCommand } from '../hooks/use-financial-command';
 import { useExpenseLeaveGuard } from '../hooks/use-expense-leave-guard';
 import { formatDate } from '../utils/expense-money';
-import { FinancialImpact } from './financial-integrity-page';
+import { FinancialImpact } from './financial-impact';
 import styles from './expenses.module.css';
 
 const statusLabels = {

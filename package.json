@@ -11,7 +11,7 @@
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "test:e2e": "playwright test",
-        "test:data": "playwright test -c playwright.data.config.ts",
+        "test:unit": "playwright test -c playwright.unit.config.ts",
         "test:interface": "playwright test -c playwright.interface.config.ts"
     },
     "dependencies": {
@@ -21,7 +21,7 @@
         "class-variance-authority": "0.7.1",
         "clsx": "2.1.1",
         "lucide-react": "1.59.0",
-        "next": "16.3.6",
+        "next": "16.3.8",
         "postcss": "8.5.31",
         "radix-ui": "1.8.1",
         "react": "19.2.8",
@@ -35,7 +35,7 @@
         "@types/react": "^19",
         "@types/react-dom": "^19",
         "eslint": "^9",
-        "eslint-config-next": "16.3.6",
+        "eslint-config-next": "16.3.8",
         "prettier": "3.9.9",
         "typescript": "^5"
     },

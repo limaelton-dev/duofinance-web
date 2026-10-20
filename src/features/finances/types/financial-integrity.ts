@@ -1,4 +1,5 @@
 import type { Member, Settlement, Split } from './shared-expense';
+import type { RecurringChangeImpact } from './recurring-commitment';
 
 export type Modality = 'ONE_TIME' | 'RECURRING' | 'INSTALLMENT';
 export type OriginModality = Modality | 'AUTO';
@@ -135,7 +136,7 @@ export type ChangeProposal = {
         direction?: string;
         amountInCents?: number;
     };
-    impact: IntegrityPreview;
+    impact: IntegrityPreview | RecurringChangeImpact;
 };
 export type IntegrityResult = IntegrityPreview & {
     proposal?: ChangeProposal;

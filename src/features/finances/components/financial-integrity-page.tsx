@@ -28,171 +28,18 @@ import type {
     IntegrityPreview,
     OriginModality,
 } from '../types/financial-integrity';
-import type { Member } from '../types/shared-expense';
 import {
     businessToday,
     decimalUnits,
     formatDate,
     formatMoney,
 } from '../utils/expense-money';
-import { formatReviewMoney } from '../utils/financial-review';
+import { FinancialImpact, financialFactLabels } from './financial-impact';
 import styles from './expenses.module.css';
-
-export const financialFactLabels = {
-    DISBURSEMENT: 'Pagamento',
-    RECEIPT: 'Recebimento',
-    EXTERNAL_LIABILITY: 'Obrigação no cartão',
-    EXTERNAL_SETTLEMENT: 'Liquidação do cartão',
-};
-
-export function FinancialImpact({
-    value,
-    members,
-    pendingApproval = true,
-}: {
-    value: IntegrityPreview;
-    members: Member[];
-    pendingApproval?: boolean;
-}) {
-    return (
-        <div className={styles.summary}>
-            <h2>Confira o efeito</h2>
-            {value.original && (
-                <div className={styles.receiptSection}>
-                    <h3>{financialFactLabels[value.original.kind]} original</h3>
-                    <p>
-                        {formatDate(value.original.factDate)} ·{' '}
-                        {formatMoney(value.original.amountInCents)}
-                    </p>
-                    <p>
-                        Disponível para reversão:{' '}
-                        {formatMoney(value.original.reversibleAmountInCents)}.
-                    </p>
-                </div>
-            )}
-            <dl>
-                {value.currentAmountInCents !== undefined && (
-                    <>
-                        <dt>Valor atual</dt>
-                        <dd>{formatReviewMoney(value.currentAmountInCents)}</dd>
-                    </>
-                )}
-                {value.amountInCents !== undefined &&
-                    value.amountInCents !== null && (
-                        <>
-                            <dt>Valor da operação</dt>
-                            <dd>{formatMoney(value.amountInCents)}</dd>
-                        </>
-                    )}
-                {value.proposedAmountInCents !== undefined && (
-                    <>
-                        <dt>Novo valor</dt>
-                        <dd>
-                            {formatReviewMoney(
-                                String(value.proposedAmountInCents),
-                            )}
-                        </dd>
-                    </>
-                )}
-                {value.resultingRemainingAmountInCents !== undefined &&
-                    value.resultingRemainingAmountInCents !== null && (
-                        <>
-                            <dt>Restante após a reversão</dt>
-                            <dd>
-                                {formatMoney(
-                                    value.resultingRemainingAmountInCents,
-                                )}
-                            </dd>
-                        </>
-                    )}
-                {value.proposedRemainingAmountInCents !== undefined && (
-                    <>
-                        <dt>Novo restante</dt>
-                        <dd>
-                            {formatMoney(value.proposedRemainingAmountInCents)}
-                        </dd>
-                    </>
-                )}
-                {value.cashImpactInCents !== undefined && (
-                    <>
-                        <dt>Efeito no caixa registrado</dt>
-                        <dd>{formatReviewMoney(value.cashImpactInCents)}</dd>
-                    </>
-                )}
-                {value.externalOutstandingImpactInCents !== undefined && (
-                    <>
-                        <dt>Variação da obrigação externa</dt>
-                        <dd>
-                            {formatReviewMoney(
-                                value.externalOutstandingImpactInCents,
-                            )}
-                        </dd>
-                    </>
-                )}
-            </dl>
-            {value.impactByMember?.map((row) => (
-                <div key={row.memberId} className={styles.receiptSection}>
-                    <h3>
-                        {members.find((m) => m.memberId === row.memberId)
-                            ?.displayName ?? 'Participante'}
-                    </h3>
-                    <dl>
-                        <dt>Antes</dt>
-                        <dd>{formatReviewMoney(row.currentAmountInCents)}</dd>
-                        <dt>Depois</dt>
-                        <dd>{formatReviewMoney(row.proposedAmountInCents)}</dd>
-                        <dt>Diferença</dt>
-                        <dd>{formatReviewMoney(row.deltaInCents)}</dd>
-                    </dl>
-                    {row.requiresAcceptance && pendingApproval && (
-                        <p>Depende do aceite desta pessoa.</p>
-                    )}
-                </div>
-            ))}
-            {value.targets?.length ? (
-                <section className={styles.receiptSection}>
-                    <h3>Registros incluídos: {value.targets.length}</h3>
-                    <ul>
-                        {value.targets.map((target, index) => (
-                            <li key={target.id}>
-                                <p>
-                                    {target.dueDate
-                                        ? `Vencimento: ${formatDate(target.dueDate)}`
-                                        : `Registro ${index + 1}`}
-                                </p>
-                                <p>
-                                    Antes: {formatMoney(target.amountInCents)}
-                                    {target.proposed
-                                        ? ` · Depois: ${formatMoney(target.proposed.amountInCents)}`
-                                        : ''}
-                                </p>
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-            ) : null}
-            {value.requiresAcceptance && pendingApproval && (
-                <p>
-                    A alteração ficará aguardando aprovação. A condição anterior
-                    permanece até o aceite.
-                </p>
-            )}
-            {value.eligible === false && (
-                <p role="alert">
-                    {value.requiresFullReversal
-                        ? 'Esta quitação global exige reversão integral. Informe o valor completo do pagamento original e revise novamente.'
-                        : value.reconciliation?.requiresOpenCycle
-                          ? 'Esta correção precisa de um acerto aberto. Escolha outro ciclo ou uma data de acerto e revise novamente. A composição do ciclo finalizado será preservada.'
-                          : 'Esta operação está bloqueada pelas condições atuais. Atualize o registro e confira as resoluções relacionadas antes de tentar novamente.'}
-                </p>
-            )}
-            <p className={styles.help}>
-                O aplicativo registra fatos externos. Nenhuma movimentação
-                bancária será feita.
-            </p>
-        </div>
-    );
-}
+import {
+    FinancialVersionHistory,
+    FinancialReversalHistory,
+} from './financial-history';
 
 export function FinancialIntegrityPage({
     spaceId,
@@ -1079,99 +926,13 @@ function IntegrityContent({
                     ) : null}
                 </>
             )}
-            <section className={styles.fields}>
-                <h2>Versões do compromisso</h2>
-                {versions.isPending && <p role="status">Carregando versões…</p>}
-                {versions.isError && (
-                    <p role="alert">
-                        Não foi possível consultar o histórico de versões.
-                    </p>
-                )}
-                {versions.data &&
-                    (
-                        versions.data.versions ??
-                        versions.data.commitment?.versions ??
-                        []
-                    ).map((v) => (
-                        <div key={v.version} className={styles.receiptSection}>
-                            <h3>
-                                Versão {v.version} ·{' '}
-                                {formatDate(v.effectiveFrom)}
-                            </h3>
-                            <p>
-                                {v.description}
-                                {v.amountInCents != null
-                                    ? ` · ${formatMoney(v.amountInCents)}`
-                                    : ''}
-                            </p>
-                        </div>
-                    ))}
-                {versions.data &&
-                    !(
-                        versions.data.versions ??
-                        versions.data.commitment?.versions ??
-                        []
-                    ).length && (
-                        <p className={styles.help}>
-                            Nenhuma alteração de versão neste registro.
-                        </p>
-                    )}
-            </section>
-            <section className={styles.fields}>
-                <h2>Reversões registradas</h2>
-                {reversals.isPending && (
-                    <p role="status">Carregando reversões…</p>
-                )}
-                {reversals.isError && (
-                    <p role="alert">
-                        Não foi possível consultar as reversões. Atualize o
-                        registro.
-                    </p>
-                )}
-                {reversals.data?.items.map((r) => (
-                    <div key={r.id} className={styles.receiptSection}>
-                        <h3>
-                            {financialFactLabels[r.originalKind]} ·{' '}
-                            {formatMoney(r.amountInCents)}
-                        </h3>
-                        <p>
-                            {formatDate(r.factDate)} · {r.reason}
-                        </p>
-                        <details className={styles.details}>
-                            <summary>Origem e autoria</summary>
-                            <p>Fato original: {r.originalId}</p>
-                            <p>Registrado por: {r.actorId}</p>
-                        </details>
-                    </div>
-                ))}
-                {reversals.data?.items.length === 0 && (
-                    <p className={styles.help}>
-                        Nenhuma reversão registrada nesta página.
-                    </p>
-                )}
-                <div className={styles.actions}>
-                    {reversals.data?.nextCursor && (
-                        <Button
-                            variant="outline"
-                            disabled={busy}
-                            onClick={() =>
-                                setCursor(reversals.data!.nextCursor)
-                            }
-                        >
-                            Próxima página de reversões
-                        </Button>
-                    )}
-                    {cursor && (
-                        <Button
-                            variant="ghost"
-                            disabled={busy}
-                            onClick={() => setCursor(null)}
-                        >
-                            Voltar ao início
-                        </Button>
-                    )}
-                </div>
-            </section>
+            <FinancialVersionHistory versions={versions} />
+            <FinancialReversalHistory
+                reversals={reversals}
+                cursor={cursor}
+                busy={busy}
+                onPageChange={setCursor}
+            />
         </section>
     );
 }

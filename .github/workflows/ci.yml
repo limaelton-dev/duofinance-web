@@ -2,22 +2,15 @@ name: Web CI
 
 on:
     push:
-        branches:
-            - main
+        branches: [main]
     pull_request:
-        branches:
-            - main
+        branches: [main]
     workflow_dispatch:
         inputs:
             api_sha:
                 description: Commit completo da API para os testes integrados
                 required: false
                 type: string
-            full_e2e:
-                description: Executar todos os cards, waves e testes de dados
-                required: false
-                type: boolean
-                default: false
 
 permissions:
     contents: read
@@ -27,196 +20,136 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    checks:
-        name: Web checks
+    quality:
+        name: Qualidade do código
         runs-on: ubuntu-24.04
         timeout-minutes: 15
-
-        env:
-            NEXT_PUBLIC_API_URL: http://localhost:3001/v2
-
         steps:
-            - name: Obter o código
-              uses: actions/checkout@v7
+            - uses: actions/checkout@v7
               with:
                   persist-credentials: false
-
-            - name: Preparar Node
-              uses: actions/setup-node@v7
+            - uses: actions/setup-node@v7
               with:
                   node-version-file: .nvmrc
                   cache: npm
+            - run: npm ci
+            - run: npm run lint
+            - run: npm run format:check
+            - run: npm run typecheck
+            - run: npm audit --omit=dev --audit-level=high
 
-            - name: Instalar dependências
-              run: npm ci
-
-            - name: Lint
-              run: npm run lint
-
-            - name: Formatação
-              run: npm run format:check
-
-            - name: Tipos
-              run: npm run typecheck
-
-            - name: Build
-              run: npm run build
+    unit:
+        name: Testes unitários
+        runs-on: ubuntu-24.04
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+            - uses: actions/setup-node@v7
+              with:
+                  node-version-file: .nvmrc
+                  cache: npm
+            - run: npm ci
+            - run: npm run test:unit
 
     interface:
         name: Interface mobile e desktop
         runs-on: ubuntu-24.04
         timeout-minutes: 15
         steps:
-            - name: Obter o código
-              uses: actions/checkout@v7
+            - uses: actions/checkout@v7
               with:
                   persist-credentials: false
-            - name: Preparar Node
-              uses: actions/setup-node@v7
+            - uses: actions/setup-node@v7
               with:
                   node-version-file: .nvmrc
                   cache: npm
-            - name: Instalar dependências
-              run: npm ci
-            - name: Preparar Chromium
-              run: npx playwright install --with-deps chromium
-            - name: Verificar interface e acessibilidade
-              run: npm run test:interface
-
-    select_e2e:
-        name: Selecionar suítes Playwright
-        runs-on: ubuntu-24.04
-        timeout-minutes: 5
-        outputs:
-            suites: ${{ steps.select.outputs.suites }}
-
-        steps:
-            - name: Obter o código e histórico
-              uses: actions/checkout@v7
-              with:
-                  fetch-depth: 0
-                  persist-credentials: false
-
-            - name: Selecionar cards alterados ou o mais recente
-              id: select
-              env:
-                  EVENT_NAME: ${{ github.event_name }}
-                  BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
-                  HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
-                  FULL_E2E: ${{ inputs.full_e2e || false }}
-              run: |
-                  selected=()
-                  if [[ "$FULL_E2E" == "true" ]]; then
-                      mapfile -t selected < <(find e2e -maxdepth 1 -type f -name 'card-[0-9][0-9][0-9].spec.ts' -printf '%f\n' | sort -V)
-                      mapfile -t waves < <(find e2e -maxdepth 1 -type f -name 'wave[0-9]*.spec.ts' ! -name '*-interface.spec.ts' ! -name '*-data.spec.ts' -printf '%f\n' | sort -V)
-                      selected+=("${waves[@]}")
-                      selected+=('.*-data.spec.ts')
-                  elif [[ "$EVENT_NAME" == "pull_request" ]]; then
-                      if git diff --name-only "${BASE_SHA}...${HEAD_SHA}" -- src/app src/components src/features src/lib/api e2e/support | grep -q .; then
-                          for suite in e2e/card-[0-9][0-9][0-9].spec.ts; do
-                              selected+=("${suite#e2e/}")
-                          done
-                          for suite in e2e/wave[0-9]*.spec.ts; do
-                              case "$suite" in *-interface.spec.ts|*-data.spec.ts) continue ;; esac
-                              if [[ -f "$suite" ]]; then selected+=("${suite#e2e/}"); fi
-                          done
-                          selected+=('.*-data.spec.ts')
-                      fi
-                      mapfile -t changed < <(git diff --name-only "${BASE_SHA}...${HEAD_SHA}" -- e2e | sed -nE 's#^e2e/(card-[0-9]{3}\.spec\.ts|wave[0-9]+(-[A-Za-z0-9_-]+)?\.spec\.ts|[A-Za-z0-9_-]+-data\.spec\.ts)$#\1#p' | sort -u)
-                      for suite in "${changed[@]}"; do
-                          case "$suite" in *-interface.spec.ts) continue ;; esac
-                          if [[ -f "e2e/$suite" ]]; then
-                              selected+=("$suite")
-                          fi
-                      done
-                  fi
-                  if (( ${#selected[@]} == 0 )); then
-                      latest="$(find e2e -maxdepth 1 -type f -name 'card-[0-9][0-9][0-9].spec.ts' -printf '%f\n' | sort -V | tail -n 1)"
-                      test -n "$latest"
-                      selected=("$latest")
-                  fi
-                  mapfile -t selected < <(printf '%s\n' "${selected[@]}" | sort -u)
-                  suites='['
-                  for suite in "${selected[@]}"; do
-                      if [[ "$suites" != '[' ]]; then suites+=','; fi
-                      suites+="\"$suite\""
-                  done
-                  suites+=']'
-                  echo "suites=$suites" >> "$GITHUB_OUTPUT"
-                  echo "Suítes selecionadas: $suites"
+            - run: npm ci
+            - run: npx playwright install --with-deps chromium
+            - run: npm run test:interface
 
     e2e:
-        name: Playwright (${{ matrix.suite }})
-        needs: [checks, select_e2e]
+        name: Jornadas com API (${{ matrix.group }})
+        needs: quality
         runs-on: ubuntu-24.04
-        timeout-minutes: 25
-
+        timeout-minutes: 35
         strategy:
             fail-fast: false
             max-parallel: 3
             matrix:
-                suite: ${{ fromJSON(needs.select_e2e.outputs.suites) }}
-
+                group: [0, 1, 2]
         env:
             API_SHA: ${{ inputs.api_sha || 'd73c388e49ba972c526073b4533ac379a7be5049' }}
-
+            E2E_PREBUILT: '1'
         defaults:
             run:
                 working-directory: prospera-mais-web
-
         steps:
             - name: Obter Web
               uses: actions/checkout@v7
               with:
                   path: prospera-mais-web
                   persist-credentials: false
-
             - name: Validar referência imutável da API
               run: test "${#API_SHA}" -eq 40 && [[ "$API_SHA" =~ ^[0-9a-f]{40}$ ]]
-
-            - name: Obter API no commit definido
+            - name: Obter API
               uses: actions/checkout@v7
               with:
                   repository: limaelton-dev/prospera_mais_api
                   ref: ${{ env.API_SHA }}
                   path: prospera-mais-api
                   persist-credentials: false
-
-            - name: Conferir par API e Web
-              run: |
-                  test "$(git -C ../prospera-mais-api rev-parse HEAD)" = "$API_SHA"
-                  git -C ../prospera-mais-api rev-parse HEAD
-                  git rev-parse HEAD
-
-            - name: Preparar Node
-              uses: actions/setup-node@v7
+            - name: Conferir versão da API
+              run: test "$(git -C ../prospera-mais-api rev-parse HEAD)" = "$API_SHA"
+            - uses: actions/setup-node@v7
               with:
                   node-version-file: prospera-mais-web/.nvmrc
                   cache: npm
                   cache-dependency-path: |
                       prospera-mais-web/package-lock.json
                       prospera-mais-api/package-lock.json
-
-            - name: Instalar dependências Web
+            - name: Instalar Web
               run: npm ci
-
-            - name: Instalar dependências API
+            - name: Instalar e compilar API
               working-directory: prospera-mais-api
-              run: npm ci
-
-            - name: Preparar Chromium
-              run: npx playwright install --with-deps chromium
-
+              run: npm ci && npm run build
+            - name: Compilar Web para as jornadas
+              env:
+                  NEXT_PUBLIC_API_URL: http://localhost:3101/v2
+                  NEXT_DIST_DIR: .next-e2e
+              run: npm run build
+            - run: npx playwright install --with-deps chromium
             - name: Iniciar PostgreSQL descartável
               working-directory: prospera-mais-api
               run: docker compose -f compose.test.yaml up -d --wait
-
-            - name: Jornada automatizada
+            - name: Executar todas as jornadas, com API isolada por suíte
               env:
-                  E2E_SUITE: ${{ matrix.suite }}
-              run: npm run test:e2e -- "$E2E_SUITE"
-
+                  GROUP: ${{ matrix.group }}
+              run: |
+                  mapfile -t suites < <(find tests/e2e -type f -name '*.spec.ts' | LC_ALL=C sort)
+                  test "${#suites[@]}" -gt 0
+                  result=0
+                  for index in "${!suites[@]}"; do
+                      if (( index % 3 != GROUP )); then continue; fi
+                      npm run test:e2e -- "${suites[$index]}" || result=1
+                  done
+                  exit "$result"
             - name: Encerrar PostgreSQL descartável
               if: always()
               working-directory: prospera-mais-api
               run: docker compose -f compose.test.yaml down
+
+    checks:
+        # This exact name is already required by the main branch ruleset.
+        name: Web checks
+        if: always()
+        needs: [quality, unit, interface, e2e]
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        steps:
+            - name: Exigir aprovação de todas as verificações
+              env:
+                  RESULTS: ${{ toJSON(needs) }}
+              run: |
+                  node -e 'const jobs = JSON.parse(process.env.RESULTS); for (const [name, job] of Object.entries(jobs)) { console.log(`${name}: ${job.result}`); } process.exit(Object.values(jobs).every(job => job.result === "success") ? 0 : 1);'

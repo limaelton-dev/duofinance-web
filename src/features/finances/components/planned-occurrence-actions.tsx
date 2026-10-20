@@ -142,10 +142,10 @@ export function PlannedOccurrenceActions({
         occurrence &&
         ['FULFILLED', 'CANCELLED', 'PAID_OFF'].includes(occurrence.status)
             ? 'SETTLE'
-            : income && action === 'DISBURSEMENT'
-              ? 'RECEIPT'
-              : valuePending && action !== 'CANCEL'
-                ? 'VALUE'
+            : valuePending && action !== 'CANCEL'
+              ? 'VALUE'
+              : income && action === 'DISBURSEMENT'
+                ? 'RECEIPT'
                 : action;
     const facts = occurrence?.facts ?? [],
         validFacts =

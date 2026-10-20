@@ -1,12 +1,12 @@
-import { resolve } from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
+import { apiDirectory, testDatabaseUrl } from './tests/support/environment';
 
 const webUrl = 'http://localhost:3100';
 const apiUrl = 'http://localhost:3101/v2';
+const prebuilt = process.env.E2E_PREBUILT === '1';
 
 export default defineConfig({
-    testDir: './e2e',
-    testIgnore: ['interface.spec.ts', '*-interface.spec.ts'],
+    testDir: './tests/e2e',
     fullyParallel: false,
     forbidOnly: true,
     retries: 0,
@@ -32,25 +32,26 @@ export default defineConfig({
     ],
     webServer: [
         {
-            command:
-                'npm run build && npm run migration:run && npm run start:prod',
-            cwd: resolve(__dirname, '../prospera-mais-api'),
+            command: prebuilt
+                ? 'npm run migration:run && npm run start:prod'
+                : 'npm run build && npm run migration:run && npm run start:prod',
+            cwd: apiDirectory,
             url: `${apiUrl}/auth/me`,
             reuseExistingServer: false,
             timeout: 180_000,
             env: {
                 NODE_ENV: 'test',
                 PORT: '3101',
-                DATABASE_URL:
-                    'postgresql://test:test@127.0.0.1:55432/prospera_mais_test',
+                DATABASE_URL: testDatabaseUrl,
                 WEB_ORIGIN: webUrl,
-                CSRF_SECRET: 'csrf-secret-exclusivo-dos-testes-card-001',
+                CSRF_SECRET: 'csrf-secret-exclusivo-dos-testes-web',
                 SESSION_TTL_SECONDS: '604800',
             },
         },
         {
-            command:
-                'npm run build && npm run start -- --hostname localhost --port 3100',
+            command: prebuilt
+                ? 'npm run start -- --hostname localhost --port 3100'
+                : 'npm run build && npm run start -- --hostname localhost --port 3100',
             url: `${webUrl}/login`,
             reuseExistingServer: false,
             timeout: 180_000,
