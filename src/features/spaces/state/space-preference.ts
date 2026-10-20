@@ -1,5 +1,8 @@
-const prefix = 'duofinance:space-context:v1:';
-const legacyPrefix = 'prospera-mais:space-context:v1:';
+const prefix = 'junelo:space-context:v1:';
+const legacyPrefixes = [
+    'duofinance:space-context:v1:',
+    'prospera-mais:space-context:v1:',
+];
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function spacePreferenceKey(personId: string): string {
@@ -18,13 +21,17 @@ export const spacePreference = {
             );
             if (current !== null) return isSpaceId(current) ? current : null;
 
-            const legacy = window.sessionStorage.getItem(
-                legacyPrefix + personId,
-            );
-            if (legacy === null || !isSpaceId(legacy)) return null;
-            // Keep the selected space usable even when storage rejects migration.
-            spacePreference.write(personId, legacy);
-            return legacy;
+            for (const legacyPrefix of legacyPrefixes) {
+                const legacy = window.sessionStorage.getItem(
+                    legacyPrefix + personId,
+                );
+                if (legacy === null) continue;
+                if (!isSpaceId(legacy)) return null;
+                // Keep the selected space usable even when storage rejects migration.
+                spacePreference.write(personId, legacy);
+                return legacy;
+            }
+            return null;
         } catch {
             return null;
         }
@@ -36,15 +43,22 @@ export const spacePreference = {
                 spacePreferenceKey(personId),
                 spaceId,
             );
-            window.sessionStorage.removeItem(legacyPrefix + personId);
         } catch {
             // Selection remains usable in memory when storage is unavailable.
+            return;
+        }
+        for (const legacyPrefix of legacyPrefixes) {
+            try {
+                window.sessionStorage.removeItem(legacyPrefix + personId);
+            } catch {
+                // Attempt cleanup of each legacy key independently.
+            }
         }
     },
     clear(personId: string): void {
         for (const key of [
             spacePreferenceKey(personId),
-            legacyPrefix + personId,
+            ...legacyPrefixes.map((legacyPrefix) => legacyPrefix + personId),
         ]) {
             try {
                 window.sessionStorage.removeItem(key);

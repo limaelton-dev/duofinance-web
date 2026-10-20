@@ -110,7 +110,7 @@ async function dbQuery(sql: string, params: string[] = []) {
         expect(
             (await db.query('SELECT current_database() AS database')).rows[0]
                 .database,
-        ).toBe('duofinance_test');
+        ).toBe('junelo_test');
         return await db.query(sql, params);
     } finally {
         await db.end();

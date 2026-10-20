@@ -103,10 +103,7 @@ async function open(
     );
     await page.addInitScript(
         ({ id, spaceId }) =>
-            sessionStorage.setItem(
-                `duofinance:space-context:v1:${id}`,
-                spaceId,
-            ),
+            sessionStorage.setItem(`junelo:space-context:v1:${id}`, spaceId),
         { id: who.id, spaceId },
     );
     await page.goto(`/spaces/${spaceId}/finances/settlements${path}`);
