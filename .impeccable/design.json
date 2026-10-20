@@ -1,7 +1,7 @@
 {
     "schemaVersion": 2,
     "generatedAt": "2026-10-19T19:21:27Z",
-    "title": "Design System: Prospera Mais",
+    "title": "Design System: DuoFinance",
     "extensions": {
         "colorMeta": {
             "primary": {
@@ -464,7 +464,7 @@
     ],
     "narrative": {
         "northStar": "Clareza em preto e branco",
-        "overview": "O Prospera Mais usa contraste, espaço e texto para tornar a organização financeira compreensível. A composição é sóbria e próxima: fundo claro, superfícies brancas, Manrope e ação principal preta. A densidade permite ler contexto, valor e consequência sem depender de ornamentação.\n\nA materialidade combina conteúdo opaco e navegação com vidro branco discreto. Bordas finas organizam listas e resumos; profundidade identifica elementos sobrepostos. O contexto pessoal ou compartilhado permanece reconhecível, e os estados são nomeados em texto, respeitando os compromissos de clareza e autonomia de PRODUCT.md.\n\nEste registro foi extraído do código final em 19/10/2026. Fontes: tokens globais, primitivas de interface e estilos de acesso, navegação, seleção de espaço, Hoje, Finanças e despesas. O contrato de superfície orienta o recorte; valores e comportamentos abaixo descrevem a implementação. As capturas locais consultadas contêm dados sintéticos.",
+        "overview": "O DuoFinance usa contraste, espaço e texto para tornar a organização financeira compreensível. A composição é sóbria e próxima: fundo claro, superfícies brancas, Manrope e ação principal preta. A densidade permite ler contexto, valor e consequência sem depender de ornamentação.\n\nA materialidade combina conteúdo opaco e navegação com vidro branco discreto. Bordas finas organizam listas e resumos; profundidade identifica elementos sobrepostos. O contexto pessoal ou compartilhado permanece reconhecível, e os estados são nomeados em texto, respeitando os compromissos de clareza e autonomia de PRODUCT.md.\n\nEste registro foi extraído do código final em 19/10/2026. Fontes: tokens globais, primitivas de interface e estilos de acesso, navegação, seleção de espaço, Hoje, Finanças e despesas. O contrato de superfície orienta o recorte; valores e comportamentos abaixo descrevem a implementação. As capturas locais consultadas contêm dados sintéticos.",
         "keyCharacteristics": [
             "Monocromia como identidade; cor reservada ao significado de estados.",
             "Uma família tipográfica, com contraste de tamanho e peso.",

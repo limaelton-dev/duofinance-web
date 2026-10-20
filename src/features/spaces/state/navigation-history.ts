@@ -1,4 +1,5 @@
-const historyIndex = '__prosperaHistoryIndex';
+const historyIndex = '__duofinanceHistoryIndex';
+const legacyHistoryIndex = '__prosperaHistoryIndex';
 let initialized = false;
 const guards = new Set<() => boolean>();
 export function registerTraversalGuard(value: () => boolean): () => void {
@@ -8,7 +9,10 @@ export function registerTraversalGuard(value: () => boolean): () => void {
     };
 }
 export function currentHistoryIndex(): number | null {
-    const value = window.history.state?.[historyIndex];
+    // Entries created before the rename remain reachable through Back/Forward.
+    const value =
+        window.history.state?.[historyIndex] ??
+        window.history.state?.[legacyHistoryIndex];
     return typeof value === 'number' ? value : null;
 }
 export function trackNavigationHistory(): void {

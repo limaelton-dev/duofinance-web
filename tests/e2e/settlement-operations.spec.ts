@@ -104,7 +104,7 @@ async function open(
     await page.addInitScript(
         ({ id, spaceId }) =>
             sessionStorage.setItem(
-                `prospera-mais:space-context:v1:${id}`,
+                `duofinance:space-context:v1:${id}`,
                 spaceId,
             ),
         { id: who.id, spaceId },

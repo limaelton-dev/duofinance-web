@@ -18,7 +18,7 @@ const setupApiUrl = 'http://127.0.0.1:3101/v2';
 const webOrigin = 'http://localhost:3100';
 const password = 'uma-senha-forte-de-testes';
 const preferenceKey = (personId: string) =>
-    `prospera-mais:space-context:v1:${personId}`;
+    `duofinance:space-context:v1:${personId}`;
 
 type Account = {
     email: string;
@@ -494,7 +494,7 @@ test('A11/A16: membership retirada no PostgreSQL de teste produz fallback pessoa
         expect(
             (await db.query('SELECT current_database() AS database')).rows[0]
                 .database,
-        ).toBe('prospera_mais_test');
+        ).toBe('duofinance_test');
         const removed = await db.query(
             'DELETE FROM space_members WHERE space_id = $1 AND person_id = $2',
             [space.id, b.personId],

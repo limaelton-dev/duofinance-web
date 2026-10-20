@@ -1,6 +1,6 @@
-# Prospera Mais — Web
+# DuoFinance — Web
 
-Aplicação Web em Next.js, com foco em celulares. API REST e regras de negócio têm repositório próprio.
+Aplicação Web em Next.js, com foco em celulares. Repositórios: [Web](https://github.com/limaelton-dev/duofinance-web) e [API](https://github.com/limaelton-dev/duofinance-api). API REST e regras de negócio têm repositório próprio.
 
 ## Documentação oficial
 
@@ -10,7 +10,7 @@ Aplicação Web em Next.js, com foco em celulares. API REST e regras de negócio
 
 Os links pressupõem o workspace com API, Web e `Docs` lado a lado. Neste ambiente, a documentação é acessível em `C:\Projs\ProsperaMais\Docs`, vinculada à pasta oficial do Drive. Em checkout isolado, consultar essa fonte; não criar cópia concorrente.
 
-Em 19/10/2026, Elton confirmou **Prospera Mais**, escolheu a direção **preto e branco** e pediu inspiração no vidro do iPhone. O público principal é uma dupla que compartilha despesas e rotina, com espaço pessoal separado. A interface de acesso, espaços, Hoje, Finanças, Rotina, Compras e encerramento aplica essa direção, com vidro restrito à navegação e alternativa opaca.
+Em 20/10/2026, Elton definiu o nome **DuoFinance**. A direção **preto e branco** e a inspiração no vidro do iPhone foram escolhidas em 19/10/2026. O público principal é uma dupla que compartilha despesas e rotina, com espaço pessoal separado. A interface de acesso, espaços, Hoje, Finanças, Rotina, Compras e encerramento aplica essa direção, com vidro restrito à navegação e alternativa opaca.
 
 O [PRODUCT.md](PRODUCT.md) registra o briefing para o Impeccable. O [DESIGN.md](DESIGN.md) documenta os tokens e componentes implementados, com extensão em [.impeccable/design.json](.impeccable/design.json). Tailwind CSS 4, primitivas shadcn/ui sobre Radix, Manrope local e CSS Modules sustentam a interface. A lógica de sessão, contexto, comandos financeiros e consultas continua na arquitetura existente. Cards e critérios oficiais permanecem válidos.
 
@@ -66,9 +66,13 @@ Os testes têm nomes de comportamento e estão separados pelo ambiente necessár
 
 `npm run lint`, `npm run format:check`, `npm run typecheck` e `npm run build` verificam o projeto. Interface e integração usam `.next-interface` e `.next-e2e`, preservando o servidor de desenvolvimento padrão. Capturas, vídeo e traces ficam desabilitados porque os fluxos de convite manipulam segredos.
 
-Para a integração, a API deve estar no diretório irmão `prospera-mais-api`; inicie seu `compose.test.yaml` antes. O runner usa portas 3100/3101 e banco de teste na porta 55432. Cada suíte inicia um processo novo da API para preservar seus limites reais de cadastro e autenticação. Não desabilite essas proteções para fazer os testes passarem.
+Para a integração, a API deve estar no diretório irmão `duofinance-api`; inicie seu `compose.test.yaml` antes. O runner usa portas 3100/3101 e banco de teste na porta 55432. Cada suíte inicia um processo novo da API para preservar seus limites reais de cadastro e autenticação. Não desabilite essas proteções para fazer os testes passarem.
 
-Para validar sem disputar o ambiente de outro trabalho, `E2E_API_DIR` permite indicar uma cópia da API e `E2E_DATABASE_URL` permite outra porta local. A conexão é compartilhada pelo servidor e pelas fixtures; o runner exige o banco `prospera_mais_test` em localhost.
+Para validar sem disputar o ambiente de outro trabalho, `E2E_API_DIR` permite indicar uma cópia da API e `E2E_DATABASE_URL` permite outra porta local. A conexão é compartilhada pelo servidor e pelas fixtures; o runner exige o banco `duofinance_test` em localhost.
+
+Checkouts existentes podem manter os diretórios locais anteriores. Nesse caso, defina `E2E_API_DIR` com o caminho absoluto da API (por exemplo, no PowerShell: `$env:E2E_API_DIR = 'C:\Projs\ProsperaMais\prospera-mais-api'`). O diretório de documentação acima também conserva o caminho existente. Antes de iniciar o novo Compose, encerre qualquer PostgreSQL de testes anterior que ocupe a porta 55432. A troca do nome do banco se aplica somente ao ambiente descartável de testes; a conexão configurada de desenvolvimento ou produção não é renomeada.
+
+A atualização migra a preferência de espaço armazenada na sessão do navegador para o prefixo `duofinance`, preservando a seleção anterior por pessoa. A seleção continua sendo revalidada pela API antes do uso. Logout limpa as chaves nova e anterior; entradas anteriores do histórico de navegação continuam protegidas pelos avisos de saída de formulário.
 
 A CI executa unitários uma única vez, sem instalar Chromium ou subir banco nesse job. Todas as jornadas são distribuídas em três grupos, independentemente do nome do arquivo ou dos caminhos alterados. Cada grupo instala e compila Web e API uma vez; `E2E_PREBUILT=1` reaproveita essas compilações, mas mantém os processos da API isolados por suíte. Uma falha não impede a execução das demais suítes do grupo.
 
