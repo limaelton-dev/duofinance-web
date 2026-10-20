@@ -1,4 +1,5 @@
 import type { Member, Settlement, Split } from './shared-expense';
+import type { RecurringChangeImpact } from './recurring-commitment';
 
 export type Modality = 'ONE_TIME' | 'RECURRING' | 'INSTALLMENT';
 export type OriginModality = Modality | 'AUTO';
@@ -58,33 +59,6 @@ export type MemberImpact = {
     proposedAmountInCents: string;
     deltaInCents: string;
     requiresAcceptance: boolean;
-};
-export type RecurringMemberImpact = {
-    memberId: string;
-    currentFixedAmountInCents: string;
-    proposedFixedAmountInCents: string;
-    fixedDeltaInCents: string;
-    currentVariableWeight: number;
-    proposedVariableWeight: number;
-    variableWeightDelta: number;
-    currentOccurrenceCount: number;
-    proposedOccurrenceCount: number;
-    requiresAcceptance: boolean;
-};
-export type RecurringChangeImpact = {
-    effectiveFrom: string;
-    assessmentThrough: string;
-    currentVersion: number;
-    proposedVersion: number;
-    currentOccurrences: string[];
-    proposedOccurrences: string[];
-    impactByMember: RecurringMemberImpact[];
-    requiresAcceptance: boolean;
-    materializedOccurrencesPreserved: {
-        referenceDate: string;
-        status: 'PENDING' | 'PARTIALLY_FULFILLED' | 'FULFILLED' | 'CANCELLED';
-        economicVersion: number;
-    }[];
 };
 export type IntegrityPreview = {
     requiresFullReversal?: boolean;

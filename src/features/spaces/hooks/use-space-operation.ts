@@ -196,8 +196,6 @@ export function useSpaceOperation<Input, Result>(
                     } | null;
                     const invalid =
                         details?.fields?.map((field) => field.field) ?? [];
-                    setFields(invalid);
-                    handlers.current.onFieldError?.(invalid);
                     if (failure.code === 'SPACE_NOT_FOUND') {
                         if (handlers.current.onAccessLost)
                             handlers.current.onAccessLost();
@@ -211,6 +209,12 @@ export function useSpaceOperation<Input, Result>(
                                     'Não foi possível atualizar a consulta. Atualize e revise antes de confirmar novamente.',
                                 );
                         }
+                    }
+                    // Publish field errors with the final pending=false update,
+                    // so focus effects run after disabled controls are unlocked.
+                    if (current(value)) {
+                        handlers.current.onFieldError?.(invalid);
+                        setFields(invalid);
                     }
                 }
             }

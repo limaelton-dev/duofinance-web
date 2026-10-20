@@ -124,17 +124,36 @@ test('real: future expense remains pending until a later explicit payment', asyn
     await page
         .getByRole('button', { name: 'Revisar pagamento', exact: true })
         .click();
+    const paymentResponse = page.waitForResponse(
+        (response) =>
+            response.request().method() === 'POST' &&
+            new URL(response.url()).pathname ===
+                `/v2/spaces/${spaceId}/financial-commitments/${id}/disbursements`,
+    );
     await page
         .getByRole('button', { name: 'Confirmar pagamento', exact: true })
         .click();
+    expect((await paymentResponse).status()).toBe(201);
+    // Full payment removes the payment form; assert the authoritative summary.
     await expect(
-        page.getByText('Pagamento registrado.', { exact: true }),
-    ).toBeVisible();
+        page
+            .getByRole('term')
+            .filter({ hasText: /^Pago diretamente$/ })
+            .locator('xpath=following-sibling::dd[1]'),
+    ).toHaveText('R$ 200,00');
+    await expect(
+        page
+            .getByRole('term')
+            .filter({ hasText: /^Ainda não realizado$/ })
+            .locator('xpath=following-sibling::dd[1]'),
+    ).toHaveText('R$ 0,00');
     const after = await (
         await request.get(
             `${apiUrl}/spaces/${spaceId}/financial-commitments/${id}`,
         )
     ).json();
+    expect(after.commitment.amountInCents).toBe(20000);
+    expect(after.paidAmountInCents).toBe(20000);
     expect(after.remainingAmountInCents).toBe(0);
     expect(after.disbursements).toHaveLength(1);
     expect(after.disbursements[0].amountInCents).toBe(20000);

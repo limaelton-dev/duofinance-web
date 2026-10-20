@@ -647,7 +647,7 @@ test('A09: 21 real origins preserve timestamp ties, replacement pages and full t
     await list(page).getByRole('link').click();
     await expect(detailList(page).getByRole('listitem')).toHaveCount(20);
     const first = await detailList(page)
-        .getByRole('link')
+        .getByRole('link', { name: /^Ver despesa:/ })
         .evaluateAll((links) => links.map((link) => link.getAttribute('href')));
     await page
         .getByRole('button', {
@@ -656,7 +656,9 @@ test('A09: 21 real origins preserve timestamp ties, replacement pages and full t
         })
         .click();
     await expect(detailList(page).getByRole('listitem')).toHaveCount(1);
-    const last = await detailList(page).getByRole('link').getAttribute('href');
+    const last = await detailList(page)
+        .getByRole('link', { name: /^Ver despesa:/ })
+        .getAttribute('href');
     expect(new Set([...first, last]).size).toBe(21);
     expect(
         [...first, last]
@@ -1292,6 +1294,13 @@ for (const width of [390, 1280])
                 () => document.documentElement.scrollWidth <= window.innerWidth,
             ),
         ).toBe(true);
+        await page.keyboard.press('Tab');
+        await expect(
+            list(page).getByRole('checkbox', {
+                name: 'Selecionar acerto de 10/11/2099',
+                exact: true,
+            }),
+        ).toBeFocused();
         await page.keyboard.press('Tab');
         await expect(list(page).getByRole('link')).toBeFocused();
         await page.keyboard.press('Enter');

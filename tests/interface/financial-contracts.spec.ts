@@ -1,5 +1,5 @@
 import { expect, test, type Page, type Request } from '@playwright/test';
-import type { RecurringChangeImpact } from '../../src/features/finances/types/financial-integrity';
+import type { RecurringChangeImpact } from '../../src/features/finances/types/recurring-commitment';
 
 const personId = '10000000-0000-4000-8000-000000000001';
 const spaceId = '20000000-0000-4000-8000-000000000001';

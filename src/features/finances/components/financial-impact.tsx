@@ -1,7 +1,5 @@
-import type {
-    IntegrityPreview,
-    RecurringChangeImpact,
-} from '../types/financial-integrity';
+import type { IntegrityPreview } from '../types/financial-integrity';
+import type { RecurringChangeImpact } from '../types/recurring-commitment';
 import type { Member } from '../types/shared-expense';
 import { formatDate, formatMoney } from '../utils/expense-money';
 import { formatReviewMoney } from '../utils/financial-review';

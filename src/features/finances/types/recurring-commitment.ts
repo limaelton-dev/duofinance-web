@@ -155,9 +155,19 @@ export type OccurrenceFulfillmentInput = OccurrenceVersionInput & {
     holderMemberId?: string;
     settlement?: Settlement;
 };
-export type RecurringChangePreview = {
-    spaceId: string;
-    commitmentId: string;
+export type RecurringMemberImpact = {
+    memberId: string;
+    currentFixedAmountInCents: string;
+    proposedFixedAmountInCents: string;
+    fixedDeltaInCents: string;
+    currentVariableWeight: number;
+    proposedVariableWeight: number;
+    variableWeightDelta: number;
+    currentOccurrenceCount: number;
+    proposedOccurrenceCount: number;
+    requiresAcceptance: boolean;
+};
+export type RecurringChangeImpact = {
     effectiveFrom: string;
     assessmentThrough: string;
     currentVersion: number;
@@ -165,16 +175,16 @@ export type RecurringChangePreview = {
     requiresAcceptance: boolean;
     currentOccurrences: string[];
     proposedOccurrences: string[];
-    impactByMember: {
-        memberId: string;
-        currentFixedAmountInCents: string;
-        proposedFixedAmountInCents: string;
-        fixedDeltaInCents: string;
-        currentVariableWeight: number;
-        proposedVariableWeight: number;
-        requiresAcceptance: boolean;
+    impactByMember: RecurringMemberImpact[];
+    materializedOccurrencesPreserved: {
+        referenceDate: string;
+        status: 'PENDING' | 'PARTIALLY_FULFILLED' | 'FULFILLED' | 'CANCELLED';
+        economicVersion: number;
     }[];
-    materializedOccurrencesPreserved: { referenceDate: string }[];
+};
+export type RecurringChangePreview = RecurringChangeImpact & {
+    spaceId: string;
+    commitmentId: string;
 };
 export type RecurringTerminationInput = {
     expectedCommitmentVersion: number;
