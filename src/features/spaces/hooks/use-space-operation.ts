@@ -19,9 +19,14 @@ export type SpaceOperationOptions<Input, Result> = {
         key: string,
         signal: AbortSignal,
     ) => Promise<Result>;
-    onSuccess: (result: Result) => void;
+    onSuccess: (
+        result: Result,
+        capture: SpaceContextCapture,
+    ) => void | Promise<unknown>;
     onAccessLost?: () => void;
     onConflict?: () => void;
+    onFieldError?: (fields: string[]) => void;
+    onRejected?: (failure: ApiError) => void | Promise<unknown>;
     invalidate?: (input: Input) => boolean;
     invalidates?: readonly string[];
 };
@@ -89,6 +94,7 @@ export function useSpaceOperation<Input, Result>(
         setError(null);
         setFields([]);
         controller.current = new AbortController();
+        let confirmed = false;
         try {
             const token = await csrf.ensureToken();
             if (!current(value)) return;
@@ -109,6 +115,7 @@ export function useSpaceOperation<Input, Result>(
                 throw new Error(
                     'Não foi possível confirmar o destino do registro.',
                 );
+            confirmed = true;
             finish();
             if (handlers.current.invalidate?.(value.input) !== false) {
                 const families = handlers.current.invalidates ?? [
@@ -131,9 +138,16 @@ export function useSpaceOperation<Input, Result>(
                     void client.invalidateQueries({ queryKey });
                 }
             }
-            handlers.current.onSuccess(result);
+            await handlers.current.onSuccess(result, value.capture);
         } catch (failure) {
             if (!current(value)) return;
+            // A failed refresh or success callback cannot undo a confirmed write.
+            if (confirmed) {
+                setError(
+                    'O registro foi confirmado, mas a consulta atual não pôde ser atualizada. Atualize a consulta.',
+                );
+                return;
+            }
             if (failure instanceof ApiError && failure.status === 401) {
                 await client.cancelQueries(
                     { queryKey: ['auth', 'me'], exact: true },
@@ -153,7 +167,7 @@ export function useSpaceOperation<Input, Result>(
             setError(
                 failure instanceof ApiError
                     ? failure.status === 409
-                        ? 'Os dados mudaram. Atualize a consulta e revise antes de confirmar novamente.'
+                        ? `${failure.message} Os dados mudaram. Atualize a consulta e revise antes de confirmar novamente.`
                         : failure.message
                     : 'Ainda não conseguimos confirmar o registro. Reenvie a mesma tentativa para recuperar o resultado.',
             );
@@ -180,13 +194,23 @@ export function useSpaceOperation<Input, Result>(
                     const details = failure.details as {
                         fields?: { field: string }[];
                     } | null;
-                    setFields(
-                        details?.fields?.map((field) => field.field) ?? [],
-                    );
+                    const invalid =
+                        details?.fields?.map((field) => field.field) ?? [];
+                    setFields(invalid);
+                    handlers.current.onFieldError?.(invalid);
                     if (failure.code === 'SPACE_NOT_FOUND') {
                         if (handlers.current.onAccessLost)
                             handlers.current.onAccessLost();
                         else void context.accessLost(value.capture.spaceId);
+                    } else if (handlers.current.onRejected) {
+                        try {
+                            await handlers.current.onRejected(failure);
+                        } catch {
+                            if (current(value))
+                                setError(
+                                    'Não foi possível atualizar a consulta. Atualize e revise antes de confirmar novamente.',
+                                );
+                        }
                     }
                 }
             }

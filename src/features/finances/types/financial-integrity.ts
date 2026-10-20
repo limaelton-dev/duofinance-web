@@ -59,6 +59,33 @@ export type MemberImpact = {
     deltaInCents: string;
     requiresAcceptance: boolean;
 };
+export type RecurringMemberImpact = {
+    memberId: string;
+    currentFixedAmountInCents: string;
+    proposedFixedAmountInCents: string;
+    fixedDeltaInCents: string;
+    currentVariableWeight: number;
+    proposedVariableWeight: number;
+    variableWeightDelta: number;
+    currentOccurrenceCount: number;
+    proposedOccurrenceCount: number;
+    requiresAcceptance: boolean;
+};
+export type RecurringChangeImpact = {
+    effectiveFrom: string;
+    assessmentThrough: string;
+    currentVersion: number;
+    proposedVersion: number;
+    currentOccurrences: string[];
+    proposedOccurrences: string[];
+    impactByMember: RecurringMemberImpact[];
+    requiresAcceptance: boolean;
+    materializedOccurrencesPreserved: {
+        referenceDate: string;
+        status: 'PENDING' | 'PARTIALLY_FULFILLED' | 'FULFILLED' | 'CANCELLED';
+        economicVersion: number;
+    }[];
+};
 export type IntegrityPreview = {
     requiresFullReversal?: boolean;
     targets?: {
@@ -135,7 +162,7 @@ export type ChangeProposal = {
         direction?: string;
         amountInCents?: number;
     };
-    impact: IntegrityPreview;
+    impact: IntegrityPreview | RecurringChangeImpact;
 };
 export type IntegrityResult = IntegrityPreview & {
     proposal?: ChangeProposal;

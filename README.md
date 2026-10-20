@@ -57,54 +57,23 @@ Hoje consome o contrato ampliado com seis blocos, inclusive fontes parcialmente 
 
 ## Verificação
 
-- `npm run lint`, `npm run format:check`, `npm run typecheck` e `npm run build` verificam o projeto.
-- `npm run test:interface` executa as suítes de interface, incluindo waves 2–8, com dados sintéticos e sem API real. Verifica apresentação, teclado, reflow e texto ampliado. Neste recorte, não habilitar `IMPECCABLE_REVIEW`: o usuário pediu execução sem gerar ou salvar imagens em `.impeccable/review`.
-- `npm run test:data` verifica contratos e isolamento sem iniciar API ou navegador. Os runners de interface e integração usam `.next-interface` e `.next-e2e`, preservando o servidor de desenvolvimento padrão.
-- `npm run test:e2e -- card-010.spec.ts` executa uma suíte com API real e PostgreSQL descartável. A API deve estar no diretório irmão `prospera-mais-api`; inicie seu `compose.test.yaml` antes. O runner usa portas 3100/3101 e banco de teste na porta 55432.
-- Execute os cards em processos separados, como na matriz da CI: uma execução conjunta pode atingir os limites reais de autenticação. Não desabilite essas proteções para fazer os testes passarem.
+Os testes têm nomes de comportamento e estão separados pelo ambiente necessário:
 
-Para as novas jornadas, execute cada comando separadamente, com o mesmo ambiente integrado acima:
+- `tests/unit`: contratos, valores, datas e isolamento sem API ou navegador. Execute `npm run test:unit`.
+- `tests/interface`: formulários, apresentação, teclado e estados de erro com respostas simuladas. Execute `npm run test:interface`. Os cenários com datas fixas controlam também o relógio.
+- `tests/e2e`: jornadas com API e PostgreSQL reais. Execute uma suíte por processo, por exemplo `npm run test:e2e -- settlement-cycles.spec.ts`.
+- `tests/support`: apoio compartilhado às jornadas.
 
-| Suíte                             | Comando                                   |
-| --------------------------------- | ----------------------------------------- |
-| Acertos com API real              | `npm run test:e2e -- wave3.spec.ts`       |
-| Planejamento com API real         | `npm run test:e2e -- wave4.spec.ts`       |
-| Integridade com API real          | `npm run test:e2e -- wave5.spec.ts`       |
-| Casos corretivos com API real     | `npm run test:e2e -- wave5-edge.spec.ts`  |
-| Contratos e dados de acertos      | `npm run test:data -- wave3-data.spec.ts` |
-| Contratos e dados de planejamento | `npm run test:data -- wave4-data.spec.ts` |
-| Todas as suítes de dados          | `npm run test:data`                       |
+`npm run lint`, `npm run format:check`, `npm run typecheck` e `npm run build` verificam o projeto. Interface e integração usam `.next-interface` e `.next-e2e`, preservando o servidor de desenvolvimento padrão. Capturas, vídeo e traces ficam desabilitados porque os fluxos de convite manipulam segredos.
 
-As jornadas das waves 6–8 usam o mesmo ambiente. Execute também cada suíte com API real em um processo separado, preservando os limites reais de cadastro e autenticação:
+Para a integração, a API deve estar no diretório irmão `prospera-mais-api`; inicie seu `compose.test.yaml` antes. O runner usa portas 3100/3101 e banco de teste na porta 55432. Cada suíte inicia um processo novo da API para preservar seus limites reais de cadastro e autenticação. Não desabilite essas proteções para fazer os testes passarem.
 
-| Suíte                             | Comando                                            |
-| --------------------------------- | -------------------------------------------------- |
-| Rotina com API real               | `npm run test:e2e -- wave6.spec.ts`                |
-| Compras com API real              | `npm run test:e2e -- wave7-shopping.spec.ts`       |
-| Vínculos entre tarefa e lista     | `npm run test:e2e -- wave7-links.spec.ts`          |
-| Encerramento com API real         | `npm run test:e2e -- wave8.spec.ts`                |
-| Identidade de recursos de Compras | `npm run test:data -- wave7-shopping-data.spec.ts` |
+Para validar sem disputar o ambiente de outro trabalho, `E2E_API_DIR` permite indicar uma cópia da API e `E2E_DATABASE_URL` permite outra porta local. A conexão é compartilhada pelo servidor e pelas fixtures; o runner exige o banco `prospera_mais_test` em localhost.
 
-A CI fixa um commit da API e seleciona cards, waves e testes de dados conforme as alterações, incluindo suítes com sufixos como `wave7-shopping` e `wave7-links`; `full_e2e` permite solicitar a matriz completa. Confira a compatibilidade da API em [.github/workflows/ci.yml](.github/workflows/ci.yml).
+A CI executa unitários uma única vez, sem instalar Chromium ou subir banco nesse job. Todas as jornadas são distribuídas em três grupos, independentemente do nome do arquivo ou dos caminhos alterados. Cada grupo instala e compila Web e API uma vez; `E2E_PREBUILT=1` reaproveita essas compilações, mas mantém os processos da API isolados por suíte. Uma falha não impede a execução das demais suítes do grupo.
 
-Evidência local da entrega anterior, waves 2–5, em 19/10/2026, na branch `feat/web-waves-2-5-interface`, com API `d73c388e49ba972c526073b4533ac379a7be5049`:
+O job final **Web checks**, já exigido pela proteção da `main`, só aprova quando qualidade, unitários, interface e todos os grupos integrados passam. Falhas, cancelamentos e verificações não executadas bloqueiam a aprovação. O commit da API continua fixado em [.github/workflows/ci.yml](.github/workflows/ci.yml); `workflow_dispatch` permite validar outro SHA completo.
 
-- 113 testes de dados e isolamento aprovados.
-- 46 testes de interface sintética aprovados, incluindo larguras de 320, 390, 768 e 1280 px, teclado, reflow e texto ampliado.
-- 113 testes com API e PostgreSQL reais aprovados: 69 dos cards 011–017, 28 dos cards 004/010 e 16 das novas jornadas nas waves 3–5, incluindo os três casos corretivos.
-- Lint, formatação, tipos e builds aprovados. Suítes reais executadas em processos separados, sem alterar limites de autenticação.
+A auditoria de dependências de produção faz parte do CI. Em 20/10/2026, Next 16.3.8 e sharp 0.35.5 eliminaram os alertas de produção identificados na revisão. A cadeia de desenvolvimento do ESLint ainda contém o aviso de `braces` via `fast-glob`, sem versão corrigida publicada; não foi aplicado o downgrade incompatível sugerido pela correção forçada.
 
-A CI remota não foi executada nesta entrega. Não foram geradas capturas; a revisão independente do Impeccable conferiu código e interação e marcou os dois ajustes solicitados como resolvidos. A API não recebeu alterações. Aprovação local, CI remota, integração, deploy e validação com pessoas são evidências distintas; o acompanhamento oficial registra o estado de cada uma. Esse recorte não declara o MVP concluído nem substitui a validação em aparelho real, com tecnologias assistivas e com o público.
-
-Evidência local da extensão das waves 6–8, em 19/10/2026, na branch `feat/web-waves-6-8-interface`, baseada na main `b6dc889`, com API `d73c388e49ba972c526073b4533ac379a7be5049`:
-
-- 125 testes de dados e isolamento aprovados, incluindo identidade dos recursos de Compras e descarte atômico de múltiplos formulários.
-- 77 testes da interface sintética completa aprovados, incluindo as novas superfícies e a navegação com quatro destinos, foco, reflow e texto ampliado.
-- 10 testes das novas jornadas com API e PostgreSQL reais aprovados: 2 de Rotina, 4 de Compras, 1 de vínculos e 3 de encerramento, em processos separados.
-- 44 regressões adicionais com API e PostgreSQL aprovadas: 11 do CARD-004, 17 do CARD-010 e 16 de acertos, planejamento, integridade e casos corretivos das waves 3–5. Total integrado desta rodada: 54 testes aprovados.
-- Tipos, lint sem avisos, formatação e builds de produção aprovados. Os runners integrados compilaram a Web e a API; as suítes foram executadas em processos separados, preservando os limites reais de autenticação.
-- A revisão independente de código e interação marcou como resolvidos os ajustes na identidade de recursos de Compras e no descarte atômico de múltiplos formulários, inclusive quando o evento de navegação já foi cancelado.
-
-Não foram geradas ou salvas capturas em `.impeccable/review`, e esta rodada não declara aprovação visual por imagens. Os tokens do DESIGN.md e o sidecar foram preservados. A API e a documentação oficial não receberam alterações por esta extensão Web.
-
-Branch e commits desta entrega permanecem locais; Elton abrirá o PR. A CI remota e o deploy desta branch não foram executados.
+O histórico de entregas e evidências anteriores permanece na [documentação oficial](../Docs/Acompanhamentos/CONTEXTO-E-DECISOES.md). Aprovação dos testes, deploy e validação com pessoas são etapas distintas.

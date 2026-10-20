@@ -20,17 +20,26 @@ import type {
     InstallmentDetail,
     InstallmentVersions,
 } from '../types/installment-commitment';
-import { businessToday, formatDate, formatMoney } from '../utils/expense-money';
+import { businessToday, formatDate } from '../utils/expense-money';
 import {
     planningKey,
     QueryFeedback,
     CommandFeedback,
     SettlementFields,
     positiveAmount,
-    signedMoney,
     usePlanningPreview,
-    EconomicShares,
 } from './planning-shared';
+import {
+    InstallmentSelectionFields,
+    InstallmentPayoffFields,
+    InstallmentAnticipationAmounts,
+    type SelectedInstallments,
+} from './installment-resolution-fields';
+import {
+    InstallmentCancellationSummary,
+    InstallmentPayoffSummary,
+    InstallmentAnticipationSummary,
+} from './installment-resolution-summary';
 import styles from './expenses.module.css';
 import layout from './planning.module.css';
 
@@ -78,17 +87,7 @@ export function InstallmentResolutionForm({
         true,
         (signal) => getIncomeOptions(spaceId, signal),
     );
-    const [selected, setSelected] = useState<
-        Record<
-            string,
-            {
-                version: number;
-                position: number;
-                date: string;
-                remaining: number;
-            }
-        >
-    >({});
+    const [selected, setSelected] = useState<SelectedInstallments>({});
     const [amounts, setAmounts] = useState<Record<string, string>>({}),
         [amount, setAmount] = useState(''),
         [date, setDate] = useState(businessToday),
@@ -356,217 +355,28 @@ export function InstallmentResolutionForm({
                                     ? 'Valor global e pagamento'
                                     : 'Seleção de parcelas'}
                             </legend>
-                            {mode === 'ANTICIPATE' && (
-                                <label>
-                                    Selecionar parcelas
-                                    <select
-                                        value={selectionMode}
-                                        onChange={(event) => {
-                                            change(true);
-                                            setSelected({});
-                                            setSelectionMode(
-                                                event.target
-                                                    .value as typeof selectionMode,
-                                            );
-                                        }}
-                                    >
-                                        <option value="IDS">
-                                            Escolher uma a uma
-                                        </option>
-                                        <option value="FROM_END">
-                                            Das últimas para as primeiras
-                                        </option>
-                                    </select>
-                                </label>
+                            {mode !== 'PAYOFF' && (
+                                <InstallmentSelectionFields
+                                    mode={mode}
+                                    selectionMode={selectionMode}
+                                    quantity={quantity}
+                                    options={options.data}
+                                    selected={selected}
+                                    cursor={cursor}
+                                    change={change}
+                                    setSelected={setSelected}
+                                    setSelectionMode={setSelectionMode}
+                                    setQuantity={setQuantity}
+                                    setCursor={setCursor}
+                                />
                             )}
-                            {mode === 'ANTICIPATE' &&
-                                selectionMode === 'FROM_END' && (
-                                    <label>
-                                        Quantidade a partir do final
-                                        <Input
-                                            type="number"
-                                            required
-                                            min={1}
-                                            max={1200}
-                                            value={quantity}
-                                            onChange={(event) => {
-                                                change(true);
-                                                setQuantity(event.target.value);
-                                            }}
-                                        />
-                                    </label>
-                                )}
-                            {mode !== 'PAYOFF' &&
-                                (mode === 'CANCEL' ||
-                                    selectionMode === 'IDS') && (
-                                    <>
-                                        <ul className={layout.list}>
-                                            {options.data.items.map((item) => {
-                                                const anticipation =
-                                                        'selectionEligible' in
-                                                        item,
-                                                    id = anticipation
-                                                        ? item.id
-                                                        : item.installmentId,
-                                                    eligible = anticipation
-                                                        ? item.selectionEligible
-                                                        : item.cancellationEligible,
-                                                    version = anticipation
-                                                        ? item.stateVersion
-                                                        : item.expectedInstallmentVersion,
-                                                    remaining = anticipation
-                                                        ? item.remainingAmountInCents
-                                                        : item.expectedRemainingAmountInCents;
-                                                return (
-                                                    <li
-                                                        key={id}
-                                                        className={layout.row}
-                                                    >
-                                                        <label
-                                                            className={
-                                                                layout.check
-                                                            }
-                                                        >
-                                                            <input
-                                                                type="checkbox"
-                                                                disabled={
-                                                                    !eligible
-                                                                }
-                                                                checked={
-                                                                    !!selected[
-                                                                        id
-                                                                    ]
-                                                                }
-                                                                onChange={(
-                                                                    event,
-                                                                ) => {
-                                                                    change(
-                                                                        true,
-                                                                    );
-                                                                    setSelected(
-                                                                        (
-                                                                            previous,
-                                                                        ) => {
-                                                                            const next =
-                                                                                {
-                                                                                    ...previous,
-                                                                                };
-                                                                            if (
-                                                                                event
-                                                                                    .target
-                                                                                    .checked
-                                                                            )
-                                                                                next[
-                                                                                    id
-                                                                                ] =
-                                                                                    {
-                                                                                        version,
-                                                                                        remaining,
-                                                                                        position:
-                                                                                            item.position,
-                                                                                        date: item.dueDate,
-                                                                                    };
-                                                                            else
-                                                                                delete next[
-                                                                                    id
-                                                                                ];
-                                                                            return next;
-                                                                        },
-                                                                    );
-                                                                }}
-                                                            />
-                                                            Parcela{' '}
-                                                            {item.position} ·{' '}
-                                                            {formatDate(
-                                                                item.dueDate,
-                                                            )}{' '}
-                                                            ·{' '}
-                                                            {formatMoney(
-                                                                remaining,
-                                                            )}
-                                                        </label>
-                                                        {!eligible && (
-                                                            <p
-                                                                className={
-                                                                    styles.help
-                                                                }
-                                                            >
-                                                                {item.blockingReason ===
-                                                                'EXTERNAL_LIABILITY_EXISTS'
-                                                                    ? 'Há obrigação externa assumida. Preserve esse fato.'
-                                                                    : item.blockingReason ===
-                                                                        'INSTALLMENT_NOT_FUTURE'
-                                                                      ? 'O vencimento já chegou.'
-                                                                      : 'Esta parcela já foi resolvida.'}
-                                                            </p>
-                                                        )}
-                                                    </li>
-                                                );
-                                            })}
-                                        </ul>
-                                        <p>
-                                            {Object.keys(selected).length}{' '}
-                                            parcelas selecionadas.
-                                        </p>
-                                        <div className={styles.actions}>
-                                            {cursor && (
-                                                <Button
-                                                    variant="outline"
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setCursor(null)
-                                                    }
-                                                >
-                                                    Primeira página de parcelas
-                                                </Button>
-                                            )}
-                                            {options.data.nextCursor && (
-                                                <Button
-                                                    variant="outline"
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setCursor(
-                                                            options.data!
-                                                                .nextCursor,
-                                                        )
-                                                    }
-                                                >
-                                                    Mais parcelas
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </>
-                                )}
                             {mode === 'PAYOFF' && (
-                                <>
-                                    <p>
-                                        {'totalOpenCount' in options.data
-                                            ? options.data.totalOpenCount
-                                            : 0}{' '}
-                                        parcelas abertas · previsto restante:{' '}
-                                        {signedMoney(
-                                            'totalExpectedRemainingAmountInCents' in
-                                                options.data
-                                                ? options.data
-                                                      .totalExpectedRemainingAmountInCents
-                                                : '0',
-                                        )}
-                                        .
-                                    </p>
-                                    <label>
-                                        Valor real global da quitação (R$)
-                                        <Input
-                                            inputMode="decimal"
-                                            name="paidAmountInCents"
-                                            required
-                                            value={amount}
-                                            onChange={(event) => {
-                                                change();
-                                                setAmount(event.target.value);
-                                            }}
-                                        />
-                                    </label>
-                                </>
+                                <InstallmentPayoffFields
+                                    options={options.data}
+                                    amount={amount}
+                                    change={change}
+                                    setAmount={setAmount}
+                                />
                             )}
                             <label>
                                 Data do fato
@@ -670,72 +480,15 @@ export function InstallmentResolutionForm({
                                 </>
                             )}
                             {mode === 'ANTICIPATE' && (
-                                <>
-                                    <Button
-                                        variant="outline"
-                                        type="button"
-                                        onClick={() => void resolveSelection()}
-                                    >
-                                        Conferir parcelas selecionadas
-                                    </Button>
-                                    {selectionPreview && (
-                                        <>
-                                            <p>
-                                                Informe quanto foi pago por cada
-                                                parcela, mantendo o vencimento
-                                                original.
-                                            </p>
-                                            {selectionPreview.items.map(
-                                                (item) => (
-                                                    <label
-                                                        key={item.installmentId}
-                                                    >
-                                                        Parcela {item.position}{' '}
-                                                        ·{' '}
-                                                        {formatDate(
-                                                            item.dueDate,
-                                                        )}{' '}
-                                                        · restante{' '}
-                                                        {formatMoney(
-                                                            item.expectedRemainingAmountInCents,
-                                                        )}
-                                                        <Input
-                                                            required
-                                                            inputMode="decimal"
-                                                            aria-label={`Valor real da parcela ${item.position}`}
-                                                            value={
-                                                                amounts[
-                                                                    item
-                                                                        .installmentId
-                                                                ] ?? ''
-                                                            }
-                                                            onChange={(
-                                                                event,
-                                                            ) => {
-                                                                if (!resolved)
-                                                                    setResolved(
-                                                                        selectionPreview,
-                                                                    );
-                                                                change();
-                                                                setAmounts(
-                                                                    (
-                                                                        previous,
-                                                                    ) => ({
-                                                                        ...previous,
-                                                                        [item.installmentId]:
-                                                                            event
-                                                                                .target
-                                                                                .value,
-                                                                    }),
-                                                                );
-                                                            }}
-                                                        />
-                                                    </label>
-                                                ),
-                                            )}
-                                        </>
-                                    )}
-                                </>
+                                <InstallmentAnticipationAmounts
+                                    selectionPreview={selectionPreview}
+                                    resolved={resolved}
+                                    amounts={amounts}
+                                    resolveSelection={resolveSelection}
+                                    change={change}
+                                    setResolved={setResolved}
+                                    setAmounts={setAmounts}
+                                />
                             )}
                         </fieldset>
                         {error && <p role="alert">{error}</p>}
@@ -773,138 +526,22 @@ export function InstallmentResolutionForm({
                             >
                                 <h3>Confira antes de confirmar</h3>
                                 {mode === 'CANCEL' ? (
-                                    <>
-                                        <p>
-                                            Cancelar{' '}
-                                            {Object.keys(selected).length}{' '}
-                                            parcelas futuras. Motivo: {reason}.
-                                        </p>
-                                        <ul>
-                                            {Object.values(selected).map(
-                                                (item) => (
-                                                    <li key={item.position}>
-                                                        Parcela {item.position}{' '}
-                                                        ·{' '}
-                                                        {formatDate(item.date)}{' '}
-                                                        · restante{' '}
-                                                        {formatMoney(
-                                                            item.remaining,
-                                                        )}
-                                                    </li>
-                                                ),
-                                            )}
-                                        </ul>
-                                        <p>
-                                            Os pagamentos já realizados
-                                            permanecem no histórico. Esta ação
-                                            não registra devolução.
-                                        </p>
-                                    </>
+                                    <InstallmentCancellationSummary
+                                        selected={selected}
+                                        reason={reason}
+                                    />
                                 ) : mode === 'PAYOFF' ? (
-                                    <>
-                                        <p>
-                                            Previsto em aberto:{' '}
-                                            {formatMoney(
-                                                (preview.data as PayoffPreview)
-                                                    .expectedRemainingAmountInCents,
-                                            )}
-                                        </p>
-                                        <p>
-                                            Pagamento global informado:{' '}
-                                            {formatMoney(
-                                                (preview.data as PayoffPreview)
-                                                    .paidAmountInCents,
-                                            )}
-                                        </p>
-                                        <p>
-                                            Diferença global:{' '}
-                                            {signedMoney(
-                                                (preview.data as PayoffPreview)
-                                                    .adjustmentInCents,
-                                            )}
-                                        </p>
-                                        <p>
-                                            {preview.data!.items.length}{' '}
-                                            parcelas serão vinculadas à quitação
-                                            global. Nenhum pagamento individual
-                                            será inventado.
-                                        </p>
-                                        <EconomicShares
-                                            shares={
-                                                (preview.data as PayoffPreview)
-                                                    .effectiveEconomicShares
-                                            }
-                                            members={members.data.members ?? []}
-                                        />
-                                    </>
+                                    <InstallmentPayoffSummary
+                                        impact={preview.data as PayoffPreview}
+                                        members={members.data.members ?? []}
+                                    />
                                 ) : (
-                                    <>
-                                        <p>
-                                            Previsto:{' '}
-                                            {signedMoney(
-                                                (
-                                                    preview.data as AnticipationPreview
-                                                )
-                                                    .totalExpectedRemainingAmountInCents,
-                                            )}{' '}
-                                            · valor real:{' '}
-                                            {signedMoney(
-                                                (
-                                                    preview.data as AnticipationPreview
-                                                ).totalPaidAmountInCents,
-                                            )}
-                                        </p>
-                                        <p>
-                                            Diferença:{' '}
-                                            {signedMoney(
-                                                (
-                                                    preview.data as AnticipationPreview
-                                                ).totalAdjustmentInCents,
-                                            )}
-                                        </p>
-                                        <ul className={layout.list}>
-                                            {(
-                                                preview.data as AnticipationPreview
-                                            ).items.map((item) => (
-                                                <li
-                                                    key={item.installmentId}
-                                                    className={layout.row}
-                                                >
-                                                    <h3>
-                                                        Parcela {item.position}{' '}
-                                                        · vencimento{' '}
-                                                        {formatDate(
-                                                            item.dueDate,
-                                                        )}
-                                                    </h3>
-                                                    <p>
-                                                        Restante previsto:{' '}
-                                                        {formatMoney(
-                                                            item.expectedRemainingAmountInCents,
-                                                        )}{' '}
-                                                        · pago:{' '}
-                                                        {formatMoney(
-                                                            item.paidAmountInCents,
-                                                        )}{' '}
-                                                        · diferença:{' '}
-                                                        {signedMoney(
-                                                            item.adjustmentInCents,
-                                                        )}
-                                                        .
-                                                    </p>
-                                                    <EconomicShares
-                                                        shares={
-                                                            item.effectiveEconomicShares
-                                                        }
-                                                        members={
-                                                            members.data!
-                                                                .members ?? []
-                                                        }
-                                                    />
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </>
+                                    <InstallmentAnticipationSummary
+                                        impact={
+                                            preview.data as AnticipationPreview
+                                        }
+                                        members={members.data.members ?? []}
+                                    />
                                 )}
                                 <p>
                                     Data do fato: {formatDate(date)}

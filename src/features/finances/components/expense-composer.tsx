@@ -23,17 +23,16 @@ import type {
     ExpenseOptions,
     ExpenseResult,
     Settlement,
-    Split,
 } from '../types/shared-expense';
-import {
-    decimalUnits,
-    exactShares,
-    formatMoney,
-    formatDate,
-    businessToday,
-} from '../utils/expense-money';
+import { decimalUnits, businessToday } from '../utils/expense-money';
 import { ExpenseSummary } from './expense-summary';
-import { formatPositionMoney } from '../utils/position-money';
+import {
+    ExpenseSplitFields,
+    calculateExpenseSplit,
+} from './expense-split-fields';
+import { ExpensePaymentFields } from './expense-payment-fields';
+import { ExpenseSettlementFields } from './expense-settlement-fields';
+import { ExpenseLiveSummary } from './expense-live-summary';
 import styles from './expenses.module.css';
 import { PersonalExpenseComposer } from './personal-expense-composer';
 export function ExpenseComposer({ spaceId }: { spaceId: string }) {
@@ -54,14 +53,14 @@ export function ExpenseComposer({ spaceId }: { spaceId: string }) {
             />
         );
     return (
-        <Composer
+        <SharedExpenseComposer
             key={`${auth.data.person.id}:${spaceId}:${space.generation}`}
             personId={auth.data.person.id}
             spaceId={spaceId}
         />
     );
 }
-function Composer({
+function SharedExpenseComposer({
     personId,
     spaceId,
 }: {
@@ -237,86 +236,14 @@ function Composer({
         expected = planned || null;
     const total = decimalUnits(amount),
         paid = decimalUnits(paidAmount ?? amount);
-    let split: Split | null = null,
-        calculated: { memberId: string; amountInCents: number }[] = [],
-        splitError: string | null = null;
-    try {
-        const values = members.map((m) => {
-            const text =
-                parts[m.memberId] ??
-                (mode === 'PERCENTAGES'
-                    ? members.length === 1
-                        ? '100'
-                        : '50'
-                    : '');
-            const value = decimalUnits(text);
-            if (value === null)
-                throw new Error(
-                    mode === 'AMOUNTS'
-                        ? 'Informe o valor de cada parte, com até duas casas decimais.'
-                        : 'Informe os percentuais com até duas casas decimais.',
-                );
-            return { memberId: m.memberId, value };
-        });
-        split =
-            mode === 'AMOUNTS'
-                ? {
-                      mode,
-                      shares: values.map((v) => ({
-                          memberId: v.memberId,
-                          amountInCents: v.value,
-                      })),
-                  }
-                : {
-                      mode,
-                      shares: values.map((v) => ({
-                          memberId: v.memberId,
-                          basisPoints: v.value,
-                      })),
-                  };
-        if (total !== null && total > 0 && members.length)
-            calculated = exactShares(total, split);
-    } catch (failure) {
-        splitError = (failure as Error).message;
-    }
-    const splitDifference =
-        split?.mode === 'PERCENTAGES'
-            ? 10000n -
-              split.shares.reduce(
-                  (sum, share) => sum + BigInt(share.basisPoints),
-                  0n,
-              )
-            : split?.mode === 'AMOUNTS' && total !== null
-              ? BigInt(total) -
-                split.shares.reduce(
-                    (sum, share) => sum + BigInt(share.amountInCents),
-                    0n,
-                )
-              : null;
-    const splitDifferenceText =
-        splitDifference === null
-            ? ''
-            : formatPositionMoney(
-                  (splitDifference < 0n
-                      ? -splitDifference
-                      : splitDifference
-                  ).toString(),
-              );
-    const percentageSplit = split?.mode === 'PERCENTAGES' ? split : null;
-    const residualRecipient =
-        total !== null && percentageSplit
-            ? calculated.find(
-                  (share) =>
-                      BigInt(share.amountInCents) >
-                      (BigInt(total) *
-                          BigInt(
-                              percentageSplit.shares.find(
-                                  (part) => part.memberId === share.memberId,
-                              )!.basisPoints,
-                          )) /
-                          10000n,
-              )
-            : null;
+    const {
+        split,
+        calculated,
+        splitError,
+        splitDifference,
+        splitDifferenceText,
+        residualRecipient,
+    } = calculateExpenseSplit(total, members, parts, mode);
     const suggested =
         (!options.isError && options.data?.suggestedTargetDate) || null;
     const selectedMode = settlementMode ?? (suggested ? 'SUGGESTED' : 'NONE');
@@ -620,645 +547,80 @@ function Composer({
                         )}
                         {financial && (
                             <>
-                                <fieldset disabled={busy}>
-                                    <legend>Como dividir?</legend>
-                                    {members.length === 2 && (
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => {
-                                                mark();
-                                                setMode('PERCENTAGES');
-                                                setParts(
-                                                    Object.fromEntries(
-                                                        members.map((m) => [
-                                                            m.memberId,
-                                                            '50',
-                                                        ]),
-                                                    ),
-                                                );
-                                            }}
-                                        >
-                                            50 / 50
-                                        </Button>
-                                    )}
-                                    <label>
-                                        Divisão
-                                        <select
-                                            aria-label="Divisão"
-                                            name="responsibilitySplit.mode"
-                                            aria-invalid={invalid(
-                                                'responsibilitySplit.mode',
-                                            )}
-                                            aria-describedby={
-                                                invalid(
-                                                    'responsibilitySplit.mode',
-                                                )
-                                                    ? 'expense-error'
-                                                    : undefined
-                                            }
-                                            value={mode}
-                                            onChange={(e) => {
-                                                mark();
-                                                setMode(
-                                                    e.target
-                                                        .value as typeof mode,
-                                                );
-                                                setParts({});
-                                            }}
-                                        >
-                                            <option value="PERCENTAGES">
-                                                Percentuais
-                                            </option>
-                                            <option value="AMOUNTS">
-                                                Valores
-                                            </option>
-                                        </select>
-                                    </label>
-                                    {members.map((m, index) => (
-                                        <label key={m.memberId}>
-                                            {m.displayName} (
-                                            {mode === 'AMOUNTS' ? 'R$' : '%'})
-                                            <Input
-                                                name={
-                                                    index === 0
-                                                        ? 'responsibilitySplit.shares'
-                                                        : `responsibilitySplit.shares.${index}`
-                                                }
-                                                data-share-index={index}
-                                                aria-invalid={invalid(
-                                                    'responsibilitySplit.shares',
-                                                )}
-                                                aria-describedby={
-                                                    invalid(
-                                                        'responsibilitySplit.shares',
-                                                    )
-                                                        ? 'expense-error'
-                                                        : undefined
-                                                }
-                                                inputMode="decimal"
-                                                value={
-                                                    parts[m.memberId] ??
-                                                    (mode === 'PERCENTAGES'
-                                                        ? members.length === 1
-                                                            ? '100'
-                                                            : '50'
-                                                        : '')
-                                                }
-                                                onChange={(e) => {
-                                                    mark();
-                                                    setParts({
-                                                        ...parts,
-                                                        [m.memberId]:
-                                                            e.target.value,
-                                                    });
-                                                }}
-                                            />
-                                        </label>
-                                    ))}
-                                    {splitError && (
-                                        <p className={styles.help}>
-                                            {splitError}
-                                        </p>
-                                    )}
-                                    {splitDifference !== null &&
-                                        splitDifference !== 0n && (
-                                            <p className={styles.help}>
-                                                {splitDifference > 0n
-                                                    ? 'Faltam '
-                                                    : 'A divisão excede o total em '}
-                                                {mode === 'PERCENTAGES'
-                                                    ? splitDifferenceText.replace(
-                                                          'R$ ',
-                                                          '',
-                                                      ) + '%'
-                                                    : splitDifferenceText}
-                                                {splitDifference > 0n
-                                                    ? ' para fechar a divisão.'
-                                                    : '.'}
-                                            </p>
-                                        )}
-                                </fieldset>
-                                <fieldset disabled={busy}>
-                                    <legend>O pagamento já aconteceu?</legend>
-                                    <p className={styles.help}>
-                                        Escolha a forma de um pagamento ocorrido
-                                        ou de uma compra no cartão. O registro
-                                        de despesa ainda não paga não está
-                                        disponível nesta tela.
-                                    </p>
-                                    <label>
-                                        Forma de pagamento
-                                        <select
-                                            name="disbursement.method"
-                                            aria-invalid={invalid(
-                                                'disbursement.method',
-                                            )}
-                                            aria-describedby={
-                                                invalid('disbursement.method')
-                                                    ? 'expense-error'
-                                                    : undefined
-                                            }
-                                            aria-label="Forma de pagamento"
-                                            value={method}
-                                            onChange={(e) => {
-                                                mark();
-                                                setMethod(
-                                                    e.target
-                                                        .value as typeof method,
-                                                );
-                                            }}
-                                        >
-                                            <option value="">
-                                                Escolha uma forma
-                                            </option>
-                                            <option value="PIX">PIX</option>
-                                            <option value="DEBIT">
-                                                Débito
-                                            </option>
-                                            <option value="CASH">
-                                                Dinheiro
-                                            </option>
-                                            <option value="CREDIT_CARD">
-                                                Cartão de crédito
-                                            </option>
-                                        </select>
-                                    </label>
-                                    {method && (
-                                        <>
-                                            <label>
-                                                {creditCard
-                                                    ? 'De quem é o cartão?'
-                                                    : 'Quem pagou?'}
-                                                <select
-                                                    aria-label={
-                                                        creditCard
-                                                            ? 'De quem é o cartão?'
-                                                            : 'Quem pagou?'
-                                                    }
-                                                    name={
-                                                        creditCard
-                                                            ? 'externalLiability.holderMemberId'
-                                                            : 'disbursement.payerMemberId'
-                                                    }
-                                                    value={actualPayer}
-                                                    onChange={(e) => {
-                                                        mark();
-                                                        setPayer(
-                                                            e.target.value,
-                                                        );
-                                                    }}
-                                                >
-                                                    {creditCard && (
-                                                        <option value="">
-                                                            Escolha o titular
-                                                        </option>
-                                                    )}
-                                                    {members.map((m) => (
-                                                        <option
-                                                            key={m.memberId}
-                                                            value={m.memberId}
-                                                        >
-                                                            {m.displayName}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </label>
-                                            <label>
-                                                {creditCard
-                                                    ? 'Valor assumido no cartão (R$)'
-                                                    : 'Valor pago agora (R$)'}
-                                                <Input
-                                                    name={supportAmountField}
-                                                    aria-invalid={invalid(
-                                                        supportAmountField,
-                                                    )}
-                                                    aria-describedby={
-                                                        invalid(
-                                                            supportAmountField,
-                                                        )
-                                                            ? 'expense-error'
-                                                            : undefined
-                                                    }
-                                                    inputMode="decimal"
-                                                    value={paidAmount ?? amount}
-                                                    onChange={(event) => {
-                                                        mark();
-                                                        setPaidAmount(
-                                                            event.target.value,
-                                                        );
-                                                    }}
-                                                />
-                                            </label>
-                                            <label>
-                                                {creditCard
-                                                    ? 'Data da compra'
-                                                    : 'Data do pagamento'}
-                                                <Input
-                                                    name="factDate"
-                                                    aria-invalid={invalid(
-                                                        'factDate',
-                                                    )}
-                                                    aria-describedby={
-                                                        invalid('factDate')
-                                                            ? 'expense-error'
-                                                            : undefined
-                                                    }
-                                                    type="date"
-                                                    value={factDate}
-                                                    max={
-                                                        options.data
-                                                            ?.referenceDate ??
-                                                        businessToday()
-                                                    }
-                                                    onChange={(e) => {
-                                                        mark();
-                                                        setFactDate(
-                                                            e.target.value,
-                                                        );
-                                                    }}
-                                                />
-                                            </label>
-                                        </>
-                                    )}
-                                </fieldset>
-                                <div className={styles.planning}>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className={styles.planningToggle}
-                                        disabled={busy}
-                                        aria-expanded={planningOpen}
-                                        aria-controls="payment-planning"
-                                        onClick={() =>
-                                            setPlanningOpen(!planningOpen)
-                                        }
-                                    >
-                                        Previsão de pagamento (opcional)
-                                    </Button>
-                                    <fieldset
-                                        id="payment-planning"
-                                        hidden={!planningOpen}
-                                        disabled={busy}
-                                    >
-                                        <legend>Previsão de pagamento</legend>
-                                        <p id="payment-planning-help">
-                                            Informe apenas se havia uma pessoa
-                                            combinada para pagar. Isso não
-                                            altera a divisão nem o acerto.
-                                        </p>
-                                        <label>
-                                            Quem era previsto pagar?
-                                            <select
-                                                aria-label="Quem era previsto pagar?"
-                                                name="expectedPayerMemberId"
-                                                aria-invalid={invalid(
-                                                    'expectedPayerMemberId',
-                                                )}
-                                                aria-describedby={
-                                                    invalid(
-                                                        'expectedPayerMemberId',
-                                                    )
-                                                        ? 'expense-error'
-                                                        : 'payment-planning-help'
-                                                }
-                                                value={planned}
-                                                onChange={(e) => {
-                                                    mark();
-                                                    setPlanned(e.target.value);
-                                                }}
-                                            >
-                                                <option value="">
-                                                    Não informado
-                                                </option>
-                                                {members.map((m) => (
-                                                    <option
-                                                        key={m.memberId}
-                                                        value={m.memberId}
-                                                    >
-                                                        {m.displayName}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </label>
-                                    </fieldset>
-                                </div>
+                                <ExpenseSplitFields
+                                    busy={busy}
+                                    members={members}
+                                    mode={mode}
+                                    parts={parts}
+                                    splitError={splitError}
+                                    splitDifference={splitDifference}
+                                    splitDifferenceText={splitDifferenceText}
+                                    invalid={invalid}
+                                    mark={mark}
+                                    setMode={setMode}
+                                    setParts={setParts}
+                                />
+                                <ExpensePaymentFields
+                                    busy={busy}
+                                    members={members}
+                                    method={method}
+                                    actualPayer={actualPayer}
+                                    paidAmount={paidAmount}
+                                    amount={amount}
+                                    factDate={factDate}
+                                    referenceDate={options.data?.referenceDate}
+                                    planningOpen={planningOpen}
+                                    planned={planned}
+                                    invalid={invalid}
+                                    mark={mark}
+                                    setMethod={setMethod}
+                                    setPayer={setPayer}
+                                    setPaidAmount={setPaidAmount}
+                                    setFactDate={setFactDate}
+                                    setPlanningOpen={setPlanningOpen}
+                                    setPlanned={setPlanned}
+                                />
                             </>
                         )}
-                        <fieldset disabled={busy}>
-                            <legend>Quando acertar?</legend>
-                            {!suggested && !options.isError && (
-                                <p>
-                                    Acerto padrão não definido. Escolha outra
-                                    data, um acerto aberto ou sem data de
-                                    acerto.
-                                </p>
-                            )}
-                            <label>
-                                Acerto
-                                <select
-                                    aria-label="Acerto"
-                                    name="settlement.mode"
-                                    aria-invalid={invalid('settlement.mode')}
-                                    aria-describedby={
-                                        invalid('settlement.mode')
-                                            ? 'expense-error'
-                                            : undefined
-                                    }
-                                    value={selectedMode}
-                                    onChange={(e) => {
-                                        mark();
-                                        setSettlementMode(
-                                            e.target
-                                                .value as Settlement['mode'],
-                                        );
-                                    }}
-                                >
-                                    {suggested && (
-                                        <option value="SUGGESTED">
-                                            Sugerido: {formatDate(suggested)}
-                                        </option>
-                                    )}
-                                    <option value="DATE">Outra data</option>
-                                    {openCycles.length > 0 &&
-                                        !options.isError && (
-                                            <option value="CYCLE">
-                                                Acerto aberto existente
-                                            </option>
-                                        )}
-                                    <option value="NONE">
-                                        Sem data de acerto
-                                    </option>
-                                </select>
-                            </label>
-                            {selectedMode === 'DATE' && (
-                                <label>
-                                    Data do acerto
-                                    <Input
-                                        name="settlement.targetDate"
-                                        aria-invalid={invalid(
-                                            'settlement.targetDate',
-                                        )}
-                                        aria-describedby={
-                                            invalid('settlement.targetDate')
-                                                ? 'expense-error'
-                                                : undefined
-                                        }
-                                        type="date"
-                                        min={
-                                            options.data?.referenceDate ??
-                                            businessToday()
-                                        }
-                                        value={targetDate}
-                                        onChange={(e) => {
-                                            mark();
-                                            setTargetDate(e.target.value);
-                                        }}
-                                    />
-                                </label>
-                            )}
-                            {selectedMode === 'CYCLE' && (
-                                <label>
-                                    Acerto aberto
-                                    <select
-                                        aria-label="Acerto aberto"
-                                        name="settlement.cycleId"
-                                        aria-invalid={invalid(
-                                            'settlement.cycleId',
-                                        )}
-                                        aria-describedby={
-                                            invalid('settlement.cycleId')
-                                                ? 'expense-error'
-                                                : undefined
-                                        }
-                                        value={cycleId}
-                                        onChange={(e) => {
-                                            mark();
-                                            setCycleId(e.target.value);
-                                        }}
-                                    >
-                                        <option value="">Selecione</option>
-                                        {openCycles.map((c) => (
-                                            <option key={c.id} value={c.id}>
-                                                {formatDate(c.targetDate)}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </label>
-                            )}
-                            {options.data?.nextCursor && !options.isError && (
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => {
-                                        setPages(openCycles);
-                                        setCursor(options.data!.nextCursor);
-                                    }}
-                                >
-                                    Carregar mais acertos
-                                </Button>
-                            )}
-                        </fieldset>
+                        <ExpenseSettlementFields
+                            busy={busy}
+                            suggested={suggested}
+                            optionsFailed={options.isError}
+                            referenceDate={options.data?.referenceDate}
+                            nextCursor={options.data?.nextCursor}
+                            selectedMode={selectedMode}
+                            openCycles={openCycles}
+                            targetDate={targetDate}
+                            cycleId={cycleId}
+                            invalid={invalid}
+                            mark={mark}
+                            setSettlementMode={setSettlementMode}
+                            setTargetDate={setTargetDate}
+                            setCycleId={setCycleId}
+                            loadMore={() => {
+                                setPages(openCycles);
+                                setCursor(options.data!.nextCursor);
+                            }}
+                        />
                     </div>
-                    <aside className={styles.summary} aria-label="Resumo vivo">
-                        <h2>Confira sua despesa</h2>
-                        <p>{description.trim() || 'Sua despesa'}</p>
-                        <p className={styles.amount}>
-                            {total !== null && total > 0
-                                ? formatMoney(total)
-                                : 'R$ 0,00'}
-                        </p>
-                        <p className={styles.context}>
-                            {space.currentSpace?.label}
-                        </p>
-                        <div className={styles.receiptSection}>
-                            {calculated.length ? (
-                                calculated.map((share) => (
-                                    <p key={share.memberId}>
-                                        {share.memberId ===
-                                        financial?.actorMemberId
-                                            ? 'Sua parte'
-                                            : 'Parte de ' +
-                                              members.find(
-                                                  (m) =>
-                                                      m.memberId ===
-                                                      share.memberId,
-                                              )?.displayName}
-                                        :{' '}
-                                        <strong>
-                                            {formatMoney(share.amountInCents)}
-                                        </strong>
-                                    </p>
-                                ))
-                            ) : (
-                                <p className={styles.help}>
-                                    Preencha o valor para conferir a divisão.
-                                </p>
-                            )}
-                            {residualRecipient && (
-                                <p className={styles.help}>
-                                    O centavo residual foi atribuído a{' '}
-                                    {
-                                        members.find(
-                                            (member) =>
-                                                member.memberId ===
-                                                residualRecipient.memberId,
-                                        )?.displayName
-                                    }{' '}
-                                    e está incluído na parte acima.
-                                </p>
-                            )}
-                        </div>
-                        <div className={styles.receiptSection}>
-                            {!method ? (
-                                <p className={styles.help}>
-                                    Escolha como a despesa foi realizada para
-                                    conferir o pagamento e o acerto.
-                                </p>
-                            ) : (
-                                <>
-                                    <p>
-                                        {creditCard
-                                            ? 'No cartão de'
-                                            : 'Pago por'}
-                                        :{' '}
-                                        <strong>
-                                            {members.find(
-                                                (m) =>
-                                                    m.memberId === actualPayer,
-                                            )?.displayName ??
-                                                'Escolha a pessoa'}
-                                        </strong>
-                                    </p>
-                                    <p>
-                                        {creditCard
-                                            ? 'Valor assumido no cartão'
-                                            : 'Valor pago agora'}
-                                        :{' '}
-                                        <strong>
-                                            {paid !== null && paid > 0
-                                                ? formatMoney(paid)
-                                                : 'Confira o valor'}
-                                        </strong>
-                                    </p>
-                                    {!creditCard && (
-                                        <p className={styles.help}>
-                                            Forma:{' '}
-                                            {
-                                                {
-                                                    PIX: 'PIX',
-                                                    DEBIT: 'Débito',
-                                                    CASH: 'Dinheiro',
-                                                }[method]
-                                            }
-                                        </p>
-                                    )}
-                                    {creditCard && (
-                                        <p>
-                                            Saiu da conta agora:{' '}
-                                            {formatMoney(0)}.
-                                        </p>
-                                    )}
-                                    {paid !== null &&
-                                    paid > 0 &&
-                                    paid === total ? (
-                                        <p>
-                                            {creditCard
-                                                ? 'O valor informado no cartão cobre o total da despesa.'
-                                                : 'O pagamento informado cobre o total da despesa.'}
-                                        </p>
-                                    ) : (
-                                        <p>
-                                            {creditCard
-                                                ? 'Restante a realizar'
-                                                : 'Falta pagar'}
-                                            :{' '}
-                                            {total !== null &&
-                                            paid !== null &&
-                                            paid < total &&
-                                            paid > 0
-                                                ? formatMoney(total - paid)
-                                                : 'Confira os valores'}
-                                            .
-                                        </p>
-                                    )}
-                                    {paid !== null &&
-                                        total !== null &&
-                                        paid > 0 &&
-                                        paid <= total &&
-                                        actualPayer &&
-                                        calculated.length > 0 && (
-                                            <p>
-                                                <strong>Falta acertar: </strong>
-                                                {members
-                                                    .filter(
-                                                        (m) =>
-                                                            m.memberId !==
-                                                            actualPayer,
-                                                    )
-                                                    .map((m) => {
-                                                        const payerShare =
-                                                            calculated.find(
-                                                                (share) =>
-                                                                    share.memberId ===
-                                                                    actualPayer,
-                                                            )?.amountInCents ??
-                                                            0;
-                                                        const excess = Math.max(
-                                                            0,
-                                                            paid - payerShare,
-                                                        );
-                                                        return excess > 0
-                                                            ? m.displayName +
-                                                                  ' deve ' +
-                                                                  formatMoney(
-                                                                      excess,
-                                                                  ) +
-                                                                  ' a ' +
-                                                                  members.find(
-                                                                      (
-                                                                          holder,
-                                                                      ) =>
-                                                                          holder.memberId ===
-                                                                          actualPayer,
-                                                                  )?.displayName
-                                                            : 'Não há valor a acertar';
-                                                    })
-                                                    .join('; ') ||
-                                                    'Não há valor a acertar'}
-                                                .
-                                            </p>
-                                        )}
-                                </>
-                            )}
-                            {expected && (
-                                <p className={styles.help}>
-                                    Responsável previsto:{' '}
-                                    {members.find(
-                                        (m) => m.memberId === expected,
-                                    )?.displayName ?? 'Membro do registro'}
-                                </p>
-                            )}
-                        </div>
-                        <p>
-                            Acerto:{' '}
-                            {selectedMode === 'SUGGESTED' && suggested
-                                ? formatDate(suggested)
-                                : selectedMode === 'DATE' && targetDate
-                                  ? formatDate(targetDate)
-                                  : selectedMode === 'CYCLE' && cycleId
-                                    ? formatDate(
-                                          openCycles.find(
-                                              (c) => c.id === cycleId,
-                                          )?.targetDate ?? '',
-                                      )
-                                    : 'Sem data de acerto'}
-                        </p>
-                        <p className={styles.preview}>
-                            Esta é uma prévia. Ao salvar, confira o resultado
-                            confirmado da despesa.
-                        </p>
-                    </aside>
+                    <ExpenseLiveSummary
+                        description={description}
+                        total={total}
+                        spaceLabel={space.currentSpace?.label}
+                        calculated={calculated}
+                        actorMemberId={financial?.actorMemberId}
+                        members={members}
+                        residualRecipient={residualRecipient}
+                        method={method}
+                        actualPayer={actualPayer}
+                        paid={paid}
+                        expected={expected}
+                        selectedMode={selectedMode}
+                        suggested={suggested}
+                        targetDate={targetDate}
+                        cycleId={cycleId}
+                        openCycles={openCycles}
+                    />
                     <div className={styles.confirmation}>
                         {financial?.status !== 'ACTIVE' && financial && (
                             <p role="status">
