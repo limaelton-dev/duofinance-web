@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useUrlPreferences } from '@/components/patterns/use-url-preferences';
+import { civilDate } from '@/lib/civil-date';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,11 +39,34 @@ function RoutineContent({
 }) {
     const context = useRoutineContext(personId, spaceId),
         page = useCursor();
-    const [scope, setScope] = useState('ALL'),
-        [status, setStatus] = useState('PENDING'),
-        [attention, setAttention] = useState(''),
-        [from, setFrom] = useState(''),
-        [to, setTo] = useState('');
+    const [filters, setFilters] = useUrlPreferences(
+        { scope: 'ALL', status: 'PENDING', attention: '', from: '', to: '' },
+        {
+            scope: (value) => ['ALL', 'MINE'].includes(value),
+            status: (value) =>
+                [
+                    'PENDING',
+                    'COMPLETED',
+                    'CANCELLED',
+                    'SKIPPED',
+                    'ALL',
+                ].includes(value),
+            attention: (value) =>
+                [
+                    '',
+                    'OVERDUE',
+                    'TODAY',
+                    'URGENT',
+                    'UPCOMING',
+                    'NO_DEADLINE',
+                ].includes(value),
+            from: (value) =>
+                value === '' || (value.length === 10 && !!civilDate(value)),
+            to: (value) =>
+                value === '' || (value.length === 10 && !!civilDate(value)),
+        },
+    );
+    const { scope, status, attention, from, to } = filters;
     const queryText = new URLSearchParams({
         scope,
         status,
@@ -63,9 +87,9 @@ function RoutineContent({
         !invalidPeriod,
         (signal) => getTasks(spaceId, queryText, signal),
     );
-    function change(setter: (value: string) => void, value: string) {
+    function change(key: keyof typeof filters, value: string) {
         page.reset();
-        setter(value);
+        setFilters({ [key]: value });
     }
     return (
         <div className={styles.page}>
@@ -107,7 +131,7 @@ function RoutineContent({
                         Responsabilidade
                         <select
                             value={scope}
-                            onChange={(e) => change(setScope, e.target.value)}
+                            onChange={(e) => change('scope', e.target.value)}
                         >
                             <option value="ALL">Todas</option>
                             <option value="MINE">Minhas</option>
@@ -117,7 +141,7 @@ function RoutineContent({
                         Situação
                         <select
                             value={status}
-                            onChange={(e) => change(setStatus, e.target.value)}
+                            onChange={(e) => change('status', e.target.value)}
                         >
                             <option value="PENDING">Pendentes</option>
                             <option value="COMPLETED">Concluídas</option>
@@ -131,7 +155,7 @@ function RoutineContent({
                         <select
                             value={attention}
                             onChange={(e) =>
-                                change(setAttention, e.target.value)
+                                change('attention', e.target.value)
                             }
                         >
                             <option value="">Todos os prazos</option>
@@ -143,17 +167,15 @@ function RoutineContent({
                         </select>
                     </label>
                 </div>
-                <details>
+                <details className={styles.period}>
                     <summary>Consultar por período</summary>
-                    <div className={`${styles.filters} mt-4`}>
+                    <div className={styles.filters}>
                         <label>
                             De
                             <Input
                                 type="date"
                                 value={from}
-                                onChange={(e) =>
-                                    change(setFrom, e.target.value)
-                                }
+                                onChange={(e) => change('from', e.target.value)}
                             />
                         </label>
                         <label>
@@ -162,7 +184,7 @@ function RoutineContent({
                                 type="date"
                                 min={from}
                                 value={to}
-                                onChange={(e) => change(setTo, e.target.value)}
+                                onChange={(e) => change('to', e.target.value)}
                             />
                         </label>
                     </div>

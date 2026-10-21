@@ -1,52 +1,97 @@
 .page {
     display: grid;
-    gap: 2rem;
+    gap: var(--gap-section);
     min-width: 0;
-    max-width: 54rem;
+    max-width: var(--layout-content);
 }
 .heading {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--gap-label);
+}
+.back,
+.rowLink {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-related);
+    min-height: var(--control-height);
+    text-decoration: none;
+}
+.back {
+    justify-self: start;
+    font-size: var(--type-secondary);
+    font-weight: 600;
+}
+.rowLink {
+    justify-content: space-between;
+    font-size: var(--type-heading);
+    font-weight: 650;
+}
+.rowLink > span {
+    min-width: 0;
+}
+.rowLink svg {
+    flex: none;
+    color: var(--muted-foreground);
+}
+.back:hover,
+.rowLink:hover > span {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+}
+.page [data-slot='button'] {
+    max-width: 100%;
+    white-space: normal;
+}
+.page :is(h1, h2, h3, p) {
+    margin: 0;
+}
+.page {
+    overflow-wrap: anywhere;
+    font-size: var(--type-body);
 }
 .heading h1 {
-    font-size: 1.75rem;
+    font-size: var(--type-display);
     font-weight: 700;
-    line-height: 1.22;
-    letter-spacing: -0.035em;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
 }
 .help {
     color: var(--muted-foreground);
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     max-width: 70ch;
 }
 .actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: var(--gap-related);
     align-items: center;
 }
 .filters {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
-    gap: 1rem;
+    gap: var(--space-4);
+    padding: var(--inset-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--card);
 }
 .filters label,
 .form label {
     display: grid;
-    gap: 0.5rem;
+    gap: var(--gap-label);
     min-width: 0;
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     font-weight: 600;
 }
 .filters select,
 .form select {
     width: 100%;
-    min-height: 3rem;
+    min-height: var(--control-height);
     border: 1px solid var(--input);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-sm);
     background: var(--card);
     color: var(--foreground);
-    padding: 0.75rem;
+    padding: var(--space-3);
     font: inherit;
 }
 .filters select:focus-visible,
@@ -59,14 +104,14 @@
     padding: 0;
     list-style: none;
     border: 1px solid var(--border);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
     background: var(--card);
     min-width: 0;
 }
 .row {
     display: grid;
-    gap: 0.75rem;
-    padding: 1.25rem;
+    gap: var(--gap-related);
+    padding: var(--inset-card);
     overflow-wrap: anywhere;
 }
 .row + .row {
@@ -74,7 +119,7 @@
 }
 .row h2,
 .row h3 {
-    font-size: 1rem;
+    font-size: var(--type-heading);
     font-weight: 650;
 }
 .row a,
@@ -84,41 +129,45 @@
 .meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 1rem;
+    gap: var(--space-2) var(--space-4);
     color: var(--muted-foreground);
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
 }
 .notice {
-    padding: 1rem;
+    padding: var(--space-4);
     border: 1px solid var(--border);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
     background: var(--card);
 }
 .form {
     display: grid;
-    gap: 1.5rem;
-    max-width: 35rem;
+    gap: var(--gap-group);
+    max-width: var(--layout-form);
     min-width: 0;
 }
 .form fieldset {
     display: grid;
-    gap: 1.25rem;
-    padding: 0;
-    border: 0;
+    gap: var(--gap-field);
+    margin: 0;
+    padding: var(--inset-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--card);
     min-width: 0;
 }
 .form legend {
-    font-size: 1.25rem;
+    font-size: var(--type-section);
     font-weight: 650;
-    margin-bottom: 1rem;
+    padding-inline: var(--space-2);
+    margin-bottom: 0;
 }
 .form textarea {
     width: 100%;
     min-height: 7rem;
     resize: vertical;
     border: 1px solid var(--input);
-    border-radius: 0.75rem;
-    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    padding: var(--space-3);
     background: var(--card);
     color: var(--foreground);
     font: inherit;
@@ -129,9 +178,9 @@
 }
 .check {
     display: flex !important;
-    gap: 0.75rem !important;
+    gap: var(--space-3) !important;
     align-items: center;
-    min-height: 3rem;
+    min-height: var(--control-height);
     font-weight: 400 !important;
 }
 .check input {
@@ -142,25 +191,30 @@
 }
 .section {
     display: grid;
-    gap: 1.25rem;
+    gap: var(--space-4);
     min-width: 0;
 }
 .section > h2 {
-    font-size: 1.25rem;
+    font-size: var(--type-section);
     font-weight: 650;
     letter-spacing: -0.02em;
 }
 .details {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--gap-related);
+    margin: 0;
+    padding: var(--inset-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--card);
 }
 .details > div {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 0.5rem 1.5rem;
+    gap: var(--space-2) var(--space-6);
     border-bottom: 1px solid var(--border);
-    padding-bottom: 0.75rem;
+    padding-bottom: var(--space-3);
 }
 .details dt {
     color: var(--muted-foreground);
@@ -169,10 +223,19 @@
     margin: 0;
     overflow-wrap: anywhere;
 }
-@media (min-width: 640px) {
-    .dates {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
+.notice {
+    display: grid;
+    gap: var(--gap-related);
+}
+.period > summary {
+    min-height: var(--target-min);
+    align-content: center;
+    cursor: pointer;
+}
+.period > :not(summary) {
+    margin-top: var(--gap-related);
+}
+.period > summary:focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 4px;
 }

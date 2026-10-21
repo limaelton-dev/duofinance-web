@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { FinancialRecordLink } from './financial-record-link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -123,11 +124,11 @@ function RecurringList({
                                     className={layout.row}
                                 >
                                     <h2>
-                                        <Link
+                                        <FinancialRecordLink
                                             href={`/spaces/${spaceId}/recurring-commitments/${item.id}?month=${month}`}
                                         >
                                             {item.description}
-                                        </Link>
+                                        </FinancialRecordLink>
                                     </h2>
                                     <p>
                                         {item.kind === 'INCOME'

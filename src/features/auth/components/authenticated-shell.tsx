@@ -16,7 +16,9 @@ import {
     UserRound,
     ListChecks,
     ShoppingBasket,
-} from 'lucide-react';
+} from '@/components/ui/icons';
+import { AppearanceSettings } from '@/components/patterns/appearance';
+import { useShellViewport } from './use-shell-viewport';
 import { Brand } from '@/components/patterns/brand';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -36,6 +38,9 @@ import { SpaceSwitcher } from '@/features/spaces/components/space-switcher';
 import styles from './authenticated-shell.module.css';
 
 export function AuthenticatedShell({ children }: { children: ReactNode }) {
+    const headerRef = useRef<HTMLElement>(null);
+    const navigationRef = useRef<HTMLElement>(null);
+    useShellViewport(headerRef, navigationRef);
     const pathname = usePathname();
     const router = useRouter();
     const currentPath = useRef(pathname);
@@ -233,7 +238,10 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
                     <LogoutButton />
                 </div>
             </aside>
-            <header className={`${styles.header} navigation-glass`}>
+            <header
+                ref={headerRef}
+                className={`${styles.header} navigation-glass`}
+            >
                 <div className={styles.headerContent}>
                     <Link
                         href="/"
@@ -242,31 +250,34 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
                     >
                         <Brand />
                     </Link>
-                    <div className={styles.accountMenu}>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    aria-label="Conta e espaços"
-                                >
-                                    <UserRound aria-hidden="true" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel className="break-words">
-                                    {auth.data?.person.displayName}
-                                </DropdownMenuLabel>
-                                <DropdownMenuItem asChild>
-                                    <Link href="/spaces">
-                                        <Settings2 aria-hidden="true" />
-                                        Meus espaços
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <LogoutButton menuItem />
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                    <div className={styles.headerTools}>
+                        <AppearanceSettings />
+                        <div className={styles.accountMenu}>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        aria-label="Conta e espaços"
+                                    >
+                                        <UserRound aria-hidden="true" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel className="break-words">
+                                        {auth.data?.person.displayName}
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/spaces">
+                                            <Settings2 aria-hidden="true" />
+                                            Meus espaços
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <LogoutButton menuItem />
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
                     <SpaceSwitcher />
                 </div>
@@ -314,6 +325,7 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
             </main>
             <nav
                 aria-label="Navegação principal"
+                ref={navigationRef}
                 className={`${styles.mobileNavigation} navigation-glass`}
             >
                 {navigationLinks}

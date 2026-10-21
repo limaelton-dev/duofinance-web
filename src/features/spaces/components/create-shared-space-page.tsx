@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import { useAuthenticatedContext } from '@/features/auth/hooks/use-authenticated-context';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CircleCheck } from 'lucide-react';
+import { CircleCheck } from '@/components/ui/icons';
 
 import { useSpaceCommand } from '../hooks/use-space-command';
 import type { InvitationCommandResponse } from '../types/spaces-responses';

@@ -1,6 +1,6 @@
 .stack {
     display: grid;
-    gap: 1.5rem;
+    gap: var(--gap-group);
     min-width: 0;
     overflow-wrap: anywhere;
 }
@@ -10,20 +10,20 @@
 }
 
 .stack h1 {
-    font-size: 1.75rem;
-    line-height: 1.22;
-    letter-spacing: -0.035em;
+    font-size: var(--type-display);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
     font-weight: 700;
 }
 
 .stack h2 {
-    font-size: 1.25rem;
+    font-size: var(--type-section);
     line-height: 1.4;
     font-weight: 650;
 }
 
 .stack :is(h3, h4, h5) {
-    font-size: 1rem;
+    font-size: var(--type-body);
     line-height: 1.5;
     font-weight: 650;
 }
@@ -32,75 +32,104 @@
 .help {
     max-width: 70ch;
     color: var(--muted-foreground);
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     line-height: 1.5;
 }
 
-.stack > a {
+.stack > a,
+.back {
     justify-self: start;
     display: inline-flex;
     align-items: center;
-    min-height: 3rem;
-    font-size: 0.875rem;
+    min-height: var(--control-height);
+    font-size: var(--type-secondary);
     font-weight: 600;
     text-underline-offset: 0.25em;
 }
 
 .stack form {
     display: grid;
-    gap: 1.25rem;
+    gap: var(--gap-group);
     width: 100%;
-    max-width: 35rem;
+    max-width: var(--layout-form);
     min-width: 0;
 }
 
 .stack fieldset {
     display: grid;
-    gap: 1.25rem;
+    gap: var(--gap-field);
     min-width: 0;
     margin: 0;
-    padding: 1.5rem 0 0;
-    border: 0;
-    border-top: 1px solid var(--border);
+    padding: var(--inset-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--card);
 }
 
 .stack legend {
-    padding-right: 0.75rem;
-    font-size: 1.125rem;
+    padding-right: var(--space-3);
+    font-size: var(--type-heading);
     font-weight: 650;
+}
+.stack fieldset.choices {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    gap: var(--gap-label);
+}
+.stack .choices legend {
+    padding: 0;
+    margin-bottom: var(--gap-label);
 }
 
 .stack label {
     display: grid;
-    gap: 0.5rem;
+    gap: var(--gap-label);
     min-width: 0;
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     font-weight: 600;
 }
 
-.stack label:has(+ input),
-.stack label:has(+ select) {
-    margin-bottom: -0.75rem;
+.field {
+    display: grid;
+    gap: var(--gap-label);
+    min-width: 0;
+}
+
+.feedback {
+    display: grid;
+    gap: var(--gap-related);
+    justify-items: start;
+    min-width: 0;
+}
+
+.feedback > p {
+    max-width: 70ch;
+}
+
+.stack .heading > p {
+    color: var(--muted-foreground);
+    font-size: var(--type-secondary);
 }
 
 .stack select {
     width: 100%;
     min-width: 0;
-    min-height: 3rem;
-    padding: 0.75rem;
+    min-height: var(--control-height);
+    padding: var(--space-3);
     border: 1px solid var(--input);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-sm);
     background: var(--card);
     color: var(--foreground);
     font: inherit;
-    font-size: 1rem;
+    font-size: var(--type-body);
     font-weight: 400;
 }
 
 .stack input:is([type='checkbox'], [type='radio']) {
     width: 1.25rem;
     height: 1.25rem;
-    min-height: 1.25rem;
+    min-height: var(--space-5);
     margin: 0;
     accent-color: var(--primary);
 }
@@ -108,8 +137,8 @@
 .stack label:has(input:is([type='checkbox'], [type='radio'])) {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    min-height: 3rem;
+    gap: var(--gap-related);
+    min-height: var(--control-height);
 }
 
 .stack :is(a, select, input[type='checkbox'], summary):focus-visible {
@@ -133,81 +162,104 @@
 }
 
 .stack [role='alert'] {
-    padding: 1rem;
+    padding: var(--space-4);
     border: 1px solid var(--destructive);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
     background: var(--card);
     color: var(--destructive);
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     line-height: 1.5;
 }
 
 .stack [role='status'] {
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     color: var(--muted-foreground);
 }
 
 .stack [role='group'] {
     display: grid;
-    gap: 1rem;
-    padding: 1.25rem;
+    gap: var(--space-4);
+    padding: var(--inset-card);
     border: 1px solid var(--border);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
     background: var(--card);
 }
 
 .stack [role='group'] > p {
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     line-height: 1.5;
 }
 .stack > section:not(.stack) {
     display: grid;
-    gap: 1rem;
+    gap: var(--space-4);
 }
 
 .actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: var(--gap-related);
     align-items: center;
 }
 
 .stack nav {
     border-bottom: 1px solid var(--border);
-    padding-bottom: 1rem;
+    padding-bottom: var(--space-4);
 }
 
 .heading {
     display: grid;
-    gap: 0.5rem;
+    gap: var(--gap-label);
+}
+.recordLink {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: var(--control-height);
+    width: 100%;
+    font-size: var(--type-heading);
+    font-weight: 650;
+    text-decoration: none;
+}
+.recordLink > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.recordLink svg {
+    flex: none;
+    color: var(--muted-foreground);
+}
+.recordLink:hover > span {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
 }
 
 .receipt,
 .summary {
     display: grid;
-    gap: 1rem;
-    padding: 1.5rem;
+    gap: var(--space-4);
+    padding: var(--inset-card);
     min-width: 0;
-    max-width: 46rem;
+    max-width: var(--layout-form);
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
 }
 
 .amount {
-    font-size: 2rem;
+    font-size: var(--type-display);
     line-height: 1.25;
-    letter-spacing: -0.035em;
+    letter-spacing: -0.025em;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
 }
 
 .stack dl {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 0.75rem 1rem;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--space-3) var(--space-4);
     margin: 0;
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
 }
 
 .stack dl > div {
@@ -233,14 +285,14 @@
     list-style: none;
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
 }
 
 .stack li {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--gap-related);
     min-width: 0;
-    padding: 1.25rem;
+    padding: var(--inset-card);
 }
 
 .stack li + li {
@@ -249,13 +301,13 @@
 
 .stack li p {
     color: var(--muted-foreground);
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     line-height: 1.5;
     font-variant-numeric: tabular-nums;
 }
 .stack li .amount {
     color: var(--foreground);
-    font-size: 1.125rem;
+    font-size: var(--type-heading);
     font-weight: 650;
 }
 
@@ -264,7 +316,7 @@
     display: inline-flex;
     align-items: center;
     min-height: 2.75rem;
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     font-weight: 600;
     text-underline-offset: 0.25em;
 }
@@ -276,7 +328,7 @@
 }
 
 .stack li li {
-    padding: 1rem 0;
+    padding: var(--space-4) 0;
 }
 .stack :is(ul, ol):empty {
     display: none;
@@ -284,25 +336,25 @@
 
 .empty {
     display: grid;
-    gap: 0.5rem;
-    padding: 1.5rem;
+    gap: var(--gap-label);
+    padding: var(--inset-card);
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
+    border-radius: var(--radius-lg);
+    font-size: var(--type-secondary);
     color: var(--muted-foreground);
 }
 
 .details {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--gap-related);
     color: var(--muted-foreground);
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
 }
 
 .details summary {
     cursor: pointer;
-    min-height: 3rem;
+    min-height: var(--control-height);
     align-content: center;
     color: var(--foreground);
     font-weight: 600;
@@ -311,7 +363,7 @@
 .success {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--gap-label);
     color: var(--success);
     font-weight: 600;
 }
@@ -319,16 +371,16 @@
 @media (max-width: 359px) {
     .receipt,
     .summary {
-        padding: 1rem;
+        padding: var(--space-4);
     }
 
     .stack dl {
         grid-template-columns: 1fr;
-        gap: 0.375rem;
+        gap: var(--gap-label);
     }
 
     .stack dd {
-        margin-bottom: 0.5rem;
+        margin-bottom: var(--space-2);
         text-align: left;
     }
 }

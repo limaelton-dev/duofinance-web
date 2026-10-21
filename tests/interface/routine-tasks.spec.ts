@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
 const person = '10000000-0000-4000-8000-000000000001',
     other = '10000000-0000-4000-8000-000000000002',
     personal = '20000000-0000-4000-8000-000000000001',
@@ -275,6 +276,35 @@ async function setup(
         },
     };
 }
+test('filtros da rotina permanecem ao voltar de uma tarefa', async ({
+    page,
+}) => {
+    await setup(page);
+    await page.goto(`/spaces/${space}/routine`);
+    await page
+        .getByRole('combobox', { name: 'Responsabilidade', exact: true })
+        .selectOption('MINE');
+    await page
+        .getByRole('combobox', { name: 'Atenção', exact: true })
+        .selectOption('URGENT');
+    await expect(
+        page.getByRole('combobox', { name: 'Responsabilidade', exact: true }),
+    ).toHaveValue('MINE');
+    await page
+        .getByRole('link', { name: taskBase.description, exact: true })
+        .click();
+    await expect(
+        page.getByRole('heading', { name: 'Detalhe da tarefa', exact: true }),
+    ).toBeVisible();
+    await page.goBack();
+    await expect(
+        page.getByRole('combobox', { name: 'Responsabilidade', exact: true }),
+    ).toHaveValue('MINE');
+    await expect(
+        page.getByRole('combobox', { name: 'Atenção', exact: true }),
+    ).toHaveValue('URGENT');
+});
+
 for (const width of [320, 390, 768, 1280])
     test(`consulta, filtros e paginação legíveis em ${width}px`, async ({
         page,
@@ -288,6 +318,13 @@ for (const width of [320, 390, 768, 1280])
         await expect(
             page.getByRole('link', { name: taskBase.description, exact: true }),
         ).toBeVisible();
+        if (process.env.IMPECCABLE_REVIEW) {
+            await mkdir('.impeccable/spacing-review', { recursive: true });
+            await page.screenshot({
+                path: `.impeccable/spacing-review/routine-${width}.png`,
+                fullPage: true,
+            });
+        }
         await page
             .getByRole('combobox', { name: 'Responsabilidade', exact: true })
             .selectOption('MINE');

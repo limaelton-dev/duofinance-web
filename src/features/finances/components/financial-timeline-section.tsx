@@ -167,7 +167,7 @@ export function FinancialTimelineSection({
                 <FinancialLoading label="Carregando consultas financeiras…" />
             )}
             {query.isError && (
-                <div>
+                <div className={styles.feedback}>
                     <p role="alert">
                         Não foi possível consultar os compromissos financeiros.
                     </p>

@@ -94,7 +94,7 @@ async function month(page: Page, value: string) {
     const summary =
         (await page
             .getByRole('button', { name: 'Resumo', exact: true })
-            .getAttribute('aria-current')) === 'page';
+            .getAttribute('aria-pressed')) === 'true';
     await expect(
         page.getByRole('heading', {
             name: `${summary ? 'Resumo' : 'Compromissos'} de ${value}`,
@@ -582,7 +582,9 @@ test('A17: mês A → B → A e 401 tardio preservam nova seleção e sessão', 
         await expect(
             page.getByRole('button', { name: 'Sair', exact: true }),
         ).toBeVisible();
-        await expect(page).toHaveURL(`/spaces/${a.personalId}/finances`);
+        await expect(page).toHaveURL(
+            `/spaces/${a.personalId}/finances?month=2026-01`,
+        );
     } finally {
         release();
     }

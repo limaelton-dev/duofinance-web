@@ -7,7 +7,7 @@ import { ApiError } from '@/lib/api/api-error';
 import { logout } from '@/lib/api/logout';
 import { Button } from '@/components/ui/button';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { LogOut } from 'lucide-react';
+import { LogOut } from '@/components/ui/icons';
 import { useInvitationFlowContext } from '@/features/spaces/context/invitation-flow-provider';
 import { useOptionalSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
 

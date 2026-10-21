@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { FinancialRecordLink } from './financial-record-link';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -116,11 +117,11 @@ function Planning({
                                 {list.data.items.map((item) => (
                                     <li key={item.id} className={layout.row}>
                                         <h3>
-                                            <Link
+                                            <FinancialRecordLink
                                                 href={`/spaces/${spaceId}/finances/planning/${item.id}`}
                                             >
                                                 {item.description}
-                                            </Link>
+                                            </FinancialRecordLink>
                                         </h3>
                                         <p>
                                             {formatDate(

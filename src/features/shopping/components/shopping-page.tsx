@@ -1,8 +1,10 @@
 'use client';
 import { useState } from 'react';
+import { useUrlPreferences } from '@/components/patterns/use-url-preferences';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ChevronRight } from '@/components/ui/icons';
 import {
     SpaceBoundary,
     QueryFeedback,
@@ -46,7 +48,11 @@ function ShoppingContent({
     personId: string;
     openNew: boolean;
 }) {
-    const [status, setStatus] = useState('ACTIVE');
+    const [preferences, setPreferences] = useUrlPreferences(
+        { lists: 'ACTIVE' },
+        { lists: (value) => ['ACTIVE', 'ARCHIVED', 'ALL'].includes(value) },
+    );
+    const status = preferences.lists;
     return (
         <div className={styles.page}>
             <header className={styles.heading}>
@@ -61,7 +67,9 @@ function ShoppingContent({
                 <select
                     className={styles.select}
                     value={status}
-                    onChange={(event) => setStatus(event.target.value)}
+                    onChange={(event) =>
+                        setPreferences({ lists: event.target.value })
+                    }
                 >
                     <option value="ACTIVE">Ativas</option>
                     <option value="ARCHIVED">Arquivadas</option>
@@ -203,9 +211,17 @@ function ListResults({
                                     <div className={styles.rowTitle}>
                                         <h2>
                                             <ShoppingLink
+                                                className={styles.rowLink}
                                                 href={`/spaces/${spaceId}/shopping/lists/${list.id}`}
                                             >
-                                                {list.name ?? 'Lista sem nome'}
+                                                <span>
+                                                    {list.name ??
+                                                        'Lista sem nome'}
+                                                </span>
+                                                <ChevronRight
+                                                    aria-hidden="true"
+                                                    size={20}
+                                                />
                                             </ShoppingLink>
                                         </h2>
                                         <span className={styles.state}>

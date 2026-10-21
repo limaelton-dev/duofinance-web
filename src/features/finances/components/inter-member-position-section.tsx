@@ -95,21 +95,27 @@ export function InterMemberPositionSection({
     }
     return (
         <section className={styles.stack}>
-            <h2>Entre vocês</h2>
-            <Link href={`/spaces/${spaceId}/finances/settlements`}>
-                Ver acertos
-            </Link>
-            <Link href={`/spaces/${spaceId}/finances/settlements/transfers`}>
-                Histórico de transferências
-            </Link>
-            <p>
-                Todas as pendências abertas deste espaço, de qualquer data, com
-                ou sem acerto associado.
-            </p>
-            <p>
-                A posição líquida é informativa. Consultar este resumo não
-                resolve nem compensa pendências.
-            </p>
+            <header className={styles.intro}>
+                <h2>Entre vocês</h2>
+                <p>
+                    Todas as pendências abertas deste espaço, de qualquer data,
+                    com ou sem acerto associado.
+                </p>
+                <p>
+                    A posição líquida é informativa. Consultar este resumo não
+                    resolve nem compensa pendências.
+                </p>
+            </header>
+            <div className={styles.actions}>
+                <Link href={`/spaces/${spaceId}/finances/settlements`}>
+                    Ver acertos
+                </Link>
+                <Link
+                    href={`/spaces/${spaceId}/finances/settlements/transfers`}
+                >
+                    Histórico de transferências
+                </Link>
+            </div>
             <div className={styles.filters}>
                 <div className={styles.filter}>
                     <label htmlFor="position-direction">
@@ -144,7 +150,7 @@ export function InterMemberPositionSection({
                 <FinancialLoading label="Carregando posição entre vocês…" />
             )}
             {query.isError && (
-                <div>
+                <div className={styles.feedback}>
                     <p role="alert">
                         {query.error instanceof ApiError &&
                         query.error.code === 'SHARED_SPACE_REQUIRED'

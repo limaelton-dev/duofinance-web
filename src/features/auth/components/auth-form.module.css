@@ -1,34 +1,51 @@
 .page {
     min-height: 100svh;
-    display: grid;
-    align-items: center;
-    justify-items: center;
-    padding: 2rem 1rem;
     background: var(--background);
+    padding: max(var(--space-5), env(safe-area-inset-top))
+        max(var(--space-5), env(safe-area-inset-right))
+        max(var(--space-8), env(safe-area-inset-bottom))
+        max(var(--space-5), env(safe-area-inset-left));
 }
-.card {
-    width: min(100%, 25rem);
-    min-width: 0;
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 76rem;
+    margin: 0 auto;
+    gap: var(--space-3);
 }
 .brand {
-    margin: 0 0 3rem;
-    font-size: 1.25rem;
+    font-size: var(--type-section);
     font-weight: 750;
-    letter-spacing: -0.035em;
+    letter-spacing: -0.04em;
 }
-.brand span {
-    font-weight: 450;
+.layout {
+    width: min(100%, 76rem);
+    margin: var(--space-12) auto 0;
+}
+.card {
+    width: min(100%, 26rem);
+    min-width: 0;
+    margin-inline: auto;
+}
+.introduction {
+    display: none;
+}
+.formHeading {
+    display: grid;
+    gap: var(--gap-related);
+    margin-bottom: var(--gap-section);
 }
 .title {
-    margin: 0 0 1.5rem;
-    font-size: 1.75rem;
+    margin: 0;
+    font-size: var(--type-title);
     line-height: 1.22;
     font-weight: 700;
     letter-spacing: -0.035em;
     text-wrap: balance;
 }
 .description {
-    margin: -0.75rem 0 2rem;
+    margin: 0;
     color: var(--muted-foreground);
     line-height: 1.5;
 }
@@ -36,9 +53,10 @@
 .fields,
 .field {
     display: grid;
-    gap: 1.5rem;
+    gap: var(--gap-group);
 }
 .fields {
+    gap: var(--gap-field);
     min-width: 0;
     margin: 0;
     padding: 0;
@@ -46,7 +64,7 @@
 }
 .field {
     min-width: 0;
-    gap: 0.5rem;
+    gap: var(--gap-label);
 }
 .password {
     position: relative;
@@ -56,7 +74,8 @@
 }
 .reveal {
     position: absolute;
-    inset-block-start: 2px;
+    top: 50%;
+    transform: translateY(-50%);
     inset-inline-end: 2px;
     width: 2.75rem;
     min-height: 2.75rem;
@@ -67,31 +86,31 @@
 .footer {
     margin: 0;
     color: var(--muted-foreground);
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     line-height: 1.5;
 }
 .error {
     margin: 0;
     color: var(--destructive);
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     line-height: 1.5;
 }
 .errorSummary {
     padding: 1rem;
     border: 1px solid var(--destructive);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md);
     background: var(--card);
 }
 .errorSummary:focus-visible,
 .link:focus-visible {
-    outline: 2px solid var(--ring);
+    outline: 3px solid var(--ring);
     outline-offset: 4px;
 }
 .button {
     width: 100%;
 }
 .footer {
-    margin-top: 2rem;
+    margin-top: var(--gap-group);
     text-align: center;
 }
 .link {
@@ -106,5 +125,64 @@
 @media (min-width: 48rem) {
     .page {
         padding: 3rem 1.5rem;
+    }
+}
+
+@media (min-width: 64rem) {
+    .page {
+        padding: var(--space-8) var(--space-12);
+    }
+    .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(24rem, 0.9fr);
+        align-items: center;
+        gap: var(--space-12);
+        min-height: calc(100svh - 12rem);
+        margin-top: var(--space-8);
+    }
+    .introduction {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+        min-height: 36rem;
+        height: 100%;
+        max-height: 52rem;
+        padding: clamp(2rem, 5vw, 5rem);
+        border-radius: var(--radius-xl);
+        background: var(--primary);
+        color: var(--primary-foreground);
+    }
+    .eyebrow {
+        font-size: var(--type-secondary);
+        font-weight: 500;
+        margin: 0 0 var(--space-8);
+    }
+    .introduction h2 {
+        font-size: clamp(3rem, 5vw, 4.5rem);
+        line-height: 1.05;
+        letter-spacing: -0.055em;
+        margin: 0 0 var(--space-8);
+        font-weight: 700;
+    }
+    .introduction > p:not(.eyebrow) {
+        font-size: var(--type-heading);
+        line-height: 1.6;
+        max-width: 30ch;
+    }
+    .signature {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--gap-label);
+        margin-top: var(--space-12);
+        font-size: var(--type-caption);
+    }
+    .signature span {
+        padding: var(--space-2) var(--space-4);
+        border: 1px solid currentColor;
+        border-radius: var(--radius-pill);
+    }
+    .card {
+        padding-block: var(--space-6);
     }
 }

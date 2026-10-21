@@ -2,6 +2,7 @@
 import { FinancialLoading } from './financial-loading';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { FinancialRecordLink } from './financial-record-link';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthenticatedContext } from '@/features/auth/hooks/use-authenticated-context';
@@ -94,11 +95,13 @@ function History({ personId, spaceId }: { personId: string; spaceId: string }) {
     const value = !query.isFetching && !query.isError ? query.data : undefined;
     return (
         <section className={styles.stack}>
-            <h1>Receitas</h1>
-            <p>
-                Acompanhe as previsões, os valores recebidos e o que ainda falta
-                receber.
-            </p>
+            <header className={styles.heading}>
+                <h1>Receitas</h1>
+                <p>
+                    Acompanhe as previsões, os valores recebidos e o que ainda
+                    falta receber.
+                </p>
+            </header>
             <nav className={styles.actions} aria-label="Navegação financeira">
                 <Button asChild>
                     <Link href={`/spaces/${spaceId}/incomes/new`}>
@@ -112,21 +115,23 @@ function History({ personId, spaceId }: { personId: string; spaceId: string }) {
                     <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
                 </Button>
             </nav>
-            <label htmlFor="income-status">Mostrar receitas</label>
-            <select
-                id="income-status"
-                value={selection.status}
-                onChange={(e) =>
-                    setSelection({
-                        status: e.target.value as typeof selection.status,
-                        cursor: null,
-                    })
-                }
-            >
-                <option value="ALL">Todas</option>
-                <option value="PENDING">Pendentes</option>
-                <option value="RECEIVED">Recebidas</option>
-            </select>
+            <div className={styles.field}>
+                <label htmlFor="income-status">Mostrar receitas</label>
+                <select
+                    id="income-status"
+                    value={selection.status}
+                    onChange={(e) =>
+                        setSelection({
+                            status: e.target.value as typeof selection.status,
+                            cursor: null,
+                        })
+                    }
+                >
+                    <option value="ALL">Todas</option>
+                    <option value="PENDING">Pendentes</option>
+                    <option value="RECEIVED">Recebidas</option>
+                </select>
+            </div>
             <Button
                 variant="outline"
                 type="button"
@@ -143,7 +148,7 @@ function History({ personId, spaceId }: { personId: string; spaceId: string }) {
                 <FinancialLoading label="Carregando receitas…" />
             )}
             {query.isError && (
-                <div>
+                <div className={styles.feedback}>
                     <p role="alert">Não foi possível consultar as receitas.</p>
                     <Button
                         variant="outline"
@@ -199,11 +204,11 @@ function History({ personId, spaceId }: { personId: string; spaceId: string }) {
                                             .
                                         </p>
                                     )}
-                                    <Link
+                                    <FinancialRecordLink
                                         href={`/spaces/${spaceId}/incomes/${item.id}`}
                                     >
                                         Ver receita
-                                    </Link>
+                                    </FinancialRecordLink>
                                 </li>
                             ))}
                         </ul>

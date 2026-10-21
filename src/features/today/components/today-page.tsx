@@ -11,7 +11,7 @@ import {
     TriangleAlert,
     ListChecks,
     ShoppingBasket,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -46,6 +46,7 @@ import {
     todayItemKey,
 } from '../utils/today-presentation';
 import styles from './today.module.css';
+import { TodayOverview } from './today-overview';
 
 export function TodayPage() {
     const auth = useAuthenticatedContext({ enabled: false });
@@ -367,6 +368,7 @@ function TodaySection({
     return (
         <section
             className={styles.section}
+            data-kind={block.kind}
             aria-labelledby={`today-${block.kind}`}
         >
             <div className={styles.sectionHeading}>
@@ -652,18 +654,21 @@ function TodayRead({
                     </AlertDescription>
                 </Alert>
             ) : data ? (
-                <div className={styles.sections}>
-                    {data.blocks.map((block) => (
-                        <TodaySection
-                            key={block.kind}
-                            block={block}
-                            today={data}
-                            personId={personId}
-                            retry={() => void today.refetch()}
-                            fetching={today.isFetching}
-                        />
-                    ))}
-                </div>
+                <>
+                    <TodayOverview today={data} />
+                    <div className={styles.sections}>
+                        {data.blocks.map((block) => (
+                            <TodaySection
+                                key={block.kind}
+                                block={block}
+                                today={data}
+                                personId={personId}
+                                retry={() => void today.refetch()}
+                                fetching={today.isFetching}
+                            />
+                        ))}
+                    </div>
+                </>
             ) : null}
         </section>
     );

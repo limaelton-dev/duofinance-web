@@ -1,10 +1,10 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
 import { QueryProvider } from '@/providers/query-provider';
 import { InvitationFlowProvider } from '@/features/spaces/context/invitation-flow-provider';
 
-import '@fontsource-variable/manrope';
+import { AppearanceProvider } from '@/components/patterns/appearance';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -16,6 +16,13 @@ export const metadata: Metadata = {
     referrer: 'no-referrer',
 };
 
+export const viewport: Viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    viewportFit: 'cover',
+    colorScheme: 'light dark',
+};
+
 type RootLayoutProps = Readonly<{
     children: ReactNode;
 }>;
@@ -25,7 +32,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <html lang="pt-BR">
             <body>
                 <QueryProvider>
-                    <InvitationFlowProvider>{children}</InvitationFlowProvider>
+                    <AppearanceProvider>
+                        <InvitationFlowProvider>
+                            {children}
+                        </InvitationFlowProvider>
+                    </AppearanceProvider>
                 </QueryProvider>
             </body>
         </html>

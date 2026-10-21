@@ -1,8 +1,11 @@
 .page {
-    width: min(35rem, 100%);
+    width: min(var(--layout-form), 100%);
     min-height: 100svh;
     margin: 0 auto;
-    padding: 3rem 1rem;
+    padding: max(var(--space-8), env(safe-area-inset-top))
+        max(var(--space-5), env(safe-area-inset-right))
+        max(var(--space-8), env(safe-area-inset-bottom))
+        max(var(--space-5), env(safe-area-inset-left));
 }
 .brand {
     margin-bottom: 3rem;
@@ -11,6 +14,6 @@
     outline: none;
 }
 .page a:focus-visible {
-    outline: 2px solid var(--ring);
+    outline: 3px solid var(--ring);
     outline-offset: 4px;
 }

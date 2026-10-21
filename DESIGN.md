@@ -1,334 +1,143 @@
 ---
 name: Junelo
-description: Sistema visual monocromático para organização financeira pessoal e compartilhada.
-colors:
-    primary: '#171717'
-    primary-foreground: '#ffffff'
-    background: '#f7f7f7'
-    foreground: '#171717'
-    card: '#ffffff'
-    secondary: '#eeeeee'
-    accent: '#eeeeee'
-    muted: '#efefef'
-    muted-foreground: '#595959'
-    border: '#dedede'
-    input: '#858585'
-    ring: '#171717'
-    destructive: '#ba3035'
-    warning: '#7a4b00'
-    warning-surface: '#fff4d8'
-    success: '#246b57'
-    success-surface: '#e8f2ec'
-    navigation-surface: '#ffffff'
-    navigation-glass: 'rgb(255 255 255 / 88%)'
-typography:
-    display:
-        fontFamily: "'Manrope Variable', 'Segoe UI', sans-serif"
-        fontSize: '2rem'
-        fontWeight: 700
-        lineHeight: 1.25
-        letterSpacing: '-0.035em'
-    headline:
-        fontFamily: "'Manrope Variable', 'Segoe UI', sans-serif"
-        fontSize: '1.75rem'
-        fontWeight: 700
-        lineHeight: 1.22
-        letterSpacing: '-0.035em'
-    title:
-        fontFamily: "'Manrope Variable', 'Segoe UI', sans-serif"
-        fontSize: '1.25rem'
-        fontWeight: 650
-        lineHeight: 1.4
-        letterSpacing: '-0.02em'
-    title-small:
-        fontFamily: "'Manrope Variable', 'Segoe UI', sans-serif"
-        fontSize: '1rem'
-        fontWeight: 650
-        lineHeight: 1.5
-    body:
-        fontFamily: "'Manrope Variable', 'Segoe UI', sans-serif"
-        fontSize: '1rem'
-        fontWeight: 400
-        lineHeight: 1.5
-    label:
-        fontFamily: "'Manrope Variable', 'Segoe UI', sans-serif"
-        fontSize: '0.875rem'
-        fontWeight: 600
-        lineHeight: '1.25rem'
-    supporting:
-        fontFamily: "'Manrope Variable', 'Segoe UI', sans-serif"
-        fontSize: '0.875rem'
-        fontWeight: 400
-        lineHeight: 1.5
-    money:
-        fontFamily: "'Manrope Variable', 'Segoe UI', sans-serif"
-        fontSize: '1.125rem'
-        fontWeight: 650
-        lineHeight: '1.5rem'
-rounded:
-    sm: '0.5rem'
-    md: '0.75rem'
-    lg: '1rem'
-    xl: '1.5rem'
-spacing:
-    '1': '0.25rem'
-    '2': '0.5rem'
-    '3': '0.75rem'
-    '4': '1rem'
-    '5': '1.25rem'
-    '6': '1.5rem'
-    '8': '2rem'
-    '10': '2.5rem'
-    '12': '3rem'
-components:
-    button-primary:
-        backgroundColor: '{colors.primary}'
-        textColor: '{colors.primary-foreground}'
-        typography: '{typography.label}'
-        rounded: '{rounded.md}'
-        padding: '0.75rem 1.25rem'
-    button-destructive:
-        backgroundColor: '{colors.destructive}'
-        textColor: '{colors.primary-foreground}'
-        typography: '{typography.label}'
-        rounded: '{rounded.md}'
-        padding: '0.75rem 1.25rem'
-    button-outline:
-        backgroundColor: '{colors.card}'
-        textColor: '{colors.foreground}'
-        typography: '{typography.label}'
-        rounded: '{rounded.md}'
-        padding: '0.75rem 1.25rem'
-    button-secondary:
-        backgroundColor: '{colors.secondary}'
-        textColor: '{colors.foreground}'
-        typography: '{typography.label}'
-        rounded: '{rounded.md}'
-        padding: '0.75rem 1.25rem'
-    button-ghost:
-        textColor: '{colors.foreground}'
-        typography: '{typography.label}'
-        rounded: '{rounded.md}'
-        padding: '0.75rem 1.25rem'
-    button-link:
-        textColor: '{colors.foreground}'
-        typography: '{typography.label}'
-        rounded: '{rounded.md}'
-        padding: '0.75rem 1.25rem'
-    input:
-        backgroundColor: '{colors.card}'
-        textColor: '{colors.foreground}'
-        typography: '{typography.body}'
-        rounded: '{rounded.md}'
-        padding: '0.75rem'
-        width: '100%'
-    navigation-mobile:
-        backgroundColor: '{colors.navigation-glass}'
-        textColor: '{colors.muted-foreground}'
-        rounded: '{rounded.xl}'
-        padding: '0.5rem'
-    navigation-current:
-        backgroundColor: '{colors.primary}'
-        textColor: '{colors.primary-foreground}'
-        rounded: '{rounded.lg}'
-        padding: '0.5rem 1rem'
-    summary:
-        backgroundColor: '{colors.card}'
-        textColor: '{colors.foreground}'
-        rounded: '{rounded.sm}'
-        padding: '1.5rem'
-    count:
-        backgroundColor: '{colors.muted}'
-        textColor: '{colors.muted-foreground}'
-        rounded: '{rounded.sm}'
-        padding: '0 0.375rem'
-        height: '1.5rem'
+description: Sistema visual próprio, monocromático e mobile first para organização pessoal e compartilhada.
 ---
 
-# Design System: Junelo
+# Sistema visual Junelo
 
-## Overview
+Registro da implementação inspecionada em 21/10/2026. A direção preserva Junelo, preto e branco e o contexto pessoal/compartilhado de [PRODUCT.md](PRODUCT.md), aplicando os princípios de hierarquia, harmonia e continuidade dos cinco documentos em `../apple-mobile-first-design/`. O alvo conceitual é o design apresentado na WWDC 2025; medidas CSS são escolhas do projeto. A translucidez web aproxima uma camada funcional, sem equivalência com o renderizador Liquid Glass nativo.
 
-**Creative North Star: "Clareza em preto e branco"**
+Este documento descreve arquitetura e contratos de apresentação. O inventário, o baseline e a cobertura por rota estão em [MIGRATION.md](MIGRATION.md). Resultados de testes, aceite em aparelho real, compreensão por pessoas e deploy exigem evidências próprias; a descrição de um componente não comprova esses resultados.
 
-O Junelo usa contraste, espaço e texto para tornar a organização financeira compreensível. A composição é sóbria e próxima: fundo claro, superfícies brancas, Manrope e ação principal preta. A densidade permite ler contexto, valor e consequência sem depender de ornamentação.
+## Fonte única de tokens
 
-A materialidade combina conteúdo opaco e navegação com vidro branco discreto. Bordas finas organizam listas e resumos; profundidade identifica elementos sobrepostos. O contexto pessoal ou compartilhado permanece reconhecível, e os estados são nomeados em texto, respeitando os compromissos de clareza e autonomia de PRODUCT.md.
+[src/app/tokens.css](src/app/tokens.css) concentra os valores de cor, tipografia, espaço, forma, dimensão, movimento e profundidade. As features consomem esses tokens por CSS Modules; [globals.css](src/app/globals.css) importa a fonte única, estabelece semântica global, melhorias progressivas e o mapeamento `@theme inline` para Tailwind 4. Os aliases existentes, como `--card`, `--primary` e `--muted-foreground`, continuam disponíveis e apontam para papéis semânticos.
 
-Este registro foi extraído do código final em 19/10/2026. Fontes: tokens globais, primitivas de interface e estilos de acesso, navegação, seleção de espaço, Hoje, Finanças e despesas. O contrato de superfície orienta o recorte; valores e comportamentos abaixo descrevem a implementação. As capturas locais consultadas contêm dados sintéticos.
+O sistema usa componentes próprios em [src/components/ui](src/components/ui), CSS Modules e utilitários Tailwind. Não usa Radix, React DayPicker, Lucide ou fonte Manrope. Ícones vetoriais próprios ficam em [icons.tsx](src/components/ui/icons.tsx); a composição de um único filho interativo usa [Slot](src/components/ui/slot.tsx). Não criar uma segunda paleta ou escala nas telas, nem copiar valores de tokens para um sidecar como fonte normativa.
 
-**Key Characteristics:**
+| Papel             | Tokens/aliases                                                                                      | Aplicação                                                                  |
+| ----------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Página e conteúdo | `surface-page`, `surface-content`, `background`, `card`                                             | Fundo da aplicação e superfícies estáveis de listas, números e formulários |
+| Sobreposição      | `surface-raised`, `popover`, `overlay`                                                              | Menus, calendários, diálogos e fundo modal                                 |
+| Texto             | `text-primary`, `text-secondary`, `text-tertiary`, `foreground`, `muted-foreground`                 | Hierarquia de leitura, metadados e apoio                                   |
+| Ação              | `action-primary`, `on-action`, `primary`, `primary-foreground`                                      | Ação principal e seleção atual, com par de contraste definido              |
+| Interação         | `surface-subtle`, `surface-hover`, `secondary`, `accent`                                            | Ações secundárias, hover, foco de item e apoio                             |
+| Limites e foco    | `separator`, `control-border`, `focus-ring`, `border`, `input`, `ring`                              | Divisores, identificação de campos e navegação por teclado                 |
+| Estados           | `destructive`, `destructive-foreground`, `warning`, `warning-surface`, `success`, `success-surface` | Erro, atenção e confirmação, sempre acompanhados de texto                  |
+| Navegação         | `glass-fill`, `glass-border`, `glass-highlight`, `navigation-*`                                     | Material funcional, contorno e profundidade do shell                       |
 
-- Monocromia como identidade; cor reservada ao significado de estados.
-- Uma família tipográfica, com contraste de tamanho e peso.
-- Controles confortáveis, superfícies sólidas e listas com separadores.
-- Vidro restrito à navegação, sempre com alternativa opaca.
-- Contexto visível, foco perceptível e composição que se reorganiza com a largura.
+A identidade é monocromática. Claro e escuro usam superfícies e pares de texto próprios; o tema escuro inverte o par da ação principal em vez de manter texto branco sobre ação clara. Vermelho, âmbar e verde continuam reservados ao significado. Valores financeiros usam números tabulares, rótulo, unidade e sinal apropriados; a cor não substitui a explicação.
 
-## Colors
+## Aparência e preferências
 
-A paleta usa preto suave, branco e cinzas neutros; vermelho, âmbar e verde comunicam erro, atenção e confirmação.
+[AppearanceProvider e AppearanceSettings](src/components/patterns/appearance.tsx) oferecem **Sistema**, **Claro**, **Escuro** e **Reduzir efeitos visuais** no acesso e no shell autenticado. É uma preferência deste navegador, armazenada em `localStorage` sob `junelo:appearance`; ela não altera conta, sessão, dados ou autorização. Se o armazenamento falhar, a seleção funciona na sessão atual. Eventos `storage` mantêm abas coerentes.
 
-As rampas tonais do sidecar são derivações para a prévia do painel, não novas cores normativas da interface.
+O modo Sistema deixa `data-theme` ausente e acompanha `prefers-color-scheme`. A escolha manual aplica `data-theme="light"` ou `"dark"`; a escolha clara prevalece sobre a preferência escura do sistema. A opção de efeitos escreve `data-effects="reduced"`: torna a navegação opaca e desativa animações/transições da interface. A preferência de movimento reduzido do sistema também reduz o movimento independentemente dessa opção.
 
-### Primary
+O ajuste abre um `<dialog>` por `showModal()`, com nome acessível, título inicialmente focado, radios nativos, checkbox, saída Concluir e Escape. O foco permanece na tarefa e retorna ao acionador no fechamento. Tema e efeitos são aplicados imediatamente; Concluir fecha a tarefa, sem comando de domínio.
 
-- **Preto de ação** (`primary`): ação principal e destino atual na navegação. **Branco de contraste** (`primary-foreground`) acompanha essas superfícies.
-- **Vermelho de erro** (`destructive`): mensagem, contorno inválido e variante de ação destrutiva existente.
-- **Âmbar de atenção** (`warning`, `warning-surface`): informação que exige atenção, acompanhada de descrição.
-- **Verde de confirmação** (`success`, `success-surface`): confirmação e estado concluído. As cores de estado são funcionais; não formam uma segunda identidade de marca.
+## Tipografia e ritmo
 
-### Neutral
+A família é a do sistema: `system-ui`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `sans-serif`. O navegador escolhe a fonte disponível; não há download de SF Pro nem promessa de renderização igual em sistemas diferentes. A marca Junelo também usa texto real nessa família.
 
-- **Papel claro** (`background`): fundo geral e acesso.
-- **Branco sólido** (`card`, `navigation-surface`): conteúdo, campos e alternativa opaca da navegação.
-- **Tinta** (`foreground`): leitura principal. **Tinta secundária** (`muted-foreground`): contexto, data, ajuda e metadados.
-- **Cinza de interação** (`secondary`, `accent`): ações secundárias e resposta ao apontar.
-- **Cinza de apoio** (`muted`): contadores, suporte de ícones e carregamento.
-- **Linha de estrutura** (`border`): divisores e contornos de superfícies. **Linha de campo** (`input`): limite mais forte de controles.
-- **Foco** (`ring`): contorno de navegação por teclado.
-- **Vidro branco** (`navigation-glass`): material translúcido do cabeçalho e da navegação inferior.
+A raiz mantém `100%`, e tamanhos em `rem` respeitam ampliação. A tabela documenta a escala extraída dos tokens; a definição executável continua em `tokens.css`.
 
-### Named Rules
+| Token            | Tamanho   | Papel                                           |
+| ---------------- | --------- | ----------------------------------------------- |
+| `type-display`   | 2.125rem  | Título principal de destino                     |
+| `type-title`     | 1.75rem   | Título de formulário/detalhe e destaque         |
+| `type-section`   | 1.375rem  | Seção importante                                |
+| `type-heading`   | 1.0625rem | Título compacto e ação                          |
+| `type-body`      | 1.0625rem | Conteúdo e campos                               |
+| `type-secondary` | 0.9375rem | Ajuda e metadados                               |
+| `type-caption`   | 0.8125rem | Informação auxiliar e rótulo compacto           |
+| `type-amount`    | 2.5rem    | Montante destacado quando a composição comporta |
 
-**The Cor com significado Rule.** Use vermelho, âmbar e verde para estados nomeados em texto; mantenha ações comuns, conteúdo e navegação na paleta neutra.
+O peso de cabeçalho compartilhado é 650; a entrelinha base é 1,5 e a de título é 1,15. Variações locais servem ao papel do conteúdo, sem criar outra família visual. Títulos usam caixa natural e espaçamento entre letras compacto. Valores e nomes podem quebrar linha; layouts usam `min-width: 0` e não fixam altura de blocos textuais.
 
-## Typography
+A escala usa passos de 0.25rem. A tese espacial é: contexto compacto, próxima ação visível cedo, dados relacionados próximos e separação clara entre assuntos. O pai controla o intervalo; não somar `gap`, margem do filho e preenchimento externo para resolver a mesma distância.
 
-**Display Font:** Manrope Variable, com Segoe UI e sans-serif como alternativas.
+| Papel                                                        | Token              | Medida base                                                                     |
+| ------------------------------------------------------------ | ------------------ | ------------------------------------------------------------------------------- |
+| Rótulo → campo; título → descrição                           | `gap-label`        | 0.5rem                                                                          |
+| Ações irmãs, aviso → recuperação, título → conteúdo compacto | `gap-related`      | 0.75rem                                                                         |
+| Campos relacionados                                          | `gap-field`        | 1.25rem                                                                         |
+| Grupos de formulário; cabeçalho → conteúdo                   | `gap-group`        | 1.5rem                                                                          |
+| Assuntos independentes                                       | `gap-section`      | 2rem                                                                            |
+| Preenchimento de cartões, listas e fieldsets                 | `inset-card`       | 1rem estreito / 1.25rem móvel / 1.5rem a partir de 48rem                        |
+| Margem lateral de página e cabeçalho                         | `gutter-page`      | 1rem estreito / 1.25rem móvel / 2rem a partir de 48rem / 3rem a partir de 80rem |
+| Início do conteúdo abaixo do shell                           | `inset-page-start` | 1.5rem móvel / 2rem a partir de 48rem                                           |
 
-**Body Font:** a mesma família, carregada localmente pelo pacote de fonte.
+O compacto estreito termina em 22.4375rem. As áreas seguras podem ampliar o gutter; o texto ampliado continua respeitando os tokens em `rem`. Labels separados do controle pertencem a um grupo explícito, sem margem negativa. Erros com ação têm ritmo interno próprio. Em Hoje, os estados vazios usam preenchimento vertical menor; o resumo e os itens se reorganizam por largura de contêiner quando o texto cresce. A revisão financeira fica no fluxo da página, inclusive em desktop curto, para manter todos os valores alcançáveis.
 
-**Label/Mono Font:** Manrope; números usam algarismos tabulares nos valores financeiros, sem uma família monoespaçada.
+O conteúdo amplo limita-se a `layout-content` (72rem), formulários a `layout-form` (38rem) quando aplicável, e a lateral a `layout-sidebar` (15rem). A compactação não reduz os alvos de toque: 44px no mínimo e 3rem nos campos.
 
-**Character:** formas abertas e pesos intermediários dão clareza sem a aparência de um painel bancário. Títulos são compactos, em caixa natural, com espaçamento entre letras ligeiramente reduzido.
+## Geometria por papel
 
-### Hierarchy
+Uma linguagem corresponde a cada papel: ações em cápsulas; campos com cantos moderados; grupos de conteúdo sólidos; navegação flutuante com cantos amplos e encaixe interno concêntrico. Não aplicar o mesmo raio a todo elemento.
 
-- **Display** (`display`): valor principal do resumo e do comprovante de despesa. Não é uma chamada promocional.
-- **Headline** (`headline`): título de página no acesso, Hoje, Finanças e despesas. O título de Hoje usa entrelinha local (2.125rem).
-- **Title** (`title`): seções e resumos. Hoje aplica peso local (700) aos títulos de seção; a base reutilizada permanece no token.
-- **Title small** (`title-small`): nome de item, subtítulo e título de terceiro nível.
-- **Body** (`body`): explicações e conteúdo de campos. Ajuda e metadados usam `supporting`; as listas de Hoje têm entrelinha local (1.25rem).
-- **Label** (`label`): rótulos e botões; caixa natural e sem espaçamento artificial.
-- **Money** (`money`): valores nas linhas de Hoje e saldos em listas. Totais de Finanças usam destaque local (1.5rem), peso (650) e espaçamento entre letras (-0.025em).
+| Papel              | Geometria e interação                                                                                             |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Botão              | Cápsula `radius-pill`; altura mínima padrão 3rem, compacto 2.75rem, grande 3.25rem; ícone 3rem                    |
+| Campo              | `radius-md` de 1rem; mínimo 3rem; contorno de campo, rótulo persistente e espaço para ícone interno               |
+| Conteúdo           | `radius-sm`/`radius-lg` conforme grupo ou resumo; superfícies opacas, divisores e ausência de elevação ao apontar |
+| Navegação inferior | Contêiner `radius-xl` de 2rem; destino deriva o raio do contêiner menos preenchimento e borda                     |
+| Menu/calendário    | Superfície opaca elevada, limite de viewport, contorno e rolagem local                                            |
+| Diálogo            | Superfície opaca, cantos amplos, fundo modal e ações explícitas                                                   |
+| Estado/contador    | Texto compacto, limite/fundo semântico quando necessário; não simula uma ação                                     |
 
-O texto explicativo de Finanças limita-se a (70ch); avisos parciais de Hoje a (65ch). Valores podem quebrar linha em larguras estreitas. A marca Junelo usa a mesma família tipográfica, sem ícone de adição.
+Os demais raios semânticos são `radius-sm` 0.75rem e `radius-lg` 1.5rem. `target-min` é 44 CSS px como decisão do projeto; alturas são mínimas e crescem com texto.
 
-### Named Rules
+## Navegação e adaptação
 
-**The Número legível Rule.** Use algarismos tabulares nos valores financeiros e preserve o rótulo que explica o valor; permita a quebra de linha quando a largura exigir.
+[AuthenticatedShell](src/features/auth/components/authenticated-shell.tsx) preserva Hoje, Finanças, Rotina e Compras, o nome e tipo do espaço, seu estado, gerenciamento e conta. Destinos usam links e `aria-current="page"`; ações como adicionar registro ficam em botões ou menus. Ícones acompanham rótulos reconhecíveis. O encerramento continua no gerenciamento do espaço e na atenção de Hoje.
 
-## Layout
+No compacto, cabeçalho e seletor participam do fluxo, e a barra inferior flutua centralizada com largura máxima de 26rem. A posição inferior considera o maior valor entre o espaço de projeto e a área segura. Os destinos podem reorganizar-se com texto ampliado. A partir de **64rem**, a barra inferior fica oculta e a navegação usa lateral sólida de 15rem; o cabeçalho passa a sticky. Existe uma única navegação principal visível/operável em cada largura. Em 80rem, o conteúdo recebe maior respiro lateral.
 
-A composição parte de uma coluna. O acesso usa largura máxima de (25rem), centralização vertical e margem interna de (2rem 1rem), ampliada em telas maiores. Formulários de espaços e a coluna principal de despesas limitam-se a (35rem); o comprovante limita-se a (46rem).
+[useShellViewport](src/features/auth/components/use-shell-viewport.ts) observa as dimensões reais do cabeçalho e da navegação com `ResizeObserver`, reagindo a resize, foco e `VisualViewport`. Escreve `--top-occupied` e `--bottom-occupied`; o conteúdo e `scroll-padding` reservam a ocupação medida em vez de depender de uma altura fixa da barra. Com foco em edição, escala visual 1 e redução de altura compatível com teclado, aplica `data-keyboard="open"` e esconde a navegação inferior. Zoom não é tratado como teclado. Observadores e listeners são removidos no desmontar.
 
-O shell tem conteúdo central de até (70rem). No mobile, o cabeçalho participa do fluxo e o conteúdo recebe margem interna lateral de (1.25rem). A marca e a conta ocupam a primeira linha; o seletor de espaço ocupa a largura seguinte. Tipo e estado ficam abaixo do seletor. O cabeçalho não fica fixo em telas estreitas, liberando a leitura com ampliação de texto.
+Filtros não sensíveis usam [useUrlPreferences](src/components/patterns/use-url-preferences.ts): mês, membro, painel e visão de Finanças; responsabilidade, situação, atenção e período de Rotina; filtros de listas e itens de Compras. Valores são validados, padrões são omitidos e `history.replaceState` preserva o estado do roteador e das guardas. Voltar de um detalhe e recarregar restabelecem o recorte; rascunhos e tentativas de comando continuam sob os controles existentes, fora da URL.
 
-A partir de (768px), a navegação passa para uma barra lateral sólida e fixa de (14rem); o cabeçalho torna-se aderente ao topo. A margem interna do conteúdo passa para (2.5rem 2rem 4rem). O contexto continua podendo ocupar duas linhas até (1100px), quando seletor, estado e gerenciamento cabem em três colunas. A partir de (1280px), o conteúdo usa margem interna superior e lateral de (3rem).
+O acesso usa [AccessLayout](src/features/auth/components/access-layout.tsx), formulário compacto de até 26rem e cabeçalho com marca/aparência. Em 64rem, acrescenta uma coluna editorial monocromática e mantém o formulário legível. As features começam em coluna e só promovem resumos/listas/campos quando o conteúdo comporta; desktop não cria outra lógica de seleção.
 
-A navegação inferior fica centralizada, com largura de até (22rem), afastamento inferior de (0.75rem) mais a área segura e largura máxima disponível descontando (1rem). Os quatro destinos mantêm palavras inteiras e se reorganizam em duas linhas quando o texto ampliado exige. O conteúdo e a rolagem reservam espaço inferior de (10rem) mais a área segura, mantendo o foco visível. Essa reserva é uma extensão do layout do shell, sem ampliar a escala de tokens.
+## Material, profundidade e movimento
 
-Listas de Hoje alinham texto e valor em colunas a partir de (640px). Antes disso, o valor fica abaixo, alinhado ao texto após o ícone. Os totais de Finanças formam três colunas a partir de (1024px); um total único ocupa a linha inteira. Os filtros de Finanças e Rotina se distribuem pela largura útil disponível, incluindo o espaço ocupado pela barra lateral. Na despesa, a partir de (1024px), campos e confirmação ocupam a primeira coluna e o resumo ocupa a segunda, aderente ao topo em (6.5rem). Abaixo disso, a ordem do documento mantém resumo antes da confirmação. Em larguras de até (359px), pares de rótulo e valor passam a uma coluna. As ações de espaços se empilham até (36rem).
+Conteúdo financeiro, formulários, listas e lateral são opacos. O material da classe `.navigation-glass` pertence ao cabeçalho e à navegação inferior: começa sólido e recebe desfoque apenas em navegadores com suporte a `backdrop-filter`. O desfoque atual é 20px; preenchimento, contorno, brilho e sombras vêm dos tokens de cada tema. A profundidade separa navegação, menu e diálogo; não eleva cada linha ou card.
 
-O ritmo recorrente usa intervalos de (0.5rem) entre rótulo e campo, (0.75rem) entre ações, (1rem) dentro de blocos, (1.5rem) entre grupos e (2rem) entre seções. Quebra de texto, largura mínima zero e ações flexíveis preservam o conteúdo quando o espaço diminui.
+Sem suporte ao filtro, com redução de transparência, contraste aumentado, cores forçadas ou escolha manual de efeitos reduzidos, a navegação usa superfície sólida e remove o desfoque. Efeitos reduzidos também retiram a sombra da navegação. Cores forçadas preservam contornos e foco do sistema. Não aplicar opacidade ao pai para simular material, pois isso também enfraquece texto e ícones.
 
-Em Finanças, as ações de navegação têm intervalo de (12px) e respiro antes do divisor. O filtro de mês tem largura flexível limitada a (24rem); Atualizar resumo mantém largura natural e se alinha à base do campo, passando à linha seguinte quando necessário.
+Movimento comunica resposta e continuidade. Os tokens disponíveis são `motion-fast` 120ms e `motion-base` 180ms; cada componente usa somente o que precisa. Ações assíncronas não dependem do fim de uma animação. Movimento reduzido e a preferência manual preservam resultado, navegação e leitura sem deslocamento.
 
-## Elevation & Depth
+## Controles próprios e seus contratos
 
-O conteúdo permanece plano: branco sobre papel claro, bordas finas e separadores. Sombras pertencem à navegação flutuante, aos menus e ao diálogo. Não há elevação de cards ao apontar.
+| Componente                                                                        | Contrato de uso e estados                                                                                                                                                                          |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Button](src/components/ui/button.tsx)                                            | Ação principal, contorno, ghost ou destrutiva; rótulo específico, ocupado/desabilitado e foco. `asChild` compõe um filho sem criar controles interativos aninhados                                 |
+| [Slot](src/components/ui/slot.tsx)                                                | Combina propriedades, classes, handlers e refs de um filho sem acrescentar elemento; handlers da primitiva verificam cancelamento quando necessário                                                |
+| [Input](src/components/ui/input.tsx) e [Label](src/components/ui/label.tsx)       | Entrada nativa, autocomplete/inputMode/validação preservados; borda de erro, dados mantidos e rótulo persistente; date/month delegam ao DateInput                                                  |
+| [DropdownMenu](src/components/ui/dropdown-menu.tsx)                               | Menu de comandos/links com nome no acionador, aberto/fechado, seleção e disabled; setas, Home/End, busca por texto, Enter/Space, Escape e Tab; fechamento devolve foco quando apropriado           |
+| [FloatingLayer](src/components/ui/floating-layer.tsx)                             | Camada não modal portada, ancoragem e colisão com viewport visual, altura limitada e rolagem; foco inicial, clique/foco externo, Escape, retorno e continuação de Tab próximos à origem            |
+| [DateInput](src/components/ui/date-input.tsx)                                     | Entrada nativa permanece fonte de verdade, refs, eventos input/change, validação, dirty tracking e submissão; botão abre calendário, Alt+seta abaixo também; seleção/Escape devolvem foco ao campo |
+| [DateCalendar](src/components/ui/date-calendar.tsx)                               | Grade de dias ou meses em português; estado selecionado/hoje/focado/indisponível, setas/Home/End/PageUp/PageDown, limites inclusivos e step; Hoje/Mês atual e Limpar conforme obrigatoriedade      |
+| [Alert](src/components/ui/alert.tsx) e [Skeleton](src/components/ui/skeleton.tsx) | Mensagem textual e papel semântico; erro/atenção/sucesso diferenciados; carregamento acompanha estado real da consulta                                                                             |
+| [Ícones](src/components/ui/icons.tsx)                                             | SVG próprio em canvas de 24 unidades, traço compartilhado e `currentColor`; decorativos recebem `aria-hidden`, ação sem texto exige nome acessível                                                 |
 
-### Shadow Vocabulary
+O calendário mantém datas civis de America/Sao_Paulo, sem converter valores do contrato em UTC. `min`, `max`, `step`, `required`, `disabled` e `readOnly` permanecem vinculados ao input. O seletor de meses é parte do mesmo componente, sem outra biblioteca. A grade pode rolar localmente quando a ampliação exige largura adicional; as ações permanecem alcançáveis.
 
-- **Navegação flutuante** (`0 4px 20px rgb(0 0 0 / 8%)`): separa a barra inferior do conteúdo.
-- **Menu** (`0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)`): elevação da primitiva de menu.
-- **Diálogo** (`0 12px 40px rgb(0 0 0 / 15%)`): confirmações de espaços, sobre fundo escurecido (`rgb(0 0 0 / 45%)`).
+Selects mantêm semântica, seleção, busca e teclado nativos. Onde existe `appearance: base-select`, recebem superfície opaca, contorno, seta própria, opções com realce semântico e altura confortável; os demais navegadores preservam o menu da plataforma. Não há select inteiramente reimplementado por aparência.
 
-### Named Rules
+`FloatingLayer` monta o DOM em `document.body`, mas continua sob a árvore React original. A captura de cliques do shell alcança links dos menus e mantém a guarda `context.canLeave()`; portar uma ação não elimina proteção de rascunho ou tentativa incerta. Menus e calendários são não modais; tarefas realmente modais usam `<dialog>` com política explícita de saída.
 
-**The Vidro na navegação Rule.** Aplique translucidez e desfoque apenas ao cabeçalho e à navegação inferior; mantenha conteúdo, campos e navegação lateral opacos.
+## Estados, foco e integridade
 
-O vidro usa desfoque de (12px) quando suportado. Sem suporte, com redução de transparência ou em cores forçadas, o fundo torna-se sólido e o desfoque é removido. A sombra não substitui o contorno.
+O contorno global de foco tem 3px e afastamento de 4px; campos usam 2px de afastamento, menus e calendário ajustam o contorno à superfície. O link de pular conteúdo leva ao `main` focável. A ordem de documento acompanha contexto, conteúdo prioritário, revisão e confirmação. Focus não pode depender só de hover ou cor.
 
-## Shapes
+Carregando, atualizando, vazio, filtro sem resultados, erro, acesso perdido, conflito, resultado incerto e confirmado são situações distintas. Falha parcial permanece perto da fonte afetada. Sucesso financeiro depende da confirmação real; resultado incerto conserva a tentativa e exige reenvio explícito da mesma chave. Alterações onerosas, cancelamentos, reversões e encerramento preservam revisão, capacidades, consentimentos e histórico.
 
-Controles principais usam o raio `md` (12px). Listas, resumos e painéis de conteúdo usam `sm` (8px); a primitiva de alerta usa `lg` (16px). Na navegação inferior, a moldura usa `xl` (24px) e o destino usa `lg`; na lateral, o destino usa `md`.
+Valores continuam em centavos inteiros; quantidade de compra usa decimal exato. Responsabilidade, pagador previsto e realização permanecem separados. A apresentação não altera cookies, CSRF, autorização, versões, fingerprint do encerramento, isolamento de cache nem descarte de respostas antigas por pessoa/espaço/sessão.
 
-As bordas estruturais e de campos têm espessura de (1px). Chips são compactos e não simulam botões: o contador de Hoje usa `sm`, e o estado de despesa tem raio local de (0.375rem). Esse detalhe local não amplia a escala global de raios. Ícones são vetores de traço, geralmente entre (16px) e (24px), acompanhados de texto ou de nome acessível.
+## Verificação e limites
 
-## Components
+Revisar larguras compactas 320/375/390/430, amplas 768/1024/1440 e transições entre elas, janela curta, paisagem, texto 200%, valores/nomes longos e estados de erro. Conferir tema claro, escuro, sistema, opaco, redução de movimento, alto contraste, foco/teclado, URL direta, recarga, voltar e troca de espaço com rascunho.
 
-### Buttons
-
-Ações firmes, com texto curto e forma estável.
-
-- **Shape:** raio `md`, altura mínima padrão de (48px), intervalo entre ícone e texto de (0.5rem). A altura é mínima; o conteúdo pode crescer.
-- **Primary:** preto de ação e texto branco. A variante `default` é registrada no frontmatter como `button-primary`.
-- **Secondary / Outline / Ghost / Link:** cinza de interação; branco com contorno de campo; fundo transparente; ou texto que ganha sublinhado ao apontar, respectivamente.
-- **Destructive:** usa a cor de erro, mantendo a mesma geometria.
-- **Hover / Focus:** primário com opacidade de fundo (85%), destrutivo (90%) e secundário (75%). Contorno e ghost recebem o cinza de interação. Foco de (2px) com afastamento de (4px).
-- **Sizes:** compacto com mínimo de (44px), grande com mínimo de (52px) e botão de ícone de (48px). O controle de revelar senha é uma aplicação local de (44px), encaixada no campo.
-- **Disabled:** opacidade (50%) e interação suprimida na primitiva. Transições de cor usam (150ms); a preferência por movimento reduzido é respeitada.
-
-### Chips
-
-Informativos, sem sugerir uma ação.
-
-- O contador de Hoje usa fundo de apoio, texto secundário, algarismos tabulares e altura de (24px).
-- O estado de despesa usa fundo da superfície, contorno estrutural e texto semibold. A cor sozinha não informa o estado.
-- Esses elementos não têm estados de hover ou foco porque não são controles.
-
-### Cards / Containers
-
-Superfícies sólidas para leitura, sem decoração concorrente.
-
-- **Corner Style:** `sm` para listas, painéis e resumos; exceção da primitiva de alerta descrita em Shapes.
-- **Background / Border:** branco sólido e linha de estrutura. Sem sombra em repouso ou hover.
-- **Internal Padding:** resumos e painéis usam (1.5rem); linhas de Hoje usam (1rem), ampliando para (1.25rem) a partir de (640px); linhas de Finanças usam (1.25rem).
-- **Listas:** uma superfície compartilhada, com divisores entre itens. Os textos de vazio são diretos, acompanhados de ícone apenas quando existente.
-- **Alertas:** texto e contorno de estado; atenção e sucesso também têm fundo tonal. Falhas parciais permanecem próximas ao bloco afetado.
-
-### Inputs / Fields
-
-Campos brancos com contorno visível e rótulo persistente.
-
-- **Style:** raio `md`, altura mínima de (48px), conteúdo em `body`, preenchimento interno de (0.75rem) e contorno de campo.
-- **Focus:** a primitiva usa contorno de foco de (2px), afastado em (2px); formulários de despesas usam afastamento local de (3px). O foco global e os links usam (4px).
-- **Error / Disabled:** cor de erro no limite inválido, com mensagem associada; a primitiva desabilitada usa opacidade de (60%).
-- **Senha:** alternância vetorial de visibilidade dentro do campo, com espaço reservado à direita; a ação não desloca o texto.
-- **Seletor de espaço:** campo nativo com texto semibold, estado e tipo associados. Rótulo, campo e estado têm separação de (12px), preservando espaço para o foco. O rótulo visível no mobile permanece disponível à tecnologia assistiva no desktop. Com pouco espaço útil, o gerenciamento passa para outra linha.
-- **Selects:** seleção, validação e navegação de teclado permanecem nativas. Navegadores com `appearance: base-select` exibem menu opaco, contorno, sombra de menu, seta vetorial e opções com altura mínima de (48px), reduzida a (40px) com mouse. Seleção, hover e foco usam cinza suave, texto escuro e marca de seleção, sem bloco preto. Navegadores sem suporte preservam o menu da plataforma.
-- **Datas e meses:** campos editáveis com botão de calendário de (48px). O calendário usa português, superfície opaca, seleção preta, dias indisponíveis e ações Hoje/Mês atual e Limpar (desabilitada em campos obrigatórios). Limites e intervalos seguem o campo; valores continuam como datas civis, sem conversão UTC. Escape e seleção devolvem foco ao campo; clicar fora preserva o destino escolhido. Menus respeitam a área disponível, com rolagem vertical e reorganização para texto ampliado.
-
-### Navigation
-
-Navegação em caixa natural, com ícone e rótulo. O destino atual usa preto e branco, com `aria-current`; os demais usam texto secundário e recebem fundo de interação ao apontar. O foco usa o contorno global.
-
-A barra inferior tem destinos com altura mínima de (52px) e ícone sobre o texto. A barra lateral usa altura mínima de (48px), com ícone ao lado do texto. O cabeçalho contém contexto e gerenciamento; não recebe uma sombra adicional.
-
-O menu de ações é opaco, com raio `md`, preenchimento de (0.5rem), largura mínima de (14rem), largura máxima descontando (2rem) da tela e rolagem limitada à altura disponível. Itens têm altura mínima de (48px), raio `lg`, estado de foco tonal e cursor de ação quando habilitados.
-
-O shell do espaço expõe Hoje, Finanças, Rotina e Compras, preservando ícones, rótulos e estados das mesmas primitivas. O encerramento é acessado pelo gerenciamento do espaço e pela atenção de Hoje.
-
-### Resumo e comprovante financeiro
-
-A assinatura recorrente é um bloco branco com título, rótulos explicativos e valores alinhados. O resumo apresenta pares em duas colunas quando há espaço; o comprovante destaca o valor e separa divisão, pagamento e acerto com linhas finas. O destaque verde pertence à confirmação textual. Montantes e nomes de demonstração não são tokens nem regras de negócio.
-
-## Do's and Don'ts
-
-### Do:
-
-- **Do** usar os tokens existentes e Manrope para manter a mesma hierarquia entre acesso, contexto e conteúdo.
-- **Do** manter controles padrão com altura mínima de 48px e raio de 12px, permitindo crescimento do conteúdo.
-- **Do** identificar o espaço e nomear estados em texto junto ao sinal visual.
-- **Do** preservar foco visível, quebra de texto, área segura e alternativa opaca para a navegação.
-- **Do** usar algarismos tabulares em valores financeiros e separar rótulo, valor e consequência.
-
-### Don't:
-
-- **Don't** aplicar vidro ou desfoque a campos, resumos, listas ou navegação lateral.
-- **Don't** usar cores de estado como decoração ou para substituir uma mensagem compreensível.
-- **Don't** transformar listas e resumos em cards elevados ao apontar.
-- **Don't** fixar alturas de blocos de texto, impedir quebra de valores ou remover o contorno de foco.
-- **Don't** promover diferenças locais de peso, raio ou tamanho a novos tokens sem confirmar um padrão reutilizado.
+Os testes de interface usam respostas sintéticas. Capturas permitidas são somente de cenários sintéticos sem segredos; convites não podem gerar capturas, vídeos ou traces. WebKit desktop não equivale a Safari de iPhone: teclado virtual, barras, safe areas, toque e leitura assistiva em aparelho real precisam de evidência específica. Este registro não declara conformidade WCAG nem aceite final de uso.

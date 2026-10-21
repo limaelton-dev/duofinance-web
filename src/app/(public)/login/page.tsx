@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 import { LoginForm } from '@/features/auth/components/login-form';
 import styles from '@/features/auth/components/auth-form.module.css';
-import { Brand } from '@/components/patterns/brand';
+import { AccessLayout } from '@/features/auth/components/access-layout';
 
 export const metadata: Metadata = {
     title: 'Entrar',
@@ -11,22 +11,19 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
     return (
-        <main className={styles.page}>
-            <section className={styles.card} aria-labelledby="login-title">
-                <Brand className={styles.brand} />
-                <h1 id="login-title" className={styles.title}>
-                    Entre na sua conta
-                </h1>
+        <AccessLayout
+            title="Entre na sua conta"
+            titleId="login-title"
+            description="Seu dia a dia espera por você."
+        >
+            <LoginForm />
 
-                <LoginForm />
-
-                <p className={styles.footer}>
-                    Ainda não tem conta?{' '}
-                    <Link href="/register" className={styles.link}>
-                        Criar conta
-                    </Link>
-                </p>
-            </section>
-        </main>
+            <p className={styles.footer}>
+                Ainda não tem conta?{' '}
+                <Link href="/register" className={styles.link}>
+                    Criar conta
+                </Link>
+            </p>
+        </AccessLayout>
     );
 }

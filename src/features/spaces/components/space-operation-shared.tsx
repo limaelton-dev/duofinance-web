@@ -7,6 +7,7 @@ import {
     useSpaceContextInstance,
 } from '@/features/spaces/context/space-context-provider';
 import { ApiError } from '@/lib/api/api-error';
+import styles from './spaces.module.css';
 export function SpaceBoundary({
     spaceId,
     children,
@@ -53,7 +54,7 @@ export function QueryFeedback({
         <>
             {query.isFetching && <p role="status">Atualizando informações…</p>}
             {query.isError && (
-                <div role="alert">
+                <div className={styles.feedback} role="alert">
                     <p>
                         Não foi possível atualizar esta consulta. Tente
                         novamente antes de confirmar.

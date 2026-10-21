@@ -1,17 +1,13 @@
 'use client';
 import type { ComponentProps } from 'react';
-import { Label as LabelPrimitive } from 'radix-ui';
 import { cn } from '@/lib/utils';
 
-export function Label({
-    className,
-    ...props
-}: ComponentProps<typeof LabelPrimitive.Root>) {
+export function Label({ className, ...props }: ComponentProps<'label'>) {
     return (
-        <LabelPrimitive.Root
+        <label
             data-slot="label"
             className={cn(
-                'text-sm font-semibold leading-5 peer-disabled:cursor-not-allowed peer-disabled:opacity-60',
+                'text-[length:var(--type-secondary)] font-semibold leading-snug peer-disabled:cursor-not-allowed peer-disabled:opacity-60',
                 className,
             )}
             {...props}

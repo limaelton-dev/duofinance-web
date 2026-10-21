@@ -366,7 +366,7 @@ function SettlementRead({
                 </p>
             )}
             {query.isError && (
-                <div>
+                <div className={styles.feedback}>
                     <p role="alert">
                         {cursorError
                             ? 'Esta página não está mais disponível. Reinicie a consulta dos acertos.'

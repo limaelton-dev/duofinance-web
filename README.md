@@ -8,11 +8,23 @@ Aplicação Web em Next.js, com foco em celulares. Repositórios: [Web](https://
 - [Contexto e decisões de execução](../Docs/Acompanhamentos/CONTEXTO-E-DECISOES.md).
 - [Índice completo](../Docs/README.md): domínio, escopo, backlog, arquitetura e acompanhamentos.
 
-Os links pressupõem o workspace com API, Web e `Docs` lado a lado. Neste ambiente, a documentação é acessível em `C:\Projs\duofinance\Docs`, vinculada à pasta oficial do Drive. Em checkout isolado, consultar essa fonte; não criar cópia concorrente.
+Os links pressupõem o workspace com API, Web e `Docs` lado a lado em `C:\Projs\junelo`. A pasta `Docs` é vinculada à fonte oficial no Drive. Se a leitura local da junction estiver indisponível, consultar a mesma fonte pelo Google Drive conectado; não criar cópia concorrente.
 
 Em 20/10/2026, Elton definiu o nome **Junelo**, substituindo DuoFinance e, anteriormente, Prospera Mais. A direção **preto e branco** e a inspiração no vidro do iPhone foram escolhidas em 19/10/2026. O público principal é uma dupla que compartilha despesas e rotina, com espaço pessoal separado. A interface de acesso, espaços, Hoje, Finanças, Rotina, Compras e encerramento aplica essa direção, com vidro restrito à navegação e alternativa opaca.
 
-O [PRODUCT.md](PRODUCT.md) registra o briefing para o Impeccable. O [DESIGN.md](DESIGN.md) documenta os tokens e componentes implementados. Os arquivos auxiliares do Impeccable ficam na pasta local `.impeccable/`, ignorada pelo Git. Tailwind CSS 4, primitivas shadcn/ui sobre Radix, Manrope local e CSS Modules sustentam a interface. A lógica de sessão, contexto, comandos financeiros e consultas continua na arquitetura existente. Cards e critérios oficiais permanecem válidos.
+O [PRODUCT.md](PRODUCT.md) registra o briefing do produto. O [DESIGN.md](DESIGN.md) documenta o sistema efetivamente implementado; [MIGRATION.md](MIGRATION.md) registra o inventário das 49 páginas, o baseline e a cobertura da migração. Arquivos auxiliares locais ficam em `.impeccable/`, ignorada pelo Git. A lógica de sessão, contexto, comandos financeiros e consultas continua na arquitetura existente. Cards e critérios oficiais permanecem válidos.
+
+## Sistema visual e componentes
+
+A interface usa Tailwind CSS 4, CSS Modules, fontes do sistema e componentes próprios em [src/components/ui](src/components/ui). A adaptação dos princípios Apple usa hierarquia, geometria por papel e continuidade; o material CSS não reproduz o renderizador Liquid Glass nativo. Não há dependência visual de Radix, React DayPicker, Lucide ou Manrope.
+
+[tokens.css](src/app/tokens.css) é a fonte única de valores semânticos para cores, tipografia, espaços, raios, dimensões, movimento e sombras. [globals.css](src/app/globals.css) importa esses tokens e os mapeia para Tailwind. Botões usam cápsulas, campos têm cantos moderados, listas e resumos são sólidos, e o material translúcido fica na navegação. A tipografia usa `system-ui` e fallbacks da plataforma, com números tabulares para valores; a apresentação varia conforme a fonte disponível no aparelho.
+
+[Aparência](src/components/patterns/appearance.tsx) oferece Sistema, Claro, Escuro e Reduzir efeitos visuais, no acesso e no contexto autenticado. A preferência fica neste navegador em `junelo:appearance`; sem armazenamento disponível, funciona na sessão atual. O tema manual prevalece sobre o sistema. A navegação tem fallback opaco sem suporte ao desfoque e com redução de transparência, contraste aumentado, cores forçadas ou redução manual de efeitos. Movimento reduzido preserva as ações e seus resultados.
+
+No compacto, a navegação principal flutua abaixo do conteúdo e considera as áreas seguras. A partir de **64rem**, passa a uma lateral sólida e o cabeçalho torna-se sticky. O [useShellViewport](src/features/auth/components/use-shell-viewport.ts) mede cabeçalho/barra, atualiza a reserva de rolagem e reconhece redução de viewport compatível com teclado sem tratar zoom como teclado. Os mesmos quatro destinos e URLs permanecem disponíveis em cada composição.
+
+Os controles [Button](src/components/ui/button.tsx), [Input](src/components/ui/input.tsx), [menu](src/components/ui/dropdown-menu.tsx), [FloatingLayer](src/components/ui/floating-layer.tsx), [Slot](src/components/ui/slot.tsx) e [ícones](src/components/ui/icons.tsx) são mantidos pelo projeto. Datas e meses usam [DateInput](src/components/ui/date-input.tsx) para preservar o input nativo como fonte de verdade, com [DateCalendar](src/components/ui/date-calendar.tsx) para a grade e o teclado do calendário. Selects mantêm funcionamento nativo com melhoria progressiva. Camadas portadas conservam a propagação React até as guardas de saída do shell.
 
 ## Operações financeiras — waves 2 a 5
 
@@ -23,7 +35,7 @@ O recorte dos cards 011–032 amplia as superfícies de Finanças no sistema exi
 - Wave 4: despesas planejadas, recorrências, parcelas, antecipação, quitação global e cancelamento futuro.
 - Wave 5: ajustes, cancelamentos, reversões e propostas de alteração onerosa, com impacto e histórico disponíveis.
 
-As novas composições herdam as cores semânticas de [globals.css](src/app/globals.css), os controles [Button](src/components/ui/button.tsx) e [Input](src/components/ui/input.tsx), além dos estilos existentes de despesas e Finanças. Os módulos [registros](src/features/finances/components/financial-records.module.css), [planejamento](src/features/finances/components/planning.module.css) e [acertos](src/features/finances/components/settlement-depth.module.css) mantêm Manrope, valores tabulares, superfícies brancas, separadores finos e foco visível. A composição começa em coluna e se reorganiza conforme a largura; vidro e desfoque permanecem restritos ao shell. Isso estende as superfícies sem estabelecer novos tokens ou uma nova direção visual.
+As composições consomem os tokens semânticos de [tokens.css](src/app/tokens.css), os controles próprios e os estilos compartilhados de despesas e Finanças. Os módulos [registros](src/features/finances/components/financial-records.module.css), [planejamento](src/features/finances/components/planning.module.css) e [acertos](src/features/finances/components/settlement-depth.module.css) usam fontes do sistema, valores tabulares, superfícies opacas adaptadas ao tema, divisores e foco visível. A composição começa em coluna e se reorganiza conforme a largura; vidro e desfoque permanecem no shell.
 
 ### Organização e integridade
 
@@ -39,7 +51,7 @@ Os cards 033–049 estendem o sistema existente conforme as regras visuais de [D
 - **Compras:** criar e consultar listas, manter itens, registrar quantidades parciais, corrigir compras e consultar o histórico. A interface distingue quantidade desejada, comprada após correções e restante. Quantidades usam representação decimal exata, com até três casas; correções preservam o registro original. O vínculo com uma tarefa pode ser criado ou removido sem concluir automaticamente a tarefa ou a lista.
 - **Encerramento:** acessar pelo gerenciamento do espaço ou pela atenção de Hoje, consultar o diagnóstico completo, definir corte e destinos futuros, revisar e apresentar o plano, registrar concordâncias e resolver bloqueadores nas origens financeiras. A conclusão e o cancelamento seguem as capacidades e versões retornadas pelo servidor; com duas pessoas, as confirmações aplicáveis são bilaterais. O histórico do espaço encerrado permanece disponível em somente leitura.
 
-Os módulos [Rotina](src/features/routine) e [Compras](src/features/shopping), além da composição de [encerramento](src/features/spaces/closure), usam os tokens globais, Button, Input, Tailwind e os estilos locais existentes. Manrope, superfícies opacas, divisores, valores tabulares e controles confortáveis permanecem; as listas não dependem de imagens de produtos. A reserva inferior do shell e da rolagem passou de 7rem para 10rem mais a área segura para acomodar os quatro destinos e o foco com texto ampliado. É uma extensão de layout, sem novos tokens de cor, tipo ou espaçamento.
+Os módulos [Rotina](src/features/routine), [Compras](src/features/shopping) e [encerramento](src/features/spaces/closure) compartilham tokens, controles próprios, Tailwind e CSS Modules. Fontes do sistema, superfícies opacas nos dois temas, divisores, valores tabulares e alvos confortáveis mantêm a mesma linguagem por papel. As listas não dependem de imagens de produtos. A reserva inferior do conteúdo e da rolagem acompanha a altura medida da navegação, inclusive quando os rótulos crescem.
 
 ### Arquitetura e integridade
 
@@ -65,13 +77,15 @@ Os testes têm nomes de comportamento e estão separados pelo ambiente necessár
 - `tests/e2e`: jornadas com API e PostgreSQL reais. Execute uma suíte por processo, por exemplo `npm run test:e2e -- settlement-cycles.spec.ts`.
 - `tests/support`: apoio compartilhado às jornadas.
 
-`npm run lint`, `npm run format:check`, `npm run typecheck` e `npm run build` verificam o projeto. Interface e integração usam `.next-interface` e `.next-e2e`, preservando o servidor de desenvolvimento padrão. Capturas, vídeo e traces ficam desabilitados porque os fluxos de convite manipulam segredos.
+`npm run lint`, `npm run format:check`, `npm run typecheck` e `npm run build` verificam o projeto. Interface e integração usam `.next-interface` e `.next-e2e`, preservando o servidor de desenvolvimento padrão. As configurações mantêm capturas automáticas, vídeo e traces desligados porque os fluxos de convite manipulam segredos. Evidência visual explícita deve usar apenas fixtures sintéticas sem segredos e excluir jornadas de convite. Testar WebKit desktop não comprova Safari de iPhone, teclado virtual ou VoiceOver em aparelho real.
 
 Para a integração, a API deve estar no diretório irmão `junelo-api`; inicie seu `compose.test.yaml` antes. O runner usa portas 3100/3101 e banco de teste na porta 55432. Cada suíte inicia um processo novo da API para preservar seus limites reais de cadastro e autenticação. Não desabilite essas proteções para fazer os testes passarem.
 
 Para validar sem disputar o ambiente de outro trabalho, `E2E_API_DIR` permite indicar uma cópia da API e `E2E_DATABASE_URL` permite outra porta local. A conexão é compartilhada pelo servidor e pelas fixtures; o runner exige o banco `junelo_test` em localhost.
 
-Checkouts existentes podem manter os diretórios locais anteriores. Nesse caso, defina `E2E_API_DIR` com o caminho absoluto da API (por exemplo, no PowerShell: `$env:E2E_API_DIR = 'C:\Projs\duofinance\duofinance-api'`). O diretório de documentação acima também conserva o caminho existente. Antes de iniciar o novo Compose, encerre qualquer PostgreSQL de testes anterior que ocupe a porta 55432, conforme o README da API. A troca do nome do banco se aplica somente ao ambiente descartável de testes; a conexão configurada de desenvolvimento ou produção não é renomeada.
+Checkouts em outro local podem definir `E2E_API_DIR` com o caminho absoluto da API. Antes de iniciar o Compose, confira se a porta 55432 já pertence a outro ambiente; não interrompa processos alheios para liberar uma execução. A troca do nome do banco se aplica somente ao ambiente descartável de testes; a conexão configurada de desenvolvimento ou produção não é renomeada.
+
+Para reaproveitar compilações locais, compile a API e a Web antes das jornadas, com `NEXT_DIST_DIR=.next-e2e` e `NEXT_PUBLIC_API_URL=http://localhost:3101/v2` no build da Web. Depois use `E2E_PREBUILT=1` e execute cada arquivo em um processo separado. O runner continua aplicando migrations apenas no banco de testes configurado e iniciando novos processos nas portas 3100/3101. Não compile Web/API simultaneamente às suítes que usam esses artefatos. Em ambientes com sandbox que bloqueia sockets ou processos de navegador, servidor e runner precisam executar no ambiente autorizado com acesso a localhost.
 
 A atualização migra a preferência de espaço armazenada na sessão do navegador para o prefixo `junelo`, preservando a seleção anterior por pessoa. A precedência é Junelo → DuoFinance → Prospera Mais; uma seleção mais recente inválida não recupera uma seleção antiga. A seleção continua sendo revalidada pela API antes do uso. Logout limpa as chaves das três marcas; entradas anteriores do histórico de navegação continuam protegidas pelos avisos de saída de formulário.
 

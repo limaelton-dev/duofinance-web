@@ -339,6 +339,93 @@ test('seletor de mês personalizado: texto 200% sem colisões e required preserv
 });
 
 for (const width of [320, 390, 768, 1280]) {
+    test(`ritmo dos campos e recuperação sem colisão em ${width}px`, async ({
+        page,
+    }) => {
+        await page.setViewportSize({ width, height: 844 });
+        await fixture(page);
+        await page.goto(`/spaces/${spaceId}/incomes/new`);
+        await expect(
+            page.getByLabel('Descrição', { exact: true }),
+        ).toBeVisible();
+        for (const textScale of [100, 200]) {
+            await page.evaluate((size) => {
+                document.documentElement.style.fontSize = `${size}%`;
+            }, textScale);
+            const distances = await page.evaluate(() => {
+                const description = document.querySelector(
+                    '#income-description',
+                )!;
+                const label = document.querySelector(
+                    'label[for="income-description"]',
+                )!;
+                const nextLabel = document.querySelector(
+                    'label[for="income-amount"]',
+                )!;
+                return {
+                    related:
+                        description.getBoundingClientRect().top -
+                        label.getBoundingClientRect().bottom,
+                    betweenFields:
+                        nextLabel.getBoundingClientRect().top -
+                        description.getBoundingClientRect().bottom,
+                };
+            });
+            expect(distances.related).toBeGreaterThan(0);
+            expect(distances.betweenFields).toBeGreaterThan(distances.related);
+            await noOverflow(page);
+        }
+        await page.evaluate(() =>
+            document.documentElement.style.removeProperty('font-size'),
+        );
+        await page.evaluate(
+            () =>
+                new Promise<void>((resolve) => {
+                    requestAnimationFrame(() =>
+                        requestAnimationFrame(() => resolve()),
+                    );
+                }),
+        );
+        if (process.env.IMPECCABLE_REVIEW) {
+            await mkdir('.impeccable/spacing-review', { recursive: true });
+            await page.screenshot({
+                path: `.impeccable/spacing-review/income-${width}.png`,
+                fullPage: true,
+            });
+        }
+        await page.route('**/income-options', (route) =>
+            route.fulfill({
+                status: 503,
+                headers: {
+                    'Access-Control-Allow-Origin': 'http://localhost:3200',
+                    'Access-Control-Allow-Credentials': 'true',
+                },
+                json: {
+                    code: 'UNAVAILABLE',
+                    message: 'Falha sintética de consulta',
+                },
+            }),
+        );
+        await page.reload();
+        const recovery = page.getByRole('button', {
+            name: 'Tentar novamente',
+            exact: true,
+        });
+        await expect(recovery).toBeVisible();
+        const alert = await page
+            .getByRole('alert')
+            .filter({
+                hasText: 'Não foi possível carregar as opções da receita.',
+            })
+            .boundingBox();
+        const action = await recovery.boundingBox();
+        expect(action!.y - (alert!.y + alert!.height)).toBeGreaterThan(0);
+        expect(action!.height).toBeGreaterThanOrEqual(44);
+        await recovery.focus();
+        await expect(recovery).toBeFocused();
+        await noOverflow(page);
+    });
+
     test(`receita parcial, confirmação e detalhe em ${width}px`, async ({
         page,
     }) => {
@@ -412,12 +499,23 @@ for (const width of [320, 390, 768, 1280]) {
         await expect(
             page.getByRole('definition').filter({ hasText: '-R$ 40,00' }),
         ).toBeVisible();
+        if (process.env.IMPECCABLE_REVIEW) {
+            await mkdir('.impeccable/spacing-review', { recursive: true });
+            await page.screenshot({
+                path: `.impeccable/spacing-review/finances-${width}.png`,
+                fullPage: true,
+            });
+        }
+        await page
+            .getByRole('button', { name: 'Mais em Finanças', exact: true })
+            .click();
         await expect(
-            page.getByRole('link', {
+            page.getByRole('menuitem', {
                 name: 'Planejar compromisso',
                 exact: true,
             }),
         ).toHaveAttribute('href', `/spaces/${spaceId}/finances/planning`);
+        await page.keyboard.press('Escape');
         await expect(
             page.getByRole('heading', { name: 'Em aberto agora', exact: true }),
         ).toBeVisible();
@@ -437,6 +535,42 @@ for (const width of [320, 390, 768, 1280]) {
         await noOverflow(page);
     });
 }
+
+test('período e visão financeira permanecem na URL ao voltar de um detalhe', async ({
+    page,
+}) => {
+    await fixture(page);
+    await page.goto(
+        `/spaces/${spaceId}/finances?month=2026-09&tab=COMMITMENTS&view=HISTORY`,
+    );
+    await expect(
+        page.getByLabel('Mês calendário', { exact: true }),
+    ).toHaveValue('2026-09');
+    await expect(
+        page.getByLabel('Visão financeira', { exact: true }),
+    ).toHaveValue('HISTORY');
+    await expect(
+        page.getByRole('button', { name: 'Compromissos', exact: true }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    await page
+        .getByRole('button', { name: 'Mais em Finanças', exact: true })
+        .click();
+    await page.getByRole('menuitem', { name: 'Receitas', exact: true }).click();
+    await page.getByRole('link', { name: 'Ver receita', exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/incomes/${commitmentId}$`));
+    await page.goBack();
+    await expect(page).toHaveURL(new RegExp(`/incomes$`));
+    await page.goBack();
+    await expect(
+        page.getByLabel('Mês calendário', { exact: true }),
+    ).toHaveValue('2026-09');
+    await expect(
+        page.getByLabel('Visão financeira', { exact: true }),
+    ).toHaveValue('HISTORY');
+    await expect(
+        page.getByRole('button', { name: 'Compromissos', exact: true }),
+    ).toHaveAttribute('aria-pressed', 'true');
+});
 
 test('resultado incerto preserva a mesma tentativa de receita', async ({
     page,

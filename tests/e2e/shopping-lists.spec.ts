@@ -30,7 +30,10 @@ test('038–041: cria lista sem nome, registra frações e corrige preservando o
     await expect(page).toHaveURL(/\/shopping\/lists\/[0-9a-f-]+$/);
     const listId = page.url().split('/').at(-1)!;
     await page
-        .getByRole('button', { name: 'Renomear lista', exact: true })
+        .getByRole('button', { name: 'Opções da lista', exact: true })
+        .click();
+    await page
+        .getByRole('menuitem', { name: 'Renomear lista', exact: true })
         .click();
     await page.getByLabel('Nome da lista (opcional)').fill('Compras da semana');
     await page
@@ -189,7 +192,10 @@ test('040–043: autoria compartilhada, remoção e arquivo explícitos, víncul
             `/spaces/${spaceId}/routine/tasks/${task.id}`,
         );
         await page
-            .getByRole('button', { name: 'Arquivar lista', exact: true })
+            .getByRole('button', { name: 'Opções da lista', exact: true })
+            .click();
+        await page
+            .getByRole('menuitem', { name: 'Arquivar lista', exact: true })
             .click();
         await page
             .getByRole('button', {
@@ -318,7 +324,10 @@ test('038–039: conflito exige revisão e itens paginados não alteram o resumo
     await expect(items.getByRole('link')).toHaveCount(1);
     await expect(quantity(page, 'Itens ativos')).toHaveText('21');
     await page
-        .getByRole('button', { name: 'Renomear lista', exact: true })
+        .getByRole('button', { name: 'Opções da lista', exact: true })
+        .click();
+    await page
+        .getByRole('menuitem', { name: 'Renomear lista', exact: true })
         .click();
     await page
         .getByLabel('Nome da lista (opcional)')

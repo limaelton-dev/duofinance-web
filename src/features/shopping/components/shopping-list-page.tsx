@@ -1,6 +1,14 @@
 'use client';
 import { useState } from 'react';
+import { useUrlPreferences } from '@/components/patterns/use-url-preferences';
 import { Button } from '@/components/ui/button';
+import { ChevronRight } from '@/components/ui/icons';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
     SpaceBoundary,
@@ -72,8 +80,17 @@ function ListContent({
         true,
         (signal) => getShopping<ShoppingDetail>(spaceId, `/${listId}`, signal),
     );
-    const [action, setAction] = useState<ListAction | null>(null),
-        [filter, setFilter] = useState('ACTIVE');
+    const [action, setAction] = useState<ListAction | null>(null);
+    const [preferences, setPreferences] = useUrlPreferences(
+        { items: 'ACTIVE' },
+        {
+            items: (value) =>
+                ['ACTIVE', 'PURCHASED', 'PENDING', 'REMOVED', 'ALL'].includes(
+                    value,
+                ),
+        },
+    );
+    const filter = preferences.items;
     const [conflict, setConflict] = useState(false),
         [notice, setNotice] = useState('');
     const command = useSpaceOperation<
@@ -180,23 +197,44 @@ function ListContent({
                                         Adicionar item
                                     </Button>
                                 )}
-                                {list.allowedActions.includes('RENAME') && (
-                                    <Button
-                                        disabled={disabled}
-                                        variant="outline"
-                                        onClick={() => setAction('rename')}
-                                    >
-                                        Renomear lista
-                                    </Button>
-                                )}
-                                {list.allowedActions.includes('ARCHIVE') && (
-                                    <Button
-                                        disabled={disabled}
-                                        variant="outline"
-                                        onClick={() => setAction('archive')}
-                                    >
-                                        Arquivar lista
-                                    </Button>
+                                {list.allowedActions.some((value) =>
+                                    ['RENAME', 'ARCHIVE'].includes(value),
+                                ) && (
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                disabled={disabled}
+                                                type="button"
+                                                variant="ghost"
+                                            >
+                                                Opções da lista
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="start">
+                                            {list.allowedActions.includes(
+                                                'RENAME',
+                                            ) && (
+                                                <DropdownMenuItem
+                                                    onSelect={() =>
+                                                        setAction('rename')
+                                                    }
+                                                >
+                                                    Renomear lista
+                                                </DropdownMenuItem>
+                                            )}
+                                            {list.allowedActions.includes(
+                                                'ARCHIVE',
+                                            ) && (
+                                                <DropdownMenuItem
+                                                    onSelect={() =>
+                                                        setAction('archive')
+                                                    }
+                                                >
+                                                    Arquivar lista
+                                                </DropdownMenuItem>
+                                            )}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 )}
                             </div>
                         )}
@@ -234,7 +272,9 @@ function ListContent({
                                 disabled={busy || action !== null}
                                 value={filter}
                                 onChange={(event) =>
-                                    setFilter(event.target.value)
+                                    setPreferences({
+                                        items: event.target.value,
+                                    })
                                 }
                             >
                                 <option value="ACTIVE">Ativos</option>
@@ -437,9 +477,14 @@ function Items({
                                     <div className={styles.rowTitle}>
                                         <h3>
                                             <ShoppingLink
+                                                className={styles.rowLink}
                                                 href={`/spaces/${spaceId}/shopping/lists/${listId}/items/${item.id}`}
                                             >
-                                                {item.description}
+                                                <span>{item.description}</span>
+                                                <ChevronRight
+                                                    aria-hidden="true"
+                                                    size={20}
+                                                />
                                             </ShoppingLink>
                                         </h3>
                                         <span className={styles.state}>

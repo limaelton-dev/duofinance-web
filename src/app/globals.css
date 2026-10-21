@@ -1,38 +1,5 @@
 @import 'tailwindcss';
-@import 'react-day-picker/style.css';
-
-:root {
-    color-scheme: light;
-    --background: #f7f7f7;
-    --foreground: #171717;
-    --card: #ffffff;
-    --card-foreground: #171717;
-    --popover: #ffffff;
-    --popover-foreground: #171717;
-    --primary: #171717;
-    --primary-foreground: #ffffff;
-    --secondary: #eeeeee;
-    --secondary-foreground: #171717;
-    --muted: #efefef;
-    --muted-foreground: #595959;
-    --accent: #eeeeee;
-    --accent-foreground: #171717;
-    --destructive: #ba3035;
-    --destructive-foreground: #ffffff;
-    --warning: #7a4b00;
-    --warning-surface: #fff4d8;
-    --success: #246b57;
-    --success-surface: #e8f2ec;
-    --border: #dedede;
-    --input: #858585;
-    --ring: #171717;
-    --radius: 0.75rem;
-    --navigation-surface: #ffffff;
-    --navigation-glass: rgb(255 255 255 / 88%);
-    --navigation-blur: 12px;
-    --navigation-shadow: 0 4px 20px rgb(0 0 0 / 8%);
-    --font-manrope: 'Manrope Variable', 'Segoe UI', sans-serif;
-}
+@import './tokens.css';
 
 /* Keep native form semantics, validation, type-ahead and focus. Unsupported
    browsers retain their platform picker; supported browsers theme the popup. */
@@ -44,7 +11,7 @@ select:not([multiple]):not([size]) {
     border-radius: var(--radius-md);
     background-color: var(--card);
     color: var(--foreground);
-    font-size: 1rem;
+    font-size: var(--type-body);
     line-height: 1.5;
     padding: 0.75rem;
     text-overflow: ellipsis;
@@ -148,7 +115,14 @@ select[aria-invalid='true'] {
 }
 
 @theme inline {
-    --font-sans: var(--font-manrope);
+    --font-sans: var(--font-system);
+    --text-xs: var(--type-caption);
+    --text-sm: var(--type-secondary);
+    --text-base: var(--type-body);
+    --text-lg: var(--type-heading);
+    --text-xl: var(--type-section);
+    --text-2xl: var(--type-title);
+    --text-3xl: var(--type-display);
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-card: var(--card);
@@ -172,10 +146,6 @@ select[aria-invalid='true'] {
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
-    --radius-sm: 0.5rem;
-    --radius-md: 0.75rem;
-    --radius-lg: 1rem;
-    --radius-xl: 1.5rem;
 }
 
 @layer base {
@@ -184,17 +154,20 @@ select[aria-invalid='true'] {
         border-color: var(--border);
     }
     html {
-        scroll-padding-top: 8rem;
-        scroll-padding-bottom: calc(10rem + env(safe-area-inset-bottom));
+        font-size: 100%;
+        scroll-padding-top: calc(var(--top-occupied, 0px) + var(--space-4));
+        scroll-padding-bottom: calc(
+            var(--bottom-occupied, 0px) + var(--space-6)
+        );
     }
     body {
         margin: 0;
         min-height: 100svh;
         background: var(--background);
         color: var(--foreground);
-        font-family: var(--font-manrope);
-        font-size: 1rem;
-        line-height: 1.5;
+        font-family: var(--font-system);
+        font-size: var(--type-body);
+        line-height: var(--leading-body);
         -webkit-font-smoothing: antialiased;
     }
     button,
@@ -215,21 +188,21 @@ select[aria-invalid='true'] {
     h1,
     h2,
     h3 {
-        font-weight: 650;
+        font-weight: var(--weight-heading);
         text-wrap: balance;
     }
     h1 {
-        font-size: 1.75rem;
-        line-height: 1.22;
+        font-size: var(--type-display);
+        line-height: var(--leading-title);
         letter-spacing: -0.035em;
     }
     h2 {
-        font-size: 1.25rem;
+        font-size: var(--type-section);
         line-height: 1.4;
         letter-spacing: -0.02em;
     }
     h3 {
-        font-size: 1rem;
+        font-size: var(--type-body);
         line-height: 1.5;
     }
     a {
@@ -240,7 +213,7 @@ select[aria-invalid='true'] {
         caret-color: var(--foreground);
     }
     :focus-visible {
-        outline: 2px solid var(--ring);
+        outline: 3px solid var(--ring);
         outline-offset: 4px;
     }
     ::selection {
@@ -274,10 +247,77 @@ select[aria-invalid='true'] {
         -webkit-backdrop-filter: blur(var(--navigation-blur));
     }
 }
-@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+@media (prefers-reduced-transparency: reduce),
+    (prefers-contrast: more),
+    (forced-colors: active) {
     .navigation-glass {
         background: var(--navigation-surface);
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
+    }
+}
+
+html[data-effects='reduced'] .navigation-glass {
+    background: var(--navigation-surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+}
+html[data-effects='reduced'] *,
+html[data-effects='reduced'] *::before,
+html[data-effects='reduced'] *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+}
+@layer base {
+    h1,
+    h2,
+    h3,
+    p,
+    dt,
+    dd,
+    label {
+        overflow-wrap: anywhere;
+    }
+    button,
+    [data-slot='button'] {
+        max-inline-size: 100%;
+        white-space: normal;
+    }
+    textarea {
+        min-block-size: 7rem;
+        resize: vertical;
+    }
+    input[type='checkbox'],
+    input[type='radio'] {
+        accent-color: var(--primary);
+    }
+    summary {
+        min-block-size: var(--target-min);
+        padding-block: var(--space-3);
+    }
+    fieldset {
+        min-inline-size: 0;
+    }
+}
+@media (prefers-contrast: more) {
+    :root {
+        --control-border: var(--text-primary);
+        --separator: var(--text-secondary);
+    }
+}
+@media (forced-colors: active) {
+    :focus-visible {
+        outline-color: Highlight;
+    }
+    .navigation-glass {
+        border-color: CanvasText;
+        box-shadow: none;
+    }
+    [aria-current='page'],
+    [aria-pressed='true'] {
+        outline: 2px solid Highlight;
+        outline-offset: -3px;
     }
 }
