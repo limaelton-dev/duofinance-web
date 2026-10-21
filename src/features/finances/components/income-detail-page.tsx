@@ -244,7 +244,7 @@ function Detail({
                 <FinancialLoading label="Carregando receita…" />
             )}
             {detail.isError && (
-                <div>
+                <div className={styles.feedback}>
                     <p role="alert">Não foi possível consultar a receita.</p>
                     <Button
                         variant="outline"
@@ -450,7 +450,7 @@ function Detail({
                                 <FinancialLoading label="Carregando opções de recebimento…" />
                             )}
                             {receiptOptions.isError && (
-                                <div>
+                                <div className={styles.feedback}>
                                     <p role="alert">
                                         Não foi possível carregar as opções.
                                     </p>
@@ -691,7 +691,7 @@ function Detail({
                                         <p role="alert">{validation}</p>
                                     )}
                                     {command.error && (
-                                        <div>
+                                        <div className={styles.feedback}>
                                             <p role="alert">{command.error}</p>
                                             {!busy && (
                                                 <Button

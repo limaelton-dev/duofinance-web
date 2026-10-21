@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import { getSpaceDetails } from '@/lib/api/get-space-details';
 import { getFinancialContext } from '@/lib/api/shared-expense';
@@ -131,7 +131,7 @@ function ClosureContent({
                 </Link>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="min-w-0 space-y-2">
-                        <h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.035em]">
+                        <h1 className="text-3xl leading-tight font-bold tracking-[-0.035em]">
                             {closed
                                 ? 'Histórico do encerramento'
                                 : 'Encerramento do espaço'}

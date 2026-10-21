@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useEffect, useRef, useState } from 'react';
@@ -506,7 +506,7 @@ function SharedExpenseComposer({
                                 </p>
                             )}
                         {options.isError && (
-                            <div>
+                            <div className={styles.feedback}>
                                 <p role="alert">
                                     Não foi possível consultar as opções de
                                     acerto. Seus campos foram preservados. Com
@@ -524,7 +524,7 @@ function SharedExpenseComposer({
                             </div>
                         )}
                         {fallback.isError && (
-                            <div>
+                            <div className={styles.feedback}>
                                 <p role="alert">
                                     Não foi possível validar os participantes.
                                     Reconsulte antes de salvar.

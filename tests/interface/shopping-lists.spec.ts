@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
 import type {
     ShoppingDetail,
     ShoppingItem,
@@ -194,6 +195,28 @@ async function setup(
     return submissions;
 }
 
+test('filtro dos itens permanece ao voltar do detalhe', async ({ page }) => {
+    await setup(page);
+    await page.goto(`/spaces/${spaceId}/shopping/lists/${listId}`);
+    await page
+        .getByRole('combobox', { name: 'Mostrar itens', exact: true })
+        .selectOption('PENDING');
+    await expect(
+        page.getByRole('combobox', { name: 'Mostrar itens', exact: true }),
+    ).toHaveValue('PENDING');
+    await page
+        .getByRole('link', { name: item.description, exact: true })
+        .click();
+    await expect(
+        page.getByRole('heading', { name: item.description, exact: true }),
+    ).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/items/${itemId}$`));
+    await page.goBack();
+    await expect(
+        page.getByRole('combobox', { name: 'Mostrar itens', exact: true }),
+    ).toHaveValue('PENDING');
+});
+
 for (const width of [320, 768, 1280]) {
     test(`compras em ${width}px mantém contexto, quantidades e nomes longos sem rolagem horizontal`, async ({
         page,
@@ -207,6 +230,13 @@ for (const width of [320, 768, 1280]) {
         await expect(
             page.getByText('Falta 0,625 kg', { exact: true }),
         ).toBeVisible();
+        if (process.env.IMPECCABLE_REVIEW) {
+            await mkdir('.impeccable/spacing-review', { recursive: true });
+            await page.screenshot({
+                path: `.impeccable/spacing-review/shopping-${width}.png`,
+                fullPage: true,
+            });
+        }
         expect(
             await page.evaluate(
                 () => document.documentElement.scrollWidth <= window.innerWidth,

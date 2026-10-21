@@ -2,6 +2,7 @@
 import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { ArrowLeft } from '@/components/ui/icons';
 import { useSpaceQuery } from '@/features/spaces/hooks/use-space-query';
 import { getShopping } from '@/lib/api/shopping';
 import type { ShoppingPage } from '../types/shopping';
@@ -24,7 +25,11 @@ export function ShoppingHeading({
 }) {
     return (
         <header className={styles.heading}>
-            <ShoppingLink href={`/spaces/${spaceId}/shopping`}>
+            <ShoppingLink
+                className={styles.back}
+                href={`/spaces/${spaceId}/shopping`}
+            >
+                <ArrowLeft aria-hidden="true" size={20} />
                 Voltar às compras
             </ShoppingLink>
             <h1>{title}</h1>

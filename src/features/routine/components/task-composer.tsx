@@ -204,7 +204,7 @@ function TaskForm({
                             ? 'As ocorrências estão disponíveis para consulta.'
                             : 'O registro foi confirmado.'}
                     </p>
-                    <div className={`${styles.actions} mt-4`}>
+                    <div className={styles.actions}>
                         <Button asChild>
                             <Link
                                 href={`/spaces/${spaceId}/routine/${recurring ? 'recurrences' : 'tasks'}/${created.id}`}
@@ -565,7 +565,7 @@ function TaskForm({
                             aria-label="Confirmar tarefa"
                         >
                             <h2>Confira antes de criar</h2>
-                            <p className="mt-3">{review.description}</p>
+                            <p className={styles.help}>{review.description}</p>
                             <p className={styles.help}>
                                 Responsável:{' '}
                                 {context.data.type === 'PERSONAL'
@@ -608,7 +608,7 @@ function TaskForm({
                                     progresso.
                                 </p>
                             )}
-                            <div className={`${styles.actions} mt-4`}>
+                            <div className={styles.actions}>
                                 <Button
                                     type="button"
                                     disabled={

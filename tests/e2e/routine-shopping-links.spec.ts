@@ -74,7 +74,10 @@ test('043: vincula, troca e remove após arquivo com navegação nos dois sentid
         }),
     ).toBeVisible();
     await page
-        .getByRole('button', { name: 'Arquivar lista', exact: true })
+        .getByRole('button', { name: 'Opções da lista', exact: true })
+        .click();
+    await page
+        .getByRole('menuitem', { name: 'Arquivar lista', exact: true })
         .click();
     await page
         .getByRole('button', { name: 'Confirmar arquivamento', exact: true })

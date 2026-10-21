@@ -932,3 +932,334 @@ test('Hoje integra as quatro áreas e mantém as prévias navegáveis mesmo com 
     ).toHaveAttribute('href', `/spaces/${spaceId}/shopping?new=1`);
     await page.keyboard.press('Escape');
 });
+
+test('controles personalizados: menu preserva links, Home, End, busca e saída por Tab', async ({
+    page,
+    browserName,
+}) => {
+    await page.setViewportSize({ width: 320, height: 844 });
+    await setup(page);
+    await page.goto('/');
+    const account = page.getByRole('button', { name: 'Conta e espaços' });
+    await account.focus();
+    await page.keyboard.press('ArrowUp');
+    const logout = page.getByRole('menuitem', { name: 'Sair', exact: true });
+    await expect(logout).toBeFocused();
+    await page.keyboard.press('Home');
+    const spaces = page.getByRole('menuitem', {
+        name: 'Meus espaços',
+        exact: true,
+    });
+    await expect(spaces).toBeFocused();
+    await expect(spaces).toHaveAttribute('href', '/spaces');
+    await page.keyboard.press('End');
+    await expect(logout).toBeFocused();
+    await page.keyboard.press('m');
+    await expect(spaces).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('menu')).toBeHidden();
+    await expect(
+        page.getByRole('combobox', { name: 'Espaço atual', exact: true }),
+    ).toBeFocused();
+    const add = page.getByRole('button', { name: 'Adicionar', exact: true });
+    await add.click();
+    await page.keyboard.press('End');
+    await expect(
+        page.getByRole('menuitem', {
+            name: 'Criar lista de compras',
+            exact: true,
+        }),
+    ).toBeFocused();
+    await page.keyboard.press('p');
+    await expect(
+        page.getByRole('menuitem', {
+            name: 'Planejar compromisso',
+            exact: true,
+        }),
+    ).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(add).toBeFocused();
+    await page.setViewportSize({ width: 320, height: 320 });
+    await add.click();
+    const bounds = await page.getByRole('menu').boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.x).toBeGreaterThanOrEqual(0);
+    expect(bounds!.y).toBeGreaterThanOrEqual(0);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(320);
+    await page.keyboard.press('Escape');
+    await page.setViewportSize({ width: 320, height: 844 });
+    const textScale = await page.addStyleTag({
+        content: 'html { font-size: 200% }',
+    });
+    await add.click();
+    const enlarged = await page.getByRole('menu').boundingBox();
+    expect(enlarged!.width).toBeLessThanOrEqual(304);
+    expect(enlarged!.x + enlarged!.width).toBeLessThanOrEqual(320);
+    expect(
+        await page
+            .getByRole('menu')
+            .evaluate((element) => element.scrollWidth <= element.clientWidth),
+    ).toBe(true);
+    await page.keyboard.press('Escape');
+    await textScale.evaluate((element) =>
+        element.parentNode?.removeChild(element),
+    );
+    if (browserName === 'chromium') {
+        // CDP changes the real VisualViewport scale and width, rather than
+        // replacing browser globals with a synthetic viewport object.
+        const session = await page.context().newCDPSession(page);
+        await session.send('Emulation.setPageScaleFactor', {
+            pageScaleFactor: 2,
+        });
+        await add.focus();
+        await page.keyboard.press('Enter');
+        const zoomed = await page.getByRole('menu').evaluate((element) => {
+            const box = element.getBoundingClientRect();
+            const viewport = window.visualViewport!;
+            return {
+                scale: viewport.scale,
+                available: viewport.width - 16,
+                width: box.width,
+                left: box.left,
+                right: box.right,
+                viewportLeft: viewport.offsetLeft,
+                viewportRight: viewport.offsetLeft + viewport.width,
+            };
+        });
+        expect(zoomed.scale).toBe(2);
+        expect(zoomed.width).toBeLessThanOrEqual(zoomed.available);
+        expect(zoomed.left).toBeGreaterThanOrEqual(zoomed.viewportLeft);
+        expect(zoomed.right).toBeLessThanOrEqual(zoomed.viewportRight);
+        await page.keyboard.press('Escape');
+        await session.send('Emulation.setPageScaleFactor', {
+            pageScaleFactor: 1,
+        });
+        await session.detach();
+    }
+});
+
+test('controles personalizados: calendário respeita step, eventos do input e required', async ({
+    page,
+}) => {
+    await setup(page);
+    await page.goto(`/spaces/${spaceId}/expenses/new`);
+    await page
+        .getByLabel('Forma de pagamento', { exact: true })
+        .selectOption('DEBIT');
+    const date = page.getByLabel('Data do pagamento', { exact: true });
+    await date.fill('2026-10-19');
+    await date.evaluate((element: HTMLInputElement) => {
+        element.min = '2026-10-01';
+        element.max = '2026-10-19';
+        element.step = '2';
+        element.required = true;
+        element.dataset.receivedEvents = '';
+        for (const type of ['input', 'change'])
+            element.addEventListener(type, (event) => {
+                if (event.target === element)
+                    element.dataset.receivedEvents += `${event.type},`;
+            });
+    });
+    await date.press('Alt+ArrowDown');
+    const calendar = page.getByRole('dialog', { name: 'Escolher data' });
+    await expect(
+        calendar.locator('[data-day="2026-10-18"] button'),
+    ).toBeDisabled();
+    await expect(
+        calendar.locator('[data-day="2026-10-17"] button'),
+    ).toBeEnabled();
+    await expect(
+        calendar.getByRole('button', { name: 'Limpar', exact: true }),
+    ).toBeDisabled();
+    await page.keyboard.press('ArrowLeft');
+    await expect(
+        calendar.locator('[data-day="2026-10-17"] button'),
+    ).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(date).toHaveValue('2026-10-17');
+    await expect(date).toHaveAttribute('data-received-events', 'input,change,');
+    await expect(date).toBeFocused();
+    await date.evaluate((element: HTMLInputElement) => {
+        element.readOnly = true;
+    });
+    await date.press('Alt+ArrowDown');
+    await expect(calendar).toBeHidden();
+});
+
+test('sistema visual: tema, efeitos, teclado e preferência persistem sem perder contexto', async ({
+    page,
+}) => {
+    await setup(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.goto('/');
+    await expect(
+        page.getByRole('heading', { name: 'Hoje', exact: true }),
+    ).toBeVisible();
+    await expect(page.locator('body')).toHaveCSS(
+        'background-color',
+        'rgb(17, 17, 17)',
+    );
+    const appearance = page.getByRole('button', {
+        name: 'Aparência',
+        exact: true,
+    });
+    await appearance.click();
+    const dialog = page.getByRole('dialog', { name: 'Aparência do Junelo' });
+    await expect(
+        dialog.getByRole('heading', { name: 'Do seu jeito' }),
+    ).toBeFocused();
+    await dialog.getByRole('radio', { name: 'Claro', exact: true }).check();
+    await expect(page.locator('body')).toHaveCSS(
+        'background-color',
+        'rgb(245, 245, 245)',
+    );
+    await dialog
+        .getByRole('checkbox', { name: /Reduzir efeitos visuais/ })
+        .check();
+    await dialog.getByRole('button', { name: 'Concluir' }).focus();
+    await page.keyboard.press('Tab');
+    expect(
+        await page.evaluate(() =>
+            Boolean(document.activeElement?.closest('dialog')),
+        ),
+    ).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(appearance).toBeFocused();
+    await page.reload();
+    await expect(
+        page.getByRole('heading', { name: 'Hoje', exact: true }),
+    ).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    await expect(page.locator('html')).toHaveAttribute(
+        'data-effects',
+        'reduced',
+    );
+    for (const glass of await page.locator('.navigation-glass').all())
+        await expect(glass).toHaveCSS('backdrop-filter', 'none');
+    await capture(page, 'today-light-opaque-390');
+    await appearance.click();
+    await dialog.getByRole('radio', { name: 'Escuro', exact: true }).check();
+    await dialog.getByRole('button', { name: 'Concluir' }).click();
+    await expect(page.locator('body')).toHaveCSS(
+        'background-color',
+        'rgb(17, 17, 17)',
+    );
+    await capture(page, 'today-dark-390');
+    await noOverflow(page);
+});
+
+test('sistema visual: larguras, paisagem e texto ampliado mantêm uma navegação e reflow', async ({
+    page,
+}) => {
+    await setup(page);
+    await page.goto('/');
+    await expect(
+        page.getByRole('heading', { name: 'Hoje', exact: true }),
+    ).toBeVisible();
+    for (const width of [320, 375, 390, 430, 768, 1024, 1440]) {
+        await page.setViewportSize({ width, height: 844 });
+        await noOverflow(page);
+        const visible = page.getByRole('navigation', {
+            name: 'Navegação principal',
+            exact: true,
+        });
+        await expect(visible).toHaveCount(1);
+        await expect(
+            visible.getByRole('link', { name: 'Hoje', exact: true }),
+        ).toHaveAttribute('aria-current', 'page');
+        for (const link of await visible.getByRole('link').all()) {
+            const bounds = await link.boundingBox();
+            expect(bounds!.width).toBeGreaterThanOrEqual(44);
+            expect(bounds!.height).toBeGreaterThanOrEqual(44);
+        }
+        if (width === 390 || width === 1440)
+            await capture(page, `today-${width}`);
+        if (width === 390) {
+            const row = page.getByRole('article').filter({
+                has: page.getByRole('heading', {
+                    name: 'Reembolso do mercado',
+                    exact: true,
+                }),
+            });
+            const title = await row.getByRole('heading').boundingBox();
+            const amountLabel = await row
+                .getByText('Falta receber', { exact: true })
+                .boundingBox();
+            expect(Math.abs(title!.x - amountLabel!.x)).toBeLessThan(1);
+        }
+    }
+    await page.setViewportSize({ width: 640, height: 360 });
+    await noOverflow(page);
+    await page.setViewportSize({ width: 320, height: 844 });
+    await page.addStyleTag({ content: 'html { font-size: 200% }' });
+    await noOverflow(page);
+    await page.getByRole('button', { name: 'Aparência', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Aparência do Junelo' });
+    await dialog
+        .getByRole('button', { name: 'Concluir' })
+        .scrollIntoViewIfNeeded();
+    await expect(
+        dialog.getByRole('button', { name: 'Concluir' }),
+    ).toBeInViewport();
+    await noOverflow(page);
+    await page.keyboard.press('Escape');
+    await capture(page, 'today-text-200-320');
+});
+
+test('sistema visual: contraste real de texto e controles em claro e escuro', async ({
+    page,
+}) => {
+    await setup(page);
+    await page.goto(`/spaces/${spaceId}/expenses/new`);
+    await expect(page.getByLabel('Descrição', { exact: true })).toBeVisible();
+    for (const colorScheme of ['light', 'dark'] as const) {
+        await page.emulateMedia({ colorScheme });
+        const ratios = await page.evaluate(() => {
+            const luminance = (color: string) => {
+                const components = color
+                    .match(/[\d.]+/g)!
+                    .slice(0, 3)
+                    .map(Number)
+                    .map((value) => {
+                        const s = value / 255;
+                        return s <= 0.04045
+                            ? s / 12.92
+                            : ((s + 0.055) / 1.055) ** 2.4;
+                    });
+                return (
+                    components[0] * 0.2126 +
+                    components[1] * 0.7152 +
+                    components[2] * 0.0722
+                );
+            };
+            const ratio = (a: string, b: string) => {
+                const x = luminance(a),
+                    y = luminance(b);
+                return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+            };
+            const body = getComputedStyle(document.body);
+            const input = getComputedStyle(
+                document.querySelector('main input:not([type="hidden"])')!,
+            );
+            const root = getComputedStyle(document.documentElement);
+            const probe = document.createElement('span');
+            probe.style.color = root.getPropertyValue('--muted-foreground');
+            document.body.append(probe);
+            const secondary = getComputedStyle(probe).color;
+            probe.remove();
+            return [
+                ratio(body.color, body.backgroundColor),
+                ratio(secondary, body.backgroundColor),
+                ratio(input.color, input.backgroundColor),
+                ratio(input.borderColor, input.backgroundColor),
+            ];
+        });
+        expect(ratios[0]).toBeGreaterThanOrEqual(4.5);
+        expect(ratios[1]).toBeGreaterThanOrEqual(4.5);
+        expect(ratios[2]).toBeGreaterThanOrEqual(4.5);
+        expect(ratios[3]).toBeGreaterThanOrEqual(3);
+    }
+});

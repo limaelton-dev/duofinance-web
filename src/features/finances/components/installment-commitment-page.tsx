@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { FinancialRecordLink } from './financial-record-link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -86,11 +87,11 @@ function InstallmentList({
                             {query.data.items.map((item) => (
                                 <li key={item.id} className={layout.row}>
                                     <h2>
-                                        <Link
+                                        <FinancialRecordLink
                                             href={`/spaces/${spaceId}/installment-commitments/${item.id}`}
                                         >
                                             {item.description}
-                                        </Link>
+                                        </FinancialRecordLink>
                                     </h2>
                                     <p>
                                         {item.plan.count} parcelas ·{' '}

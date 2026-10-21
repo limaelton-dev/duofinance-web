@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { ArrowLeft, ChevronRight } from '@/components/ui/icons';
 import { useSpaceQuery } from '@/features/spaces/hooks/use-space-query';
 import { QueryFeedback } from '@/features/spaces/components/space-operation-shared';
 import {
@@ -107,7 +108,10 @@ export function RoutineHeading({
 }) {
     return (
         <header className={styles.heading}>
-            <Link href={`/spaces/${spaceId}/routine`}>Voltar à rotina</Link>
+            <Link className={styles.back} href={`/spaces/${spaceId}/routine`}>
+                <ArrowLeft aria-hidden="true" size={20} />
+                Voltar à rotina
+            </Link>
             <h1>{title}</h1>
             {children && <p className={styles.help}>{children}</p>}
         </header>
@@ -183,8 +187,12 @@ export function TaskRows({
                     }
                 >
                     <h3>
-                        <Link href={taskHref(spaceId, task)}>
-                            {task.description}
+                        <Link
+                            className={styles.rowLink}
+                            href={taskHref(spaceId, task)}
+                        >
+                            <span>{task.description}</span>
+                            <ChevronRight aria-hidden="true" size={20} />
                         </Link>
                     </h3>
                     <div className={styles.meta}>

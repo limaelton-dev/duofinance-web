@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2 } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useEffect, useRef, useState } from 'react';
@@ -21,6 +21,7 @@ import {
     PersonalExpenseSummary,
 } from './personal-expense-summary';
 import styles from './expenses.module.css';
+import personal from './personal-expense.module.css';
 
 export function PersonalExpenseComposer({
     personId,
@@ -177,7 +178,7 @@ export function PersonalExpenseComposer({
     }
     if (result)
         return (
-            <section className={styles.stack}>
+            <section className={`${styles.stack} ${personal.composer}`}>
                 <div className={styles.success}>
                     <CheckCircle2 aria-hidden="true" size={24} />
                     <h1 ref={heading} tabIndex={-1}>
@@ -219,8 +220,15 @@ export function PersonalExpenseComposer({
             </section>
         );
     return (
-        <section className={styles.stack}>
+        <section className={`${styles.stack} ${personal.composer}`}>
             <header className={styles.heading}>
+                <Link
+                    className={personal.back}
+                    href={`/spaces/${spaceId}/finances`}
+                >
+                    <ArrowLeft size={20} aria-hidden="true" /> Voltar às
+                    Finanças
+                </Link>
                 <h1>Adicionar despesa</h1>
                 <p className={styles.context}>
                     {space.currentSpace?.label} · Pessoal
@@ -236,7 +244,7 @@ export function PersonalExpenseComposer({
                 </p>
             ) : null}
             {options.isError && (
-                <div>
+                <div className={styles.feedback}>
                     <p role="alert">
                         Não foi possível consultar as opções da despesa. Seus
                         campos foram preservados.
@@ -509,7 +517,7 @@ export function PersonalExpenseComposer({
                             <p role="status">Salvando despesa…</p>
                         )}
                         {command.canRetry && (
-                            <div>
+                            <div className={styles.feedback}>
                                 <p>
                                     O resultado ainda precisa ser confirmado. A
                                     tentativa e os campos foram preservados.

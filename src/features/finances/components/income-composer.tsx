@@ -330,17 +330,24 @@ function Composer({
     const o = options.data;
     return (
         <section className={styles.stack}>
-            <h1>Adicionar receita</h1>
-            <p>
-                Registre a previsão e informe o recebimento quando ele já tiver
-                acontecido.
-            </p>
-            <Link href={`/spaces/${spaceId}/incomes`}>Voltar às receitas</Link>
+            <header className={styles.heading}>
+                <Link
+                    className={styles.back}
+                    href={`/spaces/${spaceId}/incomes`}
+                >
+                    Voltar às receitas
+                </Link>
+                <h1>Adicionar receita</h1>
+                <p>
+                    Registre a previsão e informe o recebimento quando ele já
+                    tiver acontecido.
+                </p>
+            </header>
             {(options.isPending || options.isFetching) && (
                 <FinancialLoading label="Carregando opções…" />
             )}
             {options.isError && (
-                <div>
+                <div className={styles.feedback}>
                     <p role="alert">
                         Não foi possível carregar as opções da receita.
                     </p>
@@ -367,77 +374,89 @@ function Composer({
                 >
                     <fieldset disabled={busy || options.isFetching}>
                         <legend>Receita e recebimento</legend>
-                        <label htmlFor="income-description">Descrição</label>
-                        <Input
-                            id="income-description"
-                            name="description"
-                            value={description}
-                            maxLength={160}
-                            onChange={(e) => {
-                                change();
-                                setDescription(e.target.value);
-                            }}
-                            aria-invalid={
-                                command.fields.includes('description') ||
-                                undefined
-                            }
-                        />
-                        <label htmlFor="income-amount">Valor total (R$)</label>
-                        <Input
-                            id="income-amount"
-                            name="amountInCents"
-                            inputMode="decimal"
-                            value={amount}
-                            onChange={(e) => {
-                                change();
-                                setAmount(e.target.value);
-                            }}
-                            aria-invalid={
-                                command.fields.includes('amountInCents') ||
-                                undefined
-                            }
-                        />
-                        <label htmlFor="income-expected-date">
-                            Data prevista para recebimento
-                        </label>
-                        <Input
-                            id="income-expected-date"
-                            name="expectedReceiptDate"
-                            type="date"
-                            value={expectedDate || o.referenceDate}
-                            onChange={(e) => {
-                                change();
-                                setExpectedDate(e.target.value);
-                            }}
-                            aria-invalid={
-                                command.fields.includes(
-                                    'expectedReceiptDate',
-                                ) || undefined
-                            }
-                        />
+                        <div className={styles.field}>
+                            <label htmlFor="income-description">
+                                Descrição
+                            </label>
+                            <Input
+                                id="income-description"
+                                name="description"
+                                value={description}
+                                maxLength={160}
+                                onChange={(e) => {
+                                    change();
+                                    setDescription(e.target.value);
+                                }}
+                                aria-invalid={
+                                    command.fields.includes('description') ||
+                                    undefined
+                                }
+                            />
+                        </div>
+                        <div className={styles.field}>
+                            <label htmlFor="income-amount">
+                                Valor total (R$)
+                            </label>
+                            <Input
+                                id="income-amount"
+                                name="amountInCents"
+                                inputMode="decimal"
+                                value={amount}
+                                onChange={(e) => {
+                                    change();
+                                    setAmount(e.target.value);
+                                }}
+                                aria-invalid={
+                                    command.fields.includes('amountInCents') ||
+                                    undefined
+                                }
+                            />
+                        </div>
+                        <div className={styles.field}>
+                            <label htmlFor="income-expected-date">
+                                Data prevista para recebimento
+                            </label>
+                            <Input
+                                id="income-expected-date"
+                                name="expectedReceiptDate"
+                                type="date"
+                                value={expectedDate || o.referenceDate}
+                                onChange={(e) => {
+                                    change();
+                                    setExpectedDate(e.target.value);
+                                }}
+                                aria-invalid={
+                                    command.fields.includes(
+                                        'expectedReceiptDate',
+                                    ) || undefined
+                                }
+                            />
+                        </div>
                         {o.spaceType === 'SHARED' && (
                             <>
                                 <h2>Participação econômica</h2>
-                                <label htmlFor="income-split-mode">
-                                    Dividir por
-                                </label>
-                                <select
-                                    id="income-split-mode"
-                                    value={splitMode}
-                                    onChange={(e) => {
-                                        change();
-                                        setSplitMode(
-                                            e.target.value as
-                                                'PERCENTAGES' | 'AMOUNTS',
-                                        );
-                                        setShares({});
-                                    }}
-                                >
-                                    <option value="PERCENTAGES">
-                                        Percentual
-                                    </option>
-                                    <option value="AMOUNTS">Valor</option>
-                                </select>
+                                <div className={styles.field}>
+                                    <label htmlFor="income-split-mode">
+                                        Dividir por
+                                    </label>
+                                    <select
+                                        id="income-split-mode"
+                                        value={splitMode}
+                                        onChange={(e) => {
+                                            change();
+                                            setSplitMode(
+                                                e.target.value as
+                                                    'PERCENTAGES' | 'AMOUNTS',
+                                            );
+                                            setShares({});
+                                        }}
+                                    >
+                                        <option value="PERCENTAGES">
+                                            Percentual
+                                        </option>
+                                        <option value="AMOUNTS">Valor</option>
+                                    </select>
+                                </div>
                                 {(o.members ?? []).map((m, index) => (
                                     <label key={m.memberId}>
                                         {m.displayName} (
@@ -474,31 +493,37 @@ function Composer({
                                         />
                                     </label>
                                 ))}
-                                <label htmlFor="income-expected-recipient">
-                                    Quem deve receber, se previsto
-                                </label>
-                                <select
-                                    id="income-expected-recipient"
-                                    name="expectedRecipientMemberId"
-                                    value={expectedRecipient}
-                                    onChange={(e) => {
-                                        change();
-                                        setExpectedRecipient(e.target.value);
-                                    }}
-                                >
-                                    <option value="">Ainda não definido</option>
-                                    {o.members?.map((m) => (
-                                        <option
-                                            key={m.memberId}
-                                            value={m.memberId}
-                                        >
-                                            {m.displayName}
+                                <div className={styles.field}>
+                                    <label htmlFor="income-expected-recipient">
+                                        Quem deve receber, se previsto
+                                    </label>
+                                    <select
+                                        id="income-expected-recipient"
+                                        name="expectedRecipientMemberId"
+                                        value={expectedRecipient}
+                                        onChange={(e) => {
+                                            change();
+                                            setExpectedRecipient(
+                                                e.target.value,
+                                            );
+                                        }}
+                                    >
+                                        <option value="">
+                                            Ainda não definido
                                         </option>
-                                    ))}
-                                </select>
+                                        {o.members?.map((m) => (
+                                            <option
+                                                key={m.memberId}
+                                                value={m.memberId}
+                                            >
+                                                {m.displayName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </>
                         )}
-                        <fieldset>
+                        <fieldset className={styles.choices}>
                             <legend>Essa receita já foi recebida?</legend>
                             <label>
                                 <input
@@ -527,104 +552,113 @@ function Composer({
                         </fieldset>
                         {received && (
                             <>
-                                <label htmlFor="income-received-amount">
-                                    Valor recebido agora (R$)
-                                </label>
-                                <Input
-                                    id="income-received-amount"
-                                    name="receipt.amountInCents"
-                                    inputMode="decimal"
-                                    value={receivedAmount ?? amount}
-                                    onChange={(e) => {
-                                        change();
-                                        setReceivedAmount(e.target.value);
-                                    }}
-                                    aria-invalid={
-                                        command.fields.includes(
-                                            'receipt.amountInCents',
-                                        ) || undefined
-                                    }
-                                />
-                                <label htmlFor="income-fact-date">
-                                    Data do recebimento efetivo
-                                </label>
-                                <Input
-                                    id="income-fact-date"
-                                    name="factDate"
-                                    type="date"
-                                    max={o.referenceDate}
-                                    value={factDate || o.referenceDate}
-                                    onChange={(e) => {
-                                        change();
-                                        setFactDate(e.target.value);
-                                    }}
-                                    aria-invalid={
-                                        command.fields.includes('factDate') ||
-                                        undefined
-                                    }
-                                />
+                                <div className={styles.field}>
+                                    <label htmlFor="income-received-amount">
+                                        Valor recebido agora (R$)
+                                    </label>
+                                    <Input
+                                        id="income-received-amount"
+                                        name="receipt.amountInCents"
+                                        inputMode="decimal"
+                                        value={receivedAmount ?? amount}
+                                        onChange={(e) => {
+                                            change();
+                                            setReceivedAmount(e.target.value);
+                                        }}
+                                        aria-invalid={
+                                            command.fields.includes(
+                                                'receipt.amountInCents',
+                                            ) || undefined
+                                        }
+                                    />
+                                </div>
+                                <div className={styles.field}>
+                                    <label htmlFor="income-fact-date">
+                                        Data do recebimento efetivo
+                                    </label>
+                                    <Input
+                                        id="income-fact-date"
+                                        name="factDate"
+                                        type="date"
+                                        max={o.referenceDate}
+                                        value={factDate || o.referenceDate}
+                                        onChange={(e) => {
+                                            change();
+                                            setFactDate(e.target.value);
+                                        }}
+                                        aria-invalid={
+                                            command.fields.includes(
+                                                'factDate',
+                                            ) || undefined
+                                        }
+                                    />
+                                </div>
                                 {o.spaceType === 'SHARED' && (
                                     <>
-                                        <label htmlFor="income-actual-recipient">
-                                            Quem recebeu de fato
-                                        </label>
-                                        <select
-                                            id="income-actual-recipient"
-                                            name="recipientMemberId"
-                                            value={actualRecipient}
-                                            onChange={(e) => {
-                                                change();
-                                                setActualRecipient(
-                                                    e.target.value,
-                                                );
-                                            }}
-                                        >
-                                            <option value="">
-                                                Escolha uma pessoa
-                                            </option>
-                                            {o.members?.map((m) => (
-                                                <option
-                                                    key={m.memberId}
-                                                    value={m.memberId}
-                                                >
-                                                    {m.displayName}
+                                        <div className={styles.field}>
+                                            <label htmlFor="income-actual-recipient">
+                                                Quem recebeu de fato
+                                            </label>
+                                            <select
+                                                id="income-actual-recipient"
+                                                name="recipientMemberId"
+                                                value={actualRecipient}
+                                                onChange={(e) => {
+                                                    change();
+                                                    setActualRecipient(
+                                                        e.target.value,
+                                                    );
+                                                }}
+                                            >
+                                                <option value="">
+                                                    Escolha uma pessoa
                                                 </option>
-                                            ))}
-                                        </select>
-                                        <label htmlFor="income-settlement">
-                                            Repasse de receita
-                                        </label>
-                                        <select
-                                            id="income-settlement"
-                                            name="settlement"
-                                            value={settlementMode}
-                                            onChange={(e) => {
-                                                change();
-                                                setSettlementMode(
-                                                    e.target
-                                                        .value as Settlement['mode'],
-                                                );
-                                            }}
-                                        >
-                                            <option value="NONE">
-                                                Sem acerto associado
-                                            </option>
-                                            <option value="DATE">
-                                                Criar acerto por data
-                                            </option>
-                                            {(o.openCycles?.length ?? 0) >
-                                                0 && (
-                                                <option value="CYCLE">
-                                                    Usar acerto aberto
+                                                {o.members?.map((m) => (
+                                                    <option
+                                                        key={m.memberId}
+                                                        value={m.memberId}
+                                                    >
+                                                        {m.displayName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className={styles.field}>
+                                            <label htmlFor="income-settlement">
+                                                Repasse de receita
+                                            </label>
+                                            <select
+                                                id="income-settlement"
+                                                name="settlement"
+                                                value={settlementMode}
+                                                onChange={(e) => {
+                                                    change();
+                                                    setSettlementMode(
+                                                        e.target
+                                                            .value as Settlement['mode'],
+                                                    );
+                                                }}
+                                            >
+                                                <option value="NONE">
+                                                    Sem acerto associado
                                                 </option>
-                                            )}
-                                            {o.suggestedTargetDate && (
-                                                <option value="SUGGESTED">
-                                                    Sugestão:{' '}
-                                                    {o.suggestedTargetDate}
+                                                <option value="DATE">
+                                                    Criar acerto por data
                                                 </option>
-                                            )}
-                                        </select>
+                                                {(o.openCycles?.length ?? 0) >
+                                                    0 && (
+                                                    <option value="CYCLE">
+                                                        Usar acerto aberto
+                                                    </option>
+                                                )}
+                                                {o.suggestedTargetDate && (
+                                                    <option value="SUGGESTED">
+                                                        Sugestão:{' '}
+                                                        {o.suggestedTargetDate}
+                                                    </option>
+                                                )}
+                                            </select>
+                                        </div>
                                         {settlementMode === 'DATE' && (
                                             <label>
                                                 Data-alvo do acerto

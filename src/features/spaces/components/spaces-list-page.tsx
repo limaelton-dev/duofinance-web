@@ -1,7 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Check, Plus, UserRound, Users } from 'lucide-react';
+import {
+    ChevronRight,
+    Check,
+    Plus,
+    UserRound,
+    Users,
+} from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -37,7 +43,7 @@ export function SpacesListPage() {
                         lugar.
                     </p>
                 </div>
-                <Button asChild variant="outline">
+                <Button asChild>
                     <Link href="/spaces/new">
                         <Plus size={18} aria-hidden="true" />
                         Criar espaço compartilhado
@@ -123,7 +129,7 @@ export function SpacesListPage() {
                                             </span>
                                         )}
                                     </span>
-                                    <ArrowRight
+                                    <ChevronRight
                                         className={styles.rowArrow}
                                         size={18}
                                         aria-hidden="true"

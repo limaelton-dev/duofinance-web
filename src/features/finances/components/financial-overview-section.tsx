@@ -18,114 +18,122 @@ function Metrics({
 }) {
     return (
         <>
-            <h3>Resultado econômico do mês</h3>
-            <dl
-                className={styles.totals}
-                aria-label="Resultado econômico do mês"
-            >
-                <Metric
-                    label={
-                        member
-                            ? 'Responsabilidade original nas despesas'
-                            : 'Despesas econômicas registradas'
-                    }
-                    value={value.expenseAmountInCents}
-                />
-                <Metric
-                    label={
-                        member
-                            ? 'Participação econômica em receitas realizadas'
-                            : 'Receitas realizadas'
-                    }
-                    value={value.realizedIncomeAmountInCents}
-                />
-                <Metric
-                    label="Resultado econômico: receitas realizadas menos despesas"
-                    value={value.economicResultInCents}
-                />
-            </dl>
-            <h3>Caixa, cartão e suporte do mês</h3>
-            <dl
-                className={styles.totals}
-                aria-label="Caixa, cartão e suporte do mês"
-            >
-                <Metric
-                    label="Pagamentos diretos de despesas"
-                    value={value.paidAmountInCents}
-                />
-                <Metric
-                    label="Liquidações externas"
-                    value={value.externalSettledAmountInCents}
-                />
-                <Metric
-                    label="Desembolsado em despesas e liquidações"
-                    value={value.disbursedAmountInCents}
-                />
-                <Metric
-                    label="Dinheiro recebido diretamente"
-                    value={value.receivedAmountInCents}
-                />
-                <Metric
-                    label="Obrigações externas assumidas no cartão"
-                    value={value.assumedAmountInCents}
-                />
-                <Metric
-                    label="Valor suportado: pagamentos diretos e obrigações assumidas"
-                    value={value.supportedAmountInCents}
-                />
-            </dl>
+            <div className={styles.metricGroup}>
+                <h3>Resultado econômico do mês</h3>
+                <dl
+                    className={styles.totals}
+                    aria-label="Resultado econômico do mês"
+                >
+                    <Metric
+                        label={
+                            member
+                                ? 'Responsabilidade original nas despesas'
+                                : 'Despesas econômicas registradas'
+                        }
+                        value={value.expenseAmountInCents}
+                    />
+                    <Metric
+                        label={
+                            member
+                                ? 'Participação econômica em receitas realizadas'
+                                : 'Receitas realizadas'
+                        }
+                        value={value.realizedIncomeAmountInCents}
+                    />
+                    <Metric
+                        label="Resultado econômico: receitas realizadas menos despesas"
+                        value={value.economicResultInCents}
+                    />
+                </dl>
+            </div>
+            <div className={styles.metricGroup}>
+                <h3>Caixa, cartão e suporte do mês</h3>
+                <dl
+                    className={styles.totals}
+                    aria-label="Caixa, cartão e suporte do mês"
+                >
+                    <Metric
+                        label="Pagamentos diretos de despesas"
+                        value={value.paidAmountInCents}
+                    />
+                    <Metric
+                        label="Liquidações externas"
+                        value={value.externalSettledAmountInCents}
+                    />
+                    <Metric
+                        label="Desembolsado em despesas e liquidações"
+                        value={value.disbursedAmountInCents}
+                    />
+                    <Metric
+                        label="Dinheiro recebido diretamente"
+                        value={value.receivedAmountInCents}
+                    />
+                    <Metric
+                        label="Obrigações externas assumidas no cartão"
+                        value={value.assumedAmountInCents}
+                    />
+                    <Metric
+                        label="Valor suportado: pagamentos diretos e obrigações assumidas"
+                        value={value.supportedAmountInCents}
+                    />
+                </dl>
+            </div>
             {!personal && (
                 <>
-                    <h3>Transferências internas do mês</h3>
-                    <dl
-                        className={styles.totals}
-                        aria-label="Transferências internas do mês"
-                    >
-                        <Metric
-                            label="Transferências internas enviadas"
-                            value={value.internalTransfersSentAmountInCents}
-                        />
-                        <Metric
-                            label="Transferências internas recebidas"
-                            value={value.internalTransfersReceivedAmountInCents}
-                        />
-                        {value.internalTransfersSentReversedAmountInCents !==
-                            undefined && (
+                    <div className={styles.metricGroup}>
+                        <h3>Transferências internas do mês</h3>
+                        <dl
+                            className={styles.totals}
+                            aria-label="Transferências internas do mês"
+                        >
                             <Metric
-                                label="Transferências enviadas revertidas"
+                                label="Transferências internas enviadas"
+                                value={value.internalTransfersSentAmountInCents}
+                            />
+                            <Metric
+                                label="Transferências internas recebidas"
                                 value={
-                                    value.internalTransfersSentReversedAmountInCents
+                                    value.internalTransfersReceivedAmountInCents
                                 }
                             />
-                        )}
-                        {value.internalTransfersReceivedReversedAmountInCents !==
-                            undefined && (
-                            <Metric
-                                label="Transferências recebidas revertidas"
-                                value={
-                                    value.internalTransfersReceivedReversedAmountInCents
-                                }
-                            />
-                        )}
-                        {value.internalTransfersSentEffectiveAmountInCents !==
-                            undefined && (
-                            <Metric
-                                label="Transferências enviadas efetivas"
-                                value={
-                                    value.internalTransfersSentEffectiveAmountInCents
-                                }
-                            />
-                        )}
-                        {value.internalTransfersReceivedEffectiveAmountInCents !==
-                            undefined && (
-                            <Metric
-                                label="Transferências recebidas efetivas"
-                                value={
-                                    value.internalTransfersReceivedEffectiveAmountInCents
-                                }
-                            />
-                        )}
-                    </dl>
+                            {value.internalTransfersSentReversedAmountInCents !==
+                                undefined && (
+                                <Metric
+                                    label="Transferências enviadas revertidas"
+                                    value={
+                                        value.internalTransfersSentReversedAmountInCents
+                                    }
+                                />
+                            )}
+                            {value.internalTransfersReceivedReversedAmountInCents !==
+                                undefined && (
+                                <Metric
+                                    label="Transferências recebidas revertidas"
+                                    value={
+                                        value.internalTransfersReceivedReversedAmountInCents
+                                    }
+                                />
+                            )}
+                            {value.internalTransfersSentEffectiveAmountInCents !==
+                                undefined && (
+                                <Metric
+                                    label="Transferências enviadas efetivas"
+                                    value={
+                                        value.internalTransfersSentEffectiveAmountInCents
+                                    }
+                                />
+                            )}
+                            {value.internalTransfersReceivedEffectiveAmountInCents !==
+                                undefined && (
+                                <Metric
+                                    label="Transferências recebidas efetivas"
+                                    value={
+                                        value.internalTransfersReceivedEffectiveAmountInCents
+                                    }
+                                />
+                            )}
+                        </dl>
+                    </div>
                     <p>
                         O histórico preserva as transferências registradas. Os
                         valores efetivos consideram as reversões desses
@@ -155,45 +163,52 @@ export function FinancialOverviewSection({
         value.members.find((member) => member.memberId === id)?.displayName ??
         'Membro do espaço';
     return (
-        <section className={styles.stack} aria-label="Resumo financeiro do mês">
-            <h2>Resumo de {value.month}</h2>
-            {value.memberId && (
+        <section
+            className={styles.section}
+            aria-label="Resumo financeiro do mês"
+        >
+            <header className={styles.intro}>
+                <h2>Resumo de {value.month}</h2>
+                {value.memberId && (
+                    <p>
+                        Recorte de {memberName(value.memberId)}:
+                        responsabilidade e participação econômica próprias;
+                        caixa pelos fatos executados e cartão pelo titular.
+                    </p>
+                )}
                 <p>
-                    Recorte de {memberName(value.memberId)}: responsabilidade e
-                    participação econômica próprias; caixa pelos fatos
-                    executados e cartão pelo titular.
+                    Referência da consulta:{' '}
+                    <time dateTime={value.referenceDate}>
+                        {formatDate(value.referenceDate)}
+                    </time>
+                    . Valores em reais (BRL) de todo o período.
                 </p>
-            )}
-            <p>
-                Referência da consulta:{' '}
-                <time dateTime={value.referenceDate}>
-                    {formatDate(value.referenceDate)}
-                </time>
-                . Valores em reais (BRL) de todo o período.
-            </p>
+            </header>
             <Metrics
                 value={value.totals}
                 member={value.memberId !== null}
                 personal={!shared}
             />
-            <p>
-                A responsabilidade original da despesa é reconhecida uma vez.
-                Receitas realizadas seguem a data dos recebimentos. Liquidações
-                não criam outra despesa. O valor suportado mantém o que foi pago
-                diretamente ou assumido no cartão.
-            </p>
-            {shared && (
+            <div className={styles.intro}>
                 <p>
-                    Transferências internas são exibidas separadamente do
-                    resultado econômico, do desembolso em despesas e do valor
-                    suportado.
+                    A responsabilidade original da despesa é reconhecida uma
+                    vez. Receitas realizadas seguem a data dos recebimentos.
+                    Liquidações não criam outra despesa. O valor suportado
+                    mantém o que foi pago diretamente ou assumido no cartão.
                 </p>
-            )}
+                {shared && (
+                    <p>
+                        Transferências internas são exibidas separadamente do
+                        resultado econômico, do desembolso em despesas e do
+                        valor suportado.
+                    </p>
+                )}
+            </div>
             {shared &&
                 value.memberId === null &&
                 value.byMember.map((member) => (
                     <section
-                        className={styles.stack}
+                        className={styles.section}
                         key={member.memberId}
                         aria-label={`Valores de ${memberName(member.memberId)}`}
                     >
@@ -202,24 +217,26 @@ export function FinancialOverviewSection({
                     </section>
                 ))}
             <section
-                className={styles.stack}
+                className={styles.section}
                 aria-label="Obrigações externas em aberto agora"
             >
-                <h2>Em aberto agora</h2>
-                <p>
-                    Obrigações externas de todas as datas, na referência de{' '}
-                    <time
-                        dateTime={
-                            value.currentExternalLiabilities.referenceDate
-                        }
-                    >
-                        {formatDate(
-                            value.currentExternalLiabilities.referenceDate,
-                        )}
-                    </time>
-                    . Este quadro não representa o saldo no fim do mês
-                    selecionado.
-                </p>
+                <header className={styles.intro}>
+                    <h2>Em aberto agora</h2>
+                    <p>
+                        Obrigações externas de todas as datas, na referência de{' '}
+                        <time
+                            dateTime={
+                                value.currentExternalLiabilities.referenceDate
+                            }
+                        >
+                            {formatDate(
+                                value.currentExternalLiabilities.referenceDate,
+                            )}
+                        </time>
+                        . Este quadro não representa o saldo no fim do mês
+                        selecionado.
+                    </p>
+                </header>
                 <dl className={styles.totals}>
                     <Metric
                         label="Obrigações externas abertas agora"
@@ -231,7 +248,7 @@ export function FinancialOverviewSection({
                 </dl>
                 {shared &&
                     value.currentExternalLiabilities.byMember.map((member) => (
-                        <div key={member.memberId}>
+                        <div className={styles.feedback} key={member.memberId}>
                             <p>
                                 {memberName(member.memberId)}:{' '}
                                 {formatReviewMoney(

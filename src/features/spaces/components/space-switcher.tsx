@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLayoutEffect, useRef } from 'react';
-import { Settings2, Plus, UsersRound, UserRound } from 'lucide-react';
+import { Settings2, Plus, UsersRound, UserRound } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,

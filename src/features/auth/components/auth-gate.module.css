@@ -6,7 +6,7 @@
 
 .bar {
     height: 1rem;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-pill);
     background: var(--muted);
 }
 

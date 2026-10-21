@@ -11,6 +11,8 @@ import { useExpenseQuery } from '../hooks/use-expense-query';
 import { personalExpenseQueryKeys } from '../cache/personal-expense-query-keys';
 import { formatDate, formatMoney } from '../utils/expense-money';
 import { disbursementMethodLabels } from './personal-expense-summary';
+import { useSpaceContext } from '@/features/spaces/hooks/use-space-context';
+import { ChevronRight } from '@/components/ui/icons';
 import styles from './finances-summary.module.css';
 
 export function PersonalExpenseHistoryPage({
@@ -24,6 +26,8 @@ export function PersonalExpenseHistoryPage({
 }) {
     const context = useSpaceContextInstance(),
         router = useRouter();
+    const space = useSpaceContext();
+    const canCreate = space.currentSpace?.status === 'ACTIVE';
     const [selection, setSelection] = useState<{ cursor: string | null }>({
         cursor: null,
     });
@@ -76,62 +80,67 @@ export function PersonalExpenseHistoryPage({
             {!embedded && (
                 <div className={styles.heading}>
                     <h1>Finanças</h1>
-                    <Button asChild>
-                        <Link href={`/spaces/${spaceId}/expenses/new`}>
-                            Adicionar despesa
-                        </Link>
-                    </Button>
+                    {canCreate && (
+                        <Button asChild>
+                            <Link href={`/spaces/${spaceId}/expenses/new`}>
+                                Adicionar despesa
+                            </Link>
+                        </Button>
+                    )}
                 </div>
             )}
-            <nav
-                className={styles.actions}
-                aria-label="Despesas e receitas pessoais"
-            >
-                {!embedded && (
-                    <Link
-                        href={`/spaces/${spaceId}/finances/external-liabilities`}
-                    >
-                        Obrigações externas em meu nome
-                    </Link>
-                )}
-                {embedded && (
-                    <Button asChild>
-                        <Link href={`/spaces/${spaceId}/expenses/new`}>
-                            Adicionar despesa
+            {!embedded && (
+                <nav
+                    className={styles.actions}
+                    aria-label="Despesas e receitas pessoais"
+                >
+                    {!embedded && (
+                        <Link
+                            href={`/spaces/${spaceId}/finances/external-liabilities`}
+                        >
+                            Obrigações externas em meu nome
                         </Link>
-                    </Button>
-                )}
-                <Link href={`/spaces/${spaceId}/incomes`}>Ver receitas</Link>
-                <Link href={`/spaces/${spaceId}/incomes/new`}>
-                    Adicionar receita
-                </Link>
-                {!embedded && (
-                    <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
-                )}
-            </nav>
-            <div className={styles.intro}>
-                <h2>Histórico de despesas</h2>
-                <p>
-                    O que você registrou neste espaço, com o valor de cada
-                    despesa e seus pagamentos.
-                </p>
+                    )}
+                    <Link href={`/spaces/${spaceId}/incomes`}>
+                        Ver receitas
+                    </Link>
+                    {canCreate && (
+                        <Link href={`/spaces/${spaceId}/incomes/new`}>
+                            Adicionar receita
+                        </Link>
+                    )}
+                    {!embedded && (
+                        <Link href={`/spaces/${spaceId}`}>
+                            Voltar ao espaço
+                        </Link>
+                    )}
+                </nav>
+            )}
+            <div className={styles.heading}>
+                <div className={styles.intro}>
+                    <h2>Histórico de despesas</h2>
+                    <p>
+                        O que você registrou neste espaço, com o valor de cada
+                        despesa e seus pagamentos.
+                    </p>
+                </div>
+                <Button
+                    variant="outline"
+                    type="button"
+                    disabled={query.isFetching}
+                    onClick={() => {
+                        if (selection.cursor === null) void query.refetch();
+                        else setSelection({ cursor: null });
+                    }}
+                >
+                    Atualizar / Voltar ao início
+                </Button>
             </div>
-            <Button
-                variant="outline"
-                type="button"
-                disabled={query.isFetching}
-                onClick={() => {
-                    if (selection.cursor === null) void query.refetch();
-                    else setSelection({ cursor: null });
-                }}
-            >
-                Atualizar / Voltar ao início
-            </Button>
             {(query.isPending || query.isFetching) && (
                 <FinancialLoading label="Carregando despesas…" />
             )}
             {query.isError && (
-                <div>
+                <div className={styles.feedback}>
                     <p role="alert">
                         Não foi possível consultar suas despesas.
                     </p>
@@ -161,13 +170,21 @@ export function PersonalExpenseHistoryPage({
                         >
                             {value.items.map((item) => (
                                 <li key={item.id}>
-                                    <h3>
-                                        <Link
-                                            href={`/spaces/${spaceId}/expenses/${item.id}`}
-                                        >
-                                            {item.description}
-                                        </Link>
-                                    </h3>
+                                    <Link
+                                        className={styles.recordLink}
+                                        aria-label={item.description}
+                                        href={`/spaces/${spaceId}/expenses/${item.id}`}
+                                    >
+                                        <h3>{item.description}</h3>
+                                        <span className={styles.recordAmount}>
+                                            {formatMoney(item.amountInCents)}
+                                        </span>
+                                        <ChevronRight
+                                            aria-hidden="true"
+                                            className={styles.recordAccessory}
+                                            size={20}
+                                        />
+                                    </Link>
                                     {item.status === 'PARTIALLY_PAID' && (
                                         <p>
                                             Parcialmente paga. Falta pagar:{' '}

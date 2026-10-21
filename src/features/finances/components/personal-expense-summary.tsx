@@ -4,6 +4,7 @@ import type {
 } from '../types/personal-expense';
 import { formatDate, formatMoney } from '../utils/expense-money';
 import styles from './financial-records.module.css';
+import personal from './personal-expense.module.css';
 
 export const disbursementMethodLabels: Record<DisbursementMethod, string> = {
     PIX: 'PIX',
@@ -18,7 +19,11 @@ export function PersonalExpenseSummary({
     const first = value.disbursements[0];
     const card = !!value.externalLiabilities?.length;
     return (
-        <section className={styles.receipt} aria-label="Resumo da despesa">
+        <section
+            className={`${styles.receipt} ${personal.receipt}`}
+            aria-label="Resumo da despesa"
+        >
+            <p className={personal.eyebrow}>Despesa pessoal</p>
             <h2>{value.commitment.description}</h2>
             <p className={styles.amount}>
                 {formatMoney(value.commitment.amountInCents)}

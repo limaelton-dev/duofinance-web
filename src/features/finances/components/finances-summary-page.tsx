@@ -4,7 +4,14 @@ import { FinancialLoading } from './financial-loading';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useUrlPreferences } from '@/components/patterns/use-url-preferences';
 import { useAuthenticatedContext } from '@/features/auth/hooks/use-authenticated-context';
 import { useSpaceContext } from '@/features/spaces/hooks/use-space-context';
 import { getFinancialOverview } from '@/lib/api/financial-review';
@@ -48,17 +55,38 @@ function FinancialReviewPage({
     spaceId: string;
     shared: boolean;
 }) {
+    const space = useSpaceContext();
     const [referenceDate, setReferenceDate] = useState(() =>
         financialReferenceDate(),
     );
-    const [selection, setSelection] = useState({
-        month: referenceDate.slice(0, 7),
-        memberId: null as string | null,
-    });
-    const [view, setView] = useState<FinancialReviewView | 'FORECAST'>(
-        'CALENDAR',
+    const [preferences, setPreferences] = useUrlPreferences(
+        {
+            month: referenceDate.slice(0, 7),
+            member: '',
+            view: 'CALENDAR',
+            tab: 'SUMMARY',
+        },
+        {
+            month: (value) => /^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(value),
+            member: (value) =>
+                value === '' ||
+                /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(
+                    value,
+                ),
+            view: (value) =>
+                ['CALENDAR', 'HISTORY', 'FORECAST'].includes(value),
+            tab: (value) => ['SUMMARY', 'COMMITMENTS'].includes(value),
+        },
     );
-    const [tab, setTab] = useState<'SUMMARY' | 'COMMITMENTS'>('SUMMARY');
+    const selection = useMemo(
+        () => ({
+            month: preferences.month,
+            memberId: shared ? preferences.member || null : null,
+        }),
+        [preferences.month, preferences.member, shared],
+    );
+    const view = preferences.view as FinancialReviewView | 'FORECAST';
+    const tab = preferences.tab as 'SUMMARY' | 'COMMITMENTS';
     useEffect(() => {
         let timer: number;
         const update = () => {
@@ -80,45 +108,88 @@ function FinancialReviewPage({
     }, []);
     return (
         <section className={styles.stack}>
-            <div className={styles.intro}>
-                <h1>Finanças</h1>
-                <p>
-                    Confira o que foi registrado, o que já aconteceu e o que
-                    ainda está previsto neste espaço.
-                </p>
-            </div>
-            <nav className={styles.actions} aria-label="Navegação financeira">
-                <Button
-                    variant="outline"
-                    type="button"
-                    aria-current={tab === 'SUMMARY' ? 'page' : undefined}
-                    onClick={() => setTab('SUMMARY')}
+            <header className={styles.heading}>
+                <div className={styles.intro}>
+                    <h1>Finanças</h1>
+                    <p>
+                        Confira o que foi registrado, o que já aconteceu e o que
+                        ainda está previsto neste espaço.
+                    </p>
+                </div>
+                {!shared && space.currentSpace?.status === 'ACTIVE' && (
+                    <Button asChild>
+                        <Link href={`/spaces/${spaceId}/expenses/new`}>
+                            Adicionar despesa
+                        </Link>
+                    </Button>
+                )}
+            </header>
+            <div className={styles.toolbar}>
+                <nav
+                    className={styles.viewSwitcher}
+                    aria-label="Navegação financeira"
                 >
-                    Resumo
-                </Button>
-                <Button
-                    variant="outline"
-                    type="button"
-                    aria-current={tab === 'COMMITMENTS' ? 'page' : undefined}
-                    onClick={() => setTab('COMMITMENTS')}
-                >
-                    Compromissos
-                </Button>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        aria-pressed={tab === 'SUMMARY'}
+                        onClick={() => setPreferences({ tab: 'SUMMARY' })}
+                    >
+                        Resumo
+                    </Button>
+                    <Button
+                        variant="outline"
+                        type="button"
+                        aria-pressed={tab === 'COMMITMENTS'}
+                        onClick={() => setPreferences({ tab: 'COMMITMENTS' })}
+                    >
+                        Compromissos
+                    </Button>
+                </nav>
                 {shared && (
-                    <Link href={`/spaces/${spaceId}/finances/settlements`}>
+                    <Link
+                        className={styles.destinationLink}
+                        href={`/spaces/${spaceId}/finances/settlements`}
+                    >
                         Acertos
                     </Link>
                 )}
-                <Link href={`/spaces/${spaceId}/incomes`}>Receitas</Link>
-                <Link href={`/spaces/${spaceId}/finances/planning`}>
-                    Planejar compromisso
-                </Link>
-                {shared && (
-                    <Link href={`/spaces/${spaceId}/finances/changes`}>
-                        Alterações
-                    </Link>
-                )}
-            </nav>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" type="button">
+                            Mais em Finanças
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                            <Link href={`/spaces/${spaceId}/incomes`}>
+                                Receitas
+                            </Link>
+                        </DropdownMenuItem>
+                        {!shared && space.currentSpace?.status === 'ACTIVE' && (
+                            <DropdownMenuItem asChild>
+                                <Link href={`/spaces/${spaceId}/incomes/new`}>
+                                    Adicionar receita
+                                </Link>
+                            </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem asChild>
+                            <Link href={`/spaces/${spaceId}/finances/planning`}>
+                                Planejar compromisso
+                            </Link>
+                        </DropdownMenuItem>
+                        {shared && (
+                            <DropdownMenuItem asChild>
+                                <Link
+                                    href={`/spaces/${spaceId}/finances/changes`}
+                                >
+                                    Alterações
+                                </Link>
+                            </DropdownMenuItem>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
             <FinancialReviewContent
                 key={referenceDate}
                 personId={personId}
@@ -126,10 +197,15 @@ function FinancialReviewPage({
                 shared={shared}
                 referenceDate={referenceDate}
                 selection={selection}
-                onSelection={setSelection}
+                onSelection={(value) =>
+                    setPreferences({
+                        month: value.month,
+                        member: value.memberId ?? '',
+                    })
+                }
                 tab={tab}
                 view={view}
-                onView={setView}
+                onView={(value) => setPreferences({ view: value })}
             />
         </section>
     );
@@ -264,7 +340,7 @@ function FinancialReviewContent({
                 <FinancialLoading label="Carregando resumo financeiro…" />
             )}
             {overview.isError && (
-                <div>
+                <div className={styles.feedback}>
                     <p role="alert">
                         Não foi possível consultar o resumo financeiro.
                     </p>

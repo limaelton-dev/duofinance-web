@@ -311,7 +311,7 @@ export function DestinationEffects({
     );
 }
 export const sectionClass = 'scroll-mt-6 space-y-5 border-t border-border pt-8';
-export const panelClass = 'rounded-sm border border-border bg-card p-4 sm:p-6';
+export const panelClass = 'rounded-lg border border-border bg-card p-5 sm:p-6';
 export const actionsClass = 'flex flex-col gap-3 sm:flex-row sm:flex-wrap';
 export const selectClass =
     'min-h-12 w-full min-w-0 max-w-full rounded-md border border-input bg-card px-3 py-2 text-base';

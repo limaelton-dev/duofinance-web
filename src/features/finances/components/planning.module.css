@@ -4,14 +4,14 @@
     margin: 0;
     padding: 0;
     border: 1px solid var(--border);
-    border-radius: var(--radius-sm, 0.5rem);
+    border-radius: var(--radius-sm);
     background: var(--card);
     min-width: 0;
 }
 .row {
     display: grid;
-    gap: 0.75rem;
-    padding: 1.25rem;
+    gap: var(--space-3);
+    padding: var(--inset-card);
     min-width: 0;
 }
 .row + .row {
@@ -19,20 +19,20 @@
 }
 .row h2,
 .row h3 {
-    font-size: 1rem;
+    font-size: var(--type-body);
 }
 .row a {
     text-underline-offset: 0.25em;
 }
 .row dl {
     display: grid;
-    gap: 0.5rem;
+    gap: var(--space-2);
     margin: 0;
 }
 .row dl > div {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 1rem;
+    gap: var(--space-2) var(--space-4);
     justify-content: space-between;
 }
 .row dd {
@@ -41,31 +41,31 @@
 }
 .section {
     display: grid;
-    gap: 1.5rem;
-    max-width: 46rem;
+    gap: var(--gap-group);
+    max-width: var(--layout-form);
     min-width: 0;
 }
 .compact {
-    max-width: 35rem;
+    max-width: var(--layout-form);
 }
 .check {
     display: flex !important;
-    gap: 0.75rem !important;
+    gap: var(--space-3) !important;
     align-items: center;
-    min-height: 3rem;
+    min-height: var(--control-height);
     font-weight: 400 !important;
 }
 .check input {
     width: 1.25rem !important;
-    min-height: 1.25rem !important;
+    min-height: var(--space-5) !important;
     height: 1.25rem;
     accent-color: var(--primary);
     flex: 0 0 auto;
 }
 .notice {
     border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 1rem;
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
     background: var(--card);
 }
 .money {
@@ -74,12 +74,12 @@
 }
 .summary {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--space-3);
 }
 .summary > div {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 1rem;
+    gap: var(--space-2) var(--space-4);
     justify-content: space-between;
 }
 .summary dd {
@@ -88,15 +88,15 @@
 }
 .preserved {
     color: var(--muted-foreground);
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
 }
 .textarea {
     min-height: 8rem;
     width: 100%;
     resize: vertical;
     border: 1px solid var(--input);
-    border-radius: 0.75rem;
-    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    padding: var(--space-3);
     background: var(--card);
     color: var(--foreground);
     font: inherit;

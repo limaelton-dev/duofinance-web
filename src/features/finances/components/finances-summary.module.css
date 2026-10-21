@@ -1,6 +1,6 @@
 .stack {
     display: grid;
-    gap: 1.5rem;
+    gap: var(--gap-group);
     overflow-wrap: anywhere;
     min-width: 0;
 }
@@ -11,17 +11,17 @@
     margin: 0;
 }
 .stack h1 {
-    font-size: 1.75rem;
-    line-height: 1.22;
+    font-size: var(--type-display);
+    line-height: 1.15;
     font-weight: 700;
     letter-spacing: -0.035em;
 }
 .stack h2 {
-    font-size: 1.25rem;
+    font-size: var(--type-section);
     font-weight: 650;
 }
 .stack h3 {
-    font-size: 1rem;
+    font-size: var(--type-heading);
     font-weight: 650;
 }
 .heading {
@@ -31,15 +31,103 @@
     justify-content: space-between;
     gap: 1rem;
 }
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+.destinationLink {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-height);
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--type-secondary);
+    font-weight: 600;
+    text-underline-offset: 0.25em;
+}
+.stack .viewSwitcher {
+    display: flex;
+    flex-wrap: wrap;
+    padding: var(--space-1);
+    gap: var(--space-1);
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--muted);
+    width: fit-content;
+}
+.stack .viewSwitcher > button {
+    padding: var(--space-3) var(--space-4);
+    border: 0;
+    border-radius: var(--radius-pill);
+    font-size: var(--type-secondary);
+    box-shadow: none;
+    background: transparent;
+}
+.stack .viewSwitcher > [aria-pressed='true'] {
+    background: var(--card);
+    color: var(--foreground);
+}
+.list .recordLink {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    justify-self: stretch;
+    column-gap: var(--space-3);
+    row-gap: var(--space-2);
+    min-height: var(--control-height);
+    text-decoration: none;
+}
+.recordLink h3 {
+    font-size: var(--type-heading);
+    line-height: 1.35;
+}
+.recordAmount {
+    grid-column: 1;
+    font-size: var(--type-section);
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+}
+.recordAccessory {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    color: var(--muted-foreground);
+}
+.recordLink:hover h3 {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+}
 .intro {
     display: grid;
     gap: 0.5rem;
     max-width: 70ch;
 }
+.section {
+    display: grid;
+    gap: var(--gap-section);
+    min-width: 0;
+}
+.metricGroup,
+.feedback {
+    display: grid;
+    gap: var(--gap-related);
+    min-width: 0;
+}
+.feedback {
+    justify-items: start;
+}
+.section > p,
+.metricGroup > p {
+    max-width: 70ch;
+    color: var(--muted-foreground);
+    font-size: var(--type-secondary);
+    line-height: 1.5;
+}
 .intro p,
 .help {
     color: var(--muted-foreground, #595959);
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     line-height: 1.5;
 }
 .actions {
@@ -48,14 +136,20 @@
     gap: 0.75rem;
     align-items: center;
 }
+.actions > a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    text-underline-offset: 0.25em;
+}
 .filters {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
     align-items: flex-end;
-    padding: clamp(0.5rem, 4vw, 1.25rem);
+    padding: var(--inset-card);
     border: 1px solid var(--border);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
     background: var(--card);
 }
 .filters > label,
@@ -71,7 +165,7 @@
     display: grid;
     gap: 0.5rem;
     min-width: 0;
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     font-weight: 600;
 }
 .filter {
@@ -82,12 +176,12 @@
 .filters select {
     width: 100%;
     min-width: 0;
-    font-size: 1rem;
+    font-size: var(--type-heading);
     font-weight: 400;
 }
 .stack > p {
     max-width: 70ch;
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     line-height: 1.5;
     color: var(--muted-foreground);
 }
@@ -111,7 +205,7 @@
     min-height: 3rem;
     padding: 0.625rem 0.875rem;
     border-radius: 0.75rem;
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     text-decoration: none;
 }
 .stack nav > a:not([aria-current]):hover,
@@ -158,35 +252,35 @@
 .stack [role='alert'] {
     padding: 1rem;
     border: 1px solid var(--destructive, #ba3035);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
     color: var(--destructive, #ba3035);
     background: var(--card, #fff);
 }
 .stack [role='status'] {
     color: var(--muted-foreground, #595959);
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
 }
 .totals {
     display: grid;
     margin: 0;
     background: var(--card, #fff);
     border: 1px solid var(--border, #dedede);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
 }
 .totals > div {
-    padding: 1.25rem;
+    padding: var(--inset-card);
 }
 .totals > div + div {
     border-top: 1px solid var(--border, #dedede);
 }
 .totals dt {
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     color: var(--muted-foreground, #595959);
 }
 .totals dd {
     margin: 0.5rem 0 0;
     font-weight: 650;
-    font-size: 1.5rem;
+    font-size: var(--type-title);
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.025em;
 }
@@ -197,19 +291,19 @@
     list-style: none;
     background: var(--card, #fff);
     border: 1px solid var(--border, #dedede);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
 }
 .list > li {
     display: grid;
-    gap: 0.625rem;
-    padding: 1.25rem;
+    gap: var(--gap-related);
+    padding: var(--inset-card);
     min-width: 0;
 }
 .list > li + li {
     border-top: 1px solid var(--border, #dedede);
 }
 .list p {
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     color: var(--muted-foreground, #595959);
 }
 .list > li > a {
@@ -221,7 +315,7 @@
     text-underline-offset: 0.25em;
 }
 .list details {
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     color: var(--muted-foreground, #595959);
 }
 .list summary {
@@ -239,25 +333,34 @@
     font-variant-numeric: tabular-nums;
 }
 .empty {
-    padding: 2rem 1.5rem;
+    padding: var(--inset-card);
     background: var(--card, #fff);
     border: 1px solid var(--border, #dedede);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
     display: grid;
     gap: 0.75rem;
 }
 .notice {
     padding: 1rem;
     border: 1px solid var(--warning);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
     background: var(--warning-surface);
     color: var(--warning);
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
     line-height: 1.5;
 }
 @media (min-width: 1024px) {
     .totals {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .totals > div {
+        display: grid;
+        grid-template-rows: subgrid;
+        grid-row: span 2;
+        row-gap: var(--gap-label);
+    }
+    .totals dd {
+        margin: 0;
     }
     .totals > div:only-child {
         grid-column: 1 / -1;
@@ -279,7 +382,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.5rem 1rem;
     margin: 0.5rem 0 0;
-    font-size: 0.875rem;
+    font-size: var(--type-secondary);
 }
 .list dl:not(.totals) dt {
     color: var(--muted-foreground, #595959);

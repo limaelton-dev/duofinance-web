@@ -13,7 +13,7 @@ import type { InvitationCommandResponse } from '../types/spaces-responses';
 import { getSpacesErrorMessage } from '../utils/get-spaces-error-message';
 import { InvitationLink } from './invitation-link';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw } from '@/components/ui/icons';
 import styles from './spaces.module.css';
 import { useSpaceContextInstance } from '../context/space-context-provider';
 import { isSpaceAccessDenied } from '../state/space-context';

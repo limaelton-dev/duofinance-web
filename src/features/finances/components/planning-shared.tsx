@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
+import { ArrowLeft } from '@/components/ui/icons';
 export {
     SpaceBoundary as PlanningBoundary,
     QueryFeedback,
@@ -36,7 +37,10 @@ export function PlanningHeading({
 }) {
     return (
         <header className={styles.heading}>
-            <Link href={`/spaces/${spaceId}/finances`}>Voltar às finanças</Link>
+            <Link className={styles.back} href={`/spaces/${spaceId}/finances`}>
+                <ArrowLeft size={20} aria-hidden="true" />
+                Voltar às finanças
+            </Link>
             <h1>{title}</h1>
             {children && <p className={styles.help}>{children}</p>}
         </header>

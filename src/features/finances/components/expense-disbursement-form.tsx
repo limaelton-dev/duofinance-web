@@ -164,7 +164,7 @@ export function ExpenseDisbursementForm({
                 <FinancialLoading label="Carregando opções de pagamento…" />
             )}
             {options.isError && (
-                <div>
+                <div className={styles.feedback}>
                     <p role="alert">
                         Não foi possível carregar as opções de pagamento.
                     </p>
@@ -352,7 +352,7 @@ export function ExpenseDisbursementForm({
                     </fieldset>
                     {validation && <p role="alert">{validation}</p>}
                     {command.error && (
-                        <div>
+                        <div className={styles.feedback}>
                             <p role="alert">{command.error}</p>
                             {!busy && (
                                 <Button

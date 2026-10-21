@@ -2,6 +2,13 @@
 import { FinancialLoading } from './financial-loading';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { ArrowLeft } from '@/components/ui/icons';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSpaceContextInstance } from '@/features/spaces/context/space-context-provider';
@@ -15,6 +22,7 @@ import { ExternalLiabilityForm } from './external-liability-form';
 import { ExpenseDisbursementForm } from './expense-disbursement-form';
 import { ExpensePaymentHistory } from './expense-payment-history';
 import { ExternalLiabilityHistory } from './external-liability-history';
+import personal from './personal-expense.module.css';
 
 export function PersonalExpenseDetailPage({
     personId,
@@ -71,20 +79,42 @@ export function PersonalExpenseDetailPage({
             ? query.data
             : undefined;
     return (
-        <section className={styles.stack}>
-            <h1>Despesa</h1>
-            <Button asChild variant="outline">
-                <Link
-                    href={`/spaces/${spaceId}/finances/commitments/${commitmentId}`}
-                >
-                    Histórico e correções
-                </Link>
-            </Button>
+        <section className={`${styles.stack} ${personal.detail}`}>
+            <Link
+                className={personal.back}
+                href={`/spaces/${spaceId}/finances`}
+            >
+                <ArrowLeft size={20} aria-hidden="true" /> Voltar às Finanças
+            </Link>
+            <header className={personal.detailHeading}>
+                <h1>Despesa</h1>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" type="button">
+                            Mais opções
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                            <Link
+                                href={`/spaces/${spaceId}/finances/commitments/${commitmentId}`}
+                            >
+                                Histórico e correções
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={`/spaces/${spaceId}`}>
+                                Voltar ao espaço
+                            </Link>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </header>
             {(query.isPending || query.isFetching) && (
                 <FinancialLoading label="Carregando despesa…" />
             )}
             {query.isError && (
-                <div>
+                <div className={styles.feedback}>
                     <p role="alert">Não foi possível consultar esta despesa.</p>
                     <Button
                         variant="outline"
@@ -139,8 +169,6 @@ export function PersonalExpenseDetailPage({
                     </details>
                 </>
             )}
-            <Link href={`/spaces/${spaceId}/finances`}>Voltar às Finanças</Link>
-            <Link href={`/spaces/${spaceId}`}>Voltar ao espaço</Link>
         </section>
     );
 }
