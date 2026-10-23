@@ -45,3 +45,6 @@ next-env.d.ts
 /test-results/
 /.impeccable/
 /debug.log
+
+# Local brand explorations and deliverables are not application source.
+/design/

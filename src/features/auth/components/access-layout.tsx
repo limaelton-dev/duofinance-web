@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Brand } from '@/components/patterns/brand';
+import { Brand } from '@/components/brand';
 import { AppearanceSettings } from '@/components/patterns/appearance';
 import styles from './auth-form.module.css';
 

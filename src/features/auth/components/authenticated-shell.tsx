@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/icons';
 import { AppearanceSettings } from '@/components/patterns/appearance';
 import { useShellViewport } from './use-shell-viewport';
-import { Brand } from '@/components/patterns/brand';
+import { Brand } from '@/components/brand';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {

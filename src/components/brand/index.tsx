@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { brandPaths } from './brand-artwork';
+import { brandPaths } from './artwork';
 import styles from './brand.module.css';
 
 export function Brand({

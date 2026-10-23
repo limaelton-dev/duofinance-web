@@ -1,5 +1,0 @@
-10 SVGs: contornos reais; Ju idêntico em todas as versões; sem fontes ou imagens incorporadas.
-56 PNGs: dimensões conferidas; logos transparentes; ícones RGB opacos.
-Maskable escuro: raio máximo da marca 338.0 px; limite seguro 409.6 px.
-Maskable claro: raio máximo da marca 338.0 px; limite seguro 409.6 px.
-2 ICOs: 16, 32 e 48 px incluídos.

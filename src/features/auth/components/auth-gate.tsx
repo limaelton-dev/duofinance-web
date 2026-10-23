@@ -4,7 +4,7 @@ import { Fragment, useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Brand } from '@/components/patterns/brand';
+import { Brand } from '@/components/brand';
 
 import { useAuthenticatedContext } from '../hooks/use-authenticated-context';
 import styles from './auth-form.module.css';
