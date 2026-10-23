@@ -17,7 +17,7 @@ export function AccessLayout({
     return (
         <main className={styles.page}>
             <header className={styles.pageHeader}>
-                <Brand className={styles.brand} />
+                <Brand />
                 <AppearanceSettings />
             </header>
             <div className={styles.layout}>

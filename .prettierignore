@@ -15,3 +15,5 @@ next-env.d.ts
 .impeccable/config.local.json
 test-results/
 debug.log
+# Approved generated artwork; preserve the exported files and their checksums.
+design/brandkit/2026-10-21/junelo-logo-kit/

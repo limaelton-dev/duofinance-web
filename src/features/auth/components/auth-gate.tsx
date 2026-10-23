@@ -33,7 +33,7 @@ export function AuthGate({ children }: AuthGateProps) {
                     className={styles.card}
                     aria-label="Verificando sessão"
                 >
-                    <Brand className={styles.brand} />
+                    <Brand variant="ju" />
                     <p role="status">Verificando sua sessão...</p>
                     <div className={gateStyles.skeleton} aria-hidden="true">
                         <Skeleton className={gateStyles.bar} />

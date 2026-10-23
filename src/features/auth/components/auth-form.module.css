@@ -14,11 +14,6 @@
     margin: 0 auto;
     gap: var(--space-3);
 }
-.brand {
-    font-size: var(--type-section);
-    font-weight: 750;
-    letter-spacing: -0.04em;
-}
 .layout {
     width: min(100%, 76rem);
     margin: var(--space-12) auto 0;

@@ -70,6 +70,12 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     }, [value]);
     return (
         <AppearanceContext.Provider value={value}>
+            <link
+                rel="icon"
+                type="image/svg+xml"
+                sizes="any"
+                href={`/brand/favicon-${value.theme}.svg`}
+            />
             {children}
         </AppearanceContext.Provider>
     );

@@ -1162,6 +1162,19 @@ test('sistema visual: larguras, paisagem e texto ampliado mantêm uma navegaçã
     for (const width of [320, 375, 390, 430, 768, 1024, 1440]) {
         await page.setViewportSize({ width, height: 844 });
         await noOverflow(page);
+        const brand = page.getByRole('link', {
+            name: 'Junelo, Hoje',
+            exact: true,
+        });
+        await expect(brand).toHaveCount(1);
+        const mark = brand.getByRole('img', { name: 'Junelo', exact: true });
+        await expect(mark).toBeVisible();
+        const markBounds = await mark.boundingBox();
+        // Full stacked logo on desktop; the short Ju keeps mobile navigation compact.
+        expect(markBounds!.width / markBounds!.height).toBeCloseTo(
+            width >= 1024 ? 478 / 450 : 452 / 294,
+            1,
+        );
         const visible = page.getByRole('navigation', {
             name: 'Navegação principal',
             exact: true,

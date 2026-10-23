@@ -248,7 +248,7 @@ export function AuthenticatedShell({ children }: { children: ReactNode }) {
                         aria-label="Junelo, Hoje"
                         className={styles.mobileBrand}
                     >
-                        <Brand />
+                        <Brand variant="ju" />
                     </Link>
                     <div className={styles.headerTools}>
                         <AppearanceSettings />

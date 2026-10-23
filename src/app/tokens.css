@@ -2,6 +2,7 @@
    All measures are project choices, not native Apple constants. */
 :root {
     color-scheme: light;
+    --brand-ink: #000000;
     --surface-page: #f5f5f5;
     --surface-content: #ffffff;
     --surface-raised: #ffffff;
@@ -123,6 +124,7 @@
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme='light']) {
         color-scheme: dark;
+        --brand-ink: #ffffff;
         --surface-page: #111111;
         --surface-content: #1d1d1d;
         --surface-raised: #272727;
@@ -154,6 +156,7 @@
 
 :root[data-theme='dark'] {
     color-scheme: dark;
+    --brand-ink: #ffffff;
     --surface-page: #111111;
     --surface-content: #1d1d1d;
     --surface-raised: #272727;

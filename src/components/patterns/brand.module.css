@@ -1,0 +1,18 @@
+.brand {
+    display: block;
+    flex: none;
+    width: 6rem;
+    max-width: 100%;
+    height: auto;
+    color: var(--brand-ink);
+}
+
+.ju {
+    width: 3.25rem;
+}
+
+@media (forced-colors: active) {
+    .brand {
+        color: CanvasText;
+    }
+}
