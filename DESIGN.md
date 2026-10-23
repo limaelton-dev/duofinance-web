@@ -38,7 +38,11 @@ O ajuste abre um `<dialog>` por `showModal()`, com nome acessível, título inic
 
 ## Tipografia e ritmo
 
-A família é a do sistema: `system-ui`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `sans-serif`. O navegador escolhe a fonte disponível; não há download de SF Pro nem promessa de renderização igual em sistemas diferentes. A marca Junelo também usa texto real nessa família.
+A família dos textos é a do sistema: `system-ui`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `sans-serif`. O navegador escolhe a fonte disponível; não há download de SF Pro nem promessa de renderização igual em sistemas diferentes.
+
+A marca fica concentrada em [src/components/brand](src/components/brand): `index.tsx` expõe o componente `Brand`, `artwork.ts` contém os contornos aprovados e `brand.module.css` controla sua apresentação. `Brand` aplica a composição completa (Ju sobre nelo) no acesso, nos convites e na lateral desktop; a assinatura Ju aparece no cabeçalho compacto e na verificação de sessão. O nome acessível permanece Junelo. A cor `--brand-ink` é preto puro no tema claro e branco no escuro; cores forçadas usam `CanvasText`. Não há dependência de fonte ou imagem externa. O repositório mantém apenas os recursos usados pelo aplicativo; estudos e entregáveis ficam em `../design`, na raiz do workspace Junelo, fora deste repositório.
+
+Os arquivos de navegador e instalação ficam em `public/brand`. O favicon SVG acompanha Sistema ou a escolha manual do AppearanceProvider, inclusive na navegação e recarga; `public/favicon.ico` fornece o fallback. O [manifest](src/app/manifest.ts) usa Ju branco sobre preto nos ícones de instalação de 192/512 px, com arquivos separados para recorte maskable. O ícone Apple touch tem 180 px. Ícones de instalação têm fundo próprio de alto contraste; não mudam com a preferência de tema de uma página. O manifest registra identidade e ícones, sem adicionar cache offline ou service worker.
 
 A raiz mantém `100%`, e tamanhos em `rem` respeitam ampliação. A tabela documenta a escala extraída dos tokens; a definição executável continua em `tokens.css`.
 

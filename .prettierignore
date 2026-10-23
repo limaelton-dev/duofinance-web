@@ -15,3 +15,5 @@ next-env.d.ts
 .impeccable/config.local.json
 test-results/
 debug.log
+# Local design workspace, excluded from version control.
+design/

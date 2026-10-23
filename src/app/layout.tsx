@@ -14,6 +14,14 @@ export const metadata: Metadata = {
     },
     description: 'Seu espaço de organização financeira.',
     referrer: 'no-referrer',
+    icons: {
+        shortcut: '/favicon.ico',
+        apple: {
+            url: '/brand/apple-touch-icon.png',
+            sizes: '180x180',
+            type: 'image/png',
+        },
+    },
 };
 
 export const viewport: Viewport = {

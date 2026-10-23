@@ -13,7 +13,7 @@ import { useInvitationFlow } from '../hooks/use-invitation-flow';
 import { Button } from '@/components/ui/button';
 import styles from './spaces.module.css';
 import pageStyles from './invitation-review-page.module.css';
-import { Brand } from '@/components/patterns/brand';
+import { Brand } from '@/components/brand';
 
 export function InvitationReviewPage() {
     const flow = useInvitationFlowContext();

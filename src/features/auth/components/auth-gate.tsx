@@ -4,7 +4,7 @@ import { Fragment, useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Brand } from '@/components/patterns/brand';
+import { Brand } from '@/components/brand';
 
 import { useAuthenticatedContext } from '../hooks/use-authenticated-context';
 import styles from './auth-form.module.css';
@@ -33,7 +33,7 @@ export function AuthGate({ children }: AuthGateProps) {
                     className={styles.card}
                     aria-label="Verificando sessão"
                 >
-                    <Brand className={styles.brand} />
+                    <Brand variant="ju" />
                     <p role="status">Verificando sua sessão...</p>
                     <div className={gateStyles.skeleton} aria-hidden="true">
                         <Skeleton className={gateStyles.bar} />

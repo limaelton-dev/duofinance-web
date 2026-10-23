@@ -57,6 +57,11 @@ jobs:
         name: Interface mobile e desktop
         runs-on: ubuntu-24.04
         timeout-minutes: 15
+        container:
+            # Keep in sync with @playwright/test in package-lock.json.
+            # Browsers and OS dependencies are preinstalled to avoid slow apt mirrors.
+            image: mcr.microsoft.com/playwright:v1.63.0-noble
+            options: --init --ipc=host
         steps:
             - uses: actions/checkout@v7
               with:
@@ -66,9 +71,11 @@ jobs:
                   node-version-file: .nvmrc
                   cache: npm
             - run: npm ci
-            - run: npx playwright install --with-deps chromium firefox webkit
             - run: npm run test:interface
             - run: npm run test:controls
+              env:
+                  # Firefox requires HOME to belong to the container user (root).
+                  HOME: /root
 
     e2e:
         name: Jornadas com API (${{ matrix.group }})
