@@ -48,3 +48,5 @@ next-env.d.ts
 
 # Local brand explorations and deliverables are not application source.
 /design/
+AGENTS.md
+CLAUDE.md

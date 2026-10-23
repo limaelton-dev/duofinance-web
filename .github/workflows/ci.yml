@@ -73,6 +73,9 @@ jobs:
             - run: npm ci
             - run: npm run test:interface
             - run: npm run test:controls
+              env:
+                  # Firefox requires HOME to belong to the container user (root).
+                  HOME: /root
 
     e2e:
         name: Jornadas com API (${{ matrix.group }})
